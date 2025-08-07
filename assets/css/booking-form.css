@@ -4353,6 +4353,36 @@ body,
   font-weight: 500;
 }
 
+/* Personnalisation case à cocher RGPD */
+.ib-legal-checkbox input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.1em;
+  height: 1.1em;
+  border: 2px solid #d1d5db;
+  border-radius: 0;
+  background: #ffffff;
+  cursor: pointer;
+  position: relative;
+  transition: none;
+}
+
+.ib-legal-checkbox input[type="checkbox"]:checked {
+  background: #606060 !important;
+  border-color: #606060 !important;
+}
+
+.ib-legal-checkbox input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #f8f8f8;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
 input[type="checkbox"] {
   accent-color: #f8f8f8 !important;
 }

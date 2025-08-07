@@ -1,0 +1,5 @@
+Ajoutez la ligne suivante dans votre backoffice ou dans l'enqueue de votre plugin pour charger le style moderne des notifications :
+
+wp_enqueue_style('ib-notif-modern', plugins_url('assets/css/ib-notif-modern.css', __FILE__), array(), null);
+
+Vous pouvez aussi personnaliser les couleurs et arrondis dans le fichier CSS.

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Correction Z-Index Ligne de Progression</title>
+    <link rel="stylesheet" href="assets/css/booking-form.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8f9fa;
+        }
+        
+        .demo-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .demo-header {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .demo-header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .demo-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        
+        .progress-demo {
+            background: white;
+            padding: 0;
+        }
+        
+        .test-controls {
+            padding: 2rem;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .fix-explanation {
+            background: #dcfce7;
+            border: 1px solid #16a34a;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            color: #14532d;
+        }
+        
+        .fix-explanation h4 {
+            margin: 0 0 1rem 0;
+            color: #15803d;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .z-index-table {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        
+        .z-index-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .z-index-table th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .z-index-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .z-index-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .z-value {
+            font-family: 'Courier New', monospace;
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .z-value.fixed {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .test-button {
+            padding: 0.75rem 1rem;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .test-button:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+        
+        .test-button.active {
+            background: #991b1b;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+        
+        .visual-check {
+            background: #eff6ff;
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            color: #1e40af;
+        }
+        
+        .visual-check h4 {
+            margin: 0 0 1rem 0;
+            color: #1d4ed8;
+            font-size: 1rem;
+        }
+        
+        .visual-check ul {
+            margin: 0;
+            padding-left: 1.2rem;
+            line-height: 1.6;
+        }
+        
+        .visual-check li {
+            margin-bottom: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .test-buttons {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            
+            .z-index-table {
+                font-size: 0.9rem;
+            }
+            
+            .z-index-table th,
+            .z-index-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🔧 Correction Z-Index</h1>
+            <p>Ligne de progression derrière les cercles</p>
+        </div>
+        
+        <div class="progress-demo">
+            <div class="planity-progress-bar">
+                <div class="ib-stepper-main">
+                    <div class="ib-step completed">
+                        <div class="ib-step-circle">✓</div>
+                        <div class="ib-step-label">Préstation</div>
+                    </div>
+                    <div class="ib-step completed">
+                        <div class="ib-step-circle">✓</div>
+                        <div class="ib-step-label">Praticienne</div>
+                    </div>
+                    <div class="ib-step completed">
+                        <div class="ib-step-circle">✓</div>
+                        <div class="ib-step-label">Date & Heure</div>
+                    </div>
+                    <div class="ib-step active">
+                        <div class="ib-step-circle">4</div>
+                        <div class="ib-step-label">Informations</div>
+                    </div>
+                    <div class="ib-step">
+                        <div class="ib-step-circle">5</div>
+                        <div class="ib-step-label">Confirmation</div>
+                    </div>
+                    <div class="ib-stepper-progress" id="progress-bar" style="width: 75%;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-controls">
+            <div class="fix-explanation">
+                <h4>✅ Problème Résolu</h4>
+                <p><strong>Avant :</strong> La ligne noire de progression apparaissait au-dessus des cercles et masquait les icônes.</p>
+                <p><strong>Après :</strong> La ligne est maintenant correctement positionnée en arrière-plan, derrière tous les éléments.</p>
+            </div>
+            
+            <div class="z-index-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Élément</th>
+                            <th>Z-Index Avant</th>
+                            <th>Z-Index Après</th>
+                            <th>Position</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Cercles (.ib-step-circle)</strong></td>
+                            <td><span class="z-value">3</span></td>
+                            <td><span class="z-value">3</span></td>
+                            <td>Premier plan ✅</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Étapes (.ib-step)</strong></td>
+                            <td><span class="z-value">2</span></td>
+                            <td><span class="z-value">2</span></td>
+                            <td>Deuxième plan ✅</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ligne de fond (::before)</strong></td>
+                            <td><span class="z-value">1</span></td>
+                            <td><span class="z-value">1</span></td>
+                            <td>Troisième plan ✅</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ligne de progression</strong></td>
+                            <td><span class="z-value">1</span></td>
+                            <td><span class="z-value fixed">0</span></td>
+                            <td>Arrière-plan ✅</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="visual-check">
+                <h4>🔍 Vérification Visuelle</h4>
+                <ul>
+                    <li><strong>Cercles visibles</strong> : Les icônes et numéros sont parfaitement visibles</li>
+                    <li><strong>Ligne en arrière</strong> : La progression noire reste derrière les cercles</li>
+                    <li><strong>Pas de masquage</strong> : Aucun élément n'est caché par la ligne</li>
+                    <li><strong>Hiérarchie correcte</strong> : L'ordre d'affichage respecte la logique</li>
+                </ul>
+            </div>
+            
+            <div class="test-buttons">
+                <button class="test-button" onclick="setStep(1)" data-step="1">Étape 1</button>
+                <button class="test-button" onclick="setStep(2)" data-step="2">Étape 2</button>
+                <button class="test-button" onclick="setStep(3)" data-step="3">Étape 3</button>
+                <button class="test-button active" onclick="setStep(4)" data-step="4">Étape 4</button>
+                <button class="test-button" onclick="setStep(5)" data-step="5">Étape 5</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setStep(step) {
+            const steps = document.querySelectorAll('.ib-step');
+            const progressBar = document.getElementById('progress-bar');
+            const buttons = document.querySelectorAll('.test-button');
+            
+            // Mettre à jour les boutons
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                if (parseInt(btn.dataset.step) === step) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Mettre à jour les étapes
+            steps.forEach((stepEl, index) => {
+                const stepNumber = index + 1;
+                const circle = stepEl.querySelector('.ib-step-circle');
+                
+                stepEl.classList.remove('active', 'completed');
+                
+                if (stepNumber < step) {
+                    stepEl.classList.add('completed');
+                    circle.textContent = '✓';
+                } else if (stepNumber === step) {
+                    stepEl.classList.add('active');
+                    circle.textContent = stepNumber;
+                } else {
+                    circle.textContent = stepNumber;
+                }
+            });
+            
+            // Mettre à jour la barre de progression
+            const progressWidth = ((step - 1) / (steps.length - 1)) * 100;
+            progressBar.style.width = progressWidth + '%';
+            
+            console.log(`Étape ${step} activée - Progression: ${progressWidth}%`);
+        }
+        
+        // Initialiser à l'étape 4
+        setStep(4);
+    </script>
+</body>
+</html>

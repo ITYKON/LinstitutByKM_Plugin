@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Couleurs des Labels comme l'Image de Référence</title>
+    <link rel="stylesheet" href="assets/css/booking-form.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8f9fa;
+        }
+        
+        .demo-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .demo-header {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .demo-header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .demo-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        
+        .progress-demo {
+            background: white;
+            padding: 0;
+        }
+        
+        .test-controls {
+            padding: 2rem;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .color-specs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .color-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .color-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 1rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .color-preview.future {
+            background: #9ca3af;
+        }
+        
+        .color-preview.active {
+            background: #000000;
+        }
+        
+        .color-preview.completed {
+            background: #6b7280;
+        }
+        
+        .color-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+        }
+        
+        .color-code {
+            font-family: 'Courier New', monospace;
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        
+        .color-description {
+            font-size: 0.85rem;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+        
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .test-button {
+            padding: 0.75rem 1rem;
+            background: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .test-button:hover {
+            background: #2d3748;
+            transform: translateY(-1px);
+        }
+        
+        .test-button.active {
+            background: #1a202c;
+            box-shadow: 0 4px 12px rgba(74, 85, 104, 0.3);
+        }
+        
+        .comparison-note {
+            background: #eff6ff;
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            color: #1e40af;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .comparison-note h4 {
+            margin: 0 0 1rem 0;
+            color: #1d4ed8;
+            font-size: 1rem;
+        }
+        
+        .comparison-note ul {
+            margin: 0;
+            padding-left: 1.2rem;
+        }
+        
+        .comparison-note li {
+            margin-bottom: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .color-specs {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+            
+            .test-buttons {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🎨 Couleurs des Labels</h1>
+            <p>Identiques à l'image de référence</p>
+        </div>
+        
+        <div class="progress-demo">
+            <div class="planity-progress-bar">
+                <div class="ib-stepper-main">
+                    <div class="ib-step completed">
+                        <div class="ib-step-circle">✓</div>
+                        <div class="ib-step-label">Préstation</div>
+                    </div>
+                    <div class="ib-step completed">
+                        <div class="ib-step-circle">✓</div>
+                        <div class="ib-step-label">Praticienne</div>
+                    </div>
+                    <div class="ib-step active">
+                        <div class="ib-step-circle">3</div>
+                        <div class="ib-step-label">Date & Heure</div>
+                    </div>
+                    <div class="ib-step">
+                        <div class="ib-step-circle">4</div>
+                        <div class="ib-step-label">Informations</div>
+                    </div>
+                    <div class="ib-step">
+                        <div class="ib-step-circle">5</div>
+                        <div class="ib-step-label">Confirmation</div>
+                    </div>
+                    <div class="ib-stepper-progress" id="progress-bar" style="width: 50%;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-controls">
+            <div class="color-specs">
+                <div class="color-card">
+                    <div class="color-preview future">4</div>
+                    <div class="color-title">Étapes Futures</div>
+                    <div class="color-code">#9ca3af</div>
+                    <div class="color-description">Gris clair pour les étapes non encore atteintes</div>
+                </div>
+                
+                <div class="color-card">
+                    <div class="color-preview active">3</div>
+                    <div class="color-title">Étape Active</div>
+                    <div class="color-code">#000000</div>
+                    <div class="color-description">Noir pur pour l'étape en cours, font-weight: 600</div>
+                </div>
+                
+                <div class="color-card">
+                    <div class="color-preview completed">✓</div>
+                    <div class="color-title">Étapes Complétées</div>
+                    <div class="color-code">#6b7280</div>
+                    <div class="color-description">Gris moyen pour les étapes terminées</div>
+                </div>
+            </div>
+            
+            <div class="comparison-note">
+                <h4>✅ Correspondance avec l'Image de Référence</h4>
+                <ul>
+                    <li><strong>Étapes futures</strong> : Même gris clair discret (#9ca3af)</li>
+                    <li><strong>Étape active</strong> : Noir intense pour maximum de contraste (#000000)</li>
+                    <li><strong>Étapes complétées</strong> : Gris moyen bien visible (#6b7280)</li>
+                    <li><strong>Font-weight</strong> : Renforcé pour l'étape active (600 au lieu de 500)</li>
+                </ul>
+            </div>
+            
+            <div class="test-buttons">
+                <button class="test-button" onclick="setStep(1)" data-step="1">Étape 1</button>
+                <button class="test-button" onclick="setStep(2)" data-step="2">Étape 2</button>
+                <button class="test-button active" onclick="setStep(3)" data-step="3">Étape 3</button>
+                <button class="test-button" onclick="setStep(4)" data-step="4">Étape 4</button>
+                <button class="test-button" onclick="setStep(5)" data-step="5">Étape 5</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setStep(step) {
+            const steps = document.querySelectorAll('.ib-step');
+            const progressBar = document.getElementById('progress-bar');
+            const buttons = document.querySelectorAll('.test-button');
+            
+            // Mettre à jour les boutons
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                if (parseInt(btn.dataset.step) === step) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Mettre à jour les étapes
+            steps.forEach((stepEl, index) => {
+                const stepNumber = index + 1;
+                const circle = stepEl.querySelector('.ib-step-circle');
+                
+                stepEl.classList.remove('active', 'completed');
+                
+                if (stepNumber < step) {
+                    stepEl.classList.add('completed');
+                    circle.textContent = '✓';
+                } else if (stepNumber === step) {
+                    stepEl.classList.add('active');
+                    circle.textContent = stepNumber;
+                } else {
+                    circle.textContent = stepNumber;
+                }
+            });
+            
+            // Mettre à jour la barre de progression
+            const progressWidth = ((step - 1) / (steps.length - 1)) * 100;
+            progressBar.style.width = progressWidth + '%';
+            
+            console.log(`Étape ${step} activée - Progression: ${progressWidth}%`);
+        }
+        
+        // Initialiser à l'étape 3
+        setStep(3);
+    </script>
+</body>
+</html>

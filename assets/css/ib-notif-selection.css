@@ -1,0 +1,458 @@
+/* ===== STYLES DE SÉLECTION MULTIPLE ===== */
+/* Design moderne et accessible pour la sélection multiple de notifications */
+
+/* Conteneur des actions de sélection */
+.ib-notif-selection-actions {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  background: var(--notif-white);
+  padding: 8px 24px;
+  border-radius: 50px;
+  box-shadow: var(--notif-shadow-lg);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  align-items: center;
+  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--notif-gray-200);
+  outline: none;
+}
+
+.ib-notif-selection-actions.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  bottom: 32px;
+}
+
+/* Bouton d'action */
+.ib-notif-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  gap: 6px;
+  background: var(--notif-gray-100);
+  color: var(--notif-gray-700);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Effet de focus visible pour l'accessibilité */
+.ib-notif-action-btn:focus-visible {
+  outline: 2px solid var(--notif-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+/* Effet de vague au clic */
+.ib-notif-action-btn::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.8) 10%, transparent 10.01%) no-repeat 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform 0.5s, opacity 1s;
+  pointer-events: none;
+}
+
+.ib-notif-action-btn:active::after {
+  transform: scale(0, 0);
+  opacity: 0.3;
+  transition: 0s;
+}
+
+.ib-notif-action-btn.primary {
+  background: var(--notif-primary);
+  color: white;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+}
+
+.ib-notif-action-btn.primary:hover {
+  background: var(--notif-primary-dark);
+  transform: translateY(-1px);
+}
+
+.ib-notif-action-btn.danger {
+  background: var(--notif-error-light);
+  color: var(--notif-error-600);
+}
+
+.ib-notif-action-btn.danger:hover {
+  background: var(--notif-error-100);
+  transform: translateY(-1px);
+}
+
+.ib-notif-action-btn .dashicons {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Compteur de sélection */
+.ib-notif-selection-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--notif-gray-700);
+  margin-right: 8px;
+  min-width: 80px;
+}
+
+/* Carte de notification en mode sélection */
+.ib-notif-card.selectable {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.ib-notif-card.selectable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--notif-shadow-md);
+}
+
+.ib-notif-card.selectable::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: var(--notif-radius-lg);
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease;
+  pointer-events: none;
+}
+
+.ib-notif-card.selectable.selected {
+  background-color: var(--notif-primary-50);
+  border-color: var(--notif-primary-100);
+}
+
+.ib-notif-card.selectable.selected::before {
+  border-color: var(--notif-primary);
+}
+
+/* Checkbox personnalisé */
+.ib-notif-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.ib-notif-checkbox-label {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 2px solid var(--notif-gray-300);
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.ib-notif-checkbox:checked + .ib-notif-checkbox-label {
+  background: var(--notif-primary);
+  border-color: var(--notif-primary);
+}
+
+.ib-notif-checkbox:checked + .ib-notif-checkbox-label::after {
+  content: '✓';
+  position: absolute;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Animation de sélection */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+.ib-notif-card.selectable.selected {
+  animation: pulse 0.5s ease;
+}
+
+/* Styles pour le bouton "Tout supprimer" */
+.ib-notif-action-btn.danger.delete-all {
+  background: var(--notif-error-50);
+  color: var(--notif-error-600);
+  border: 2px solid var(--notif-error-200);
+}
+
+.ib-notif-action-btn.danger.delete-all:hover {
+  background: var(--notif-error-100);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+}
+
+/* Styles pour les messages de notification */
+.ib-notif-notice {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  max-width: 380px;
+  width: calc(100% - 48px);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.ib-notif-notice.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.ib-notif-notice-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--notif-shadow-lg);
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  border-left: 4px solid var(--notif-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.ib-notif-notice-icon {
+  margin-right: 12px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ib-notif-notice-icon .dashicons {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.ib-notif-notice-message {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--notif-gray-800);
+}
+
+.ib-notif-notice-dismiss {
+  background: none;
+  border: none;
+  color: var(--notif-gray-400);
+  cursor: pointer;
+  padding: 0;
+  margin-left: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.ib-notif-notice-dismiss:hover {
+  color: var(--notif-gray-600);
+}
+
+.ib-notif-notice-dismiss .dashicons {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+}
+
+/* Styles spécifiques aux types de notification */
+.ib-notif-notice-success {
+  border-left-color: var(--notif-success);
+}
+
+.ib-notif-notice-success .ib-notif-notice-icon {
+  color: var(--notif-success);
+}
+
+.ib-notif-notice-error {
+  border-left-color: var(--notif-error);
+}
+
+.ib-notif-notice-error .ib-notif-notice-icon {
+  color: var(--notif-error);
+}
+
+.ib-notif-notice-warning {
+  border-left-color: var(--notif-warning);
+}
+
+.ib-notif-notice-warning .ib-notif-notice-icon {
+  color: var(--notif-warning);
+}
+
+.ib-notif-notice-info {
+  border-left-color: var(--notif-info);
+}
+
+.ib-notif-notice-info .ib-notif-notice-icon {
+  color: var(--notif-info);
+}
+
+/* Indicateur de chargement */
+.ib-notif-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50px;
+  z-index: 1;
+}
+
+.ib-notif-loading .spinner {
+  margin: 0;
+  float: none;
+  width: 20px;
+  height: 20px;
+}
+
+/* Animation de secousse pour le feedback */
+@keyframes shake {
+  0%, 100% { transform: translateX(0) translateY(0) translateZ(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px) translateY(0) translateZ(0); }
+  20%, 40%, 60%, 80% { transform: translateX(5px) translateY(0) translateZ(0); }
+}
+
+.ib-notif-selection-actions.shake {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Amélioration du focus pour l'accessibilité */
+.ib-notif-card:focus-visible {
+  outline: 2px solid var(--notif-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+  z-index: 1;
+}
+
+/* Mode sombre */
+@media (prefers-color-scheme: dark) {
+  .ib-notif-selection-actions {
+    background-color: rgba(30, 41, 59, 0.95);
+    border-color: var(--notif-gray-700);
+  }
+  
+  .ib-notif-action-btn {
+    background: var(--notif-gray-800);
+    color: var(--notif-gray-200);
+  }
+  
+  .ib-notif-card.selectable.selected {
+    background-color: rgba(79, 70, 229, 0.1);
+    border-color: var(--notif-primary-700);
+  }
+}
+
+/* Styles pour les états de sélection */
+.ib-notif-card[aria-selected="true"] {
+  background-color: var(--notif-primary-50);
+  border-color: var(--notif-primary-100);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+}
+
+/* Amélioration de l'accessibilité pour les lecteurs d'écran */
+.screen-reader-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* Amélioration du contraste pour l'accessibilité */
+.ib-notif-action-btn.primary {
+  background: var(--notif-primary);
+  color: white;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+  border-color: var(--notif-primary-dark);
+}
+
+.ib-notif-action-btn.danger {
+  background: var(--notif-error-light);
+  color: var(--notif-error-700);
+  border-color: var(--notif-error-300);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .ib-notif-selection-actions {
+    width: calc(100% - 32px);
+    justify-content: space-between;
+    padding: 8px 16px;
+  }
+  
+  .ib-notif-selection-count {
+    min-width: auto;
+    margin-right: 0;
+  }
+  
+  .ib-notif-action-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .ib-notif-action-btn .dashicons {
+    margin-right: 0;
+  }
+  
+  .ib-notif-action-btn .text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+  
+  .ib-notif-action-btn::before {
+    content: attr(aria-label);
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+}

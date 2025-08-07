@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Démonstration - Correction Barre de Progression Mobile</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .demo-header {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .demo-header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .demo-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .comparison-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+        }
+        
+        .before-after {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .before-after.before {
+            border-color: #ef4444;
+        }
+        
+        .before-after.after {
+            border-color: #10b981;
+        }
+        
+        .section-header {
+            padding: 1rem;
+            font-weight: 600;
+            text-align: center;
+            color: white;
+        }
+        
+        .before .section-header {
+            background: #ef4444;
+        }
+        
+        .after .section-header {
+            background: #10b981;
+        }
+        
+        .mobile-simulator {
+            width: 375px;
+            margin: 1rem auto;
+            background: #f8f9fa;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mobile-content {
+            background: white;
+            padding: 1rem;
+        }
+        
+        /* Styles AVANT (problématiques) */
+        .progress-bar-before {
+            background: white;
+            padding: 30px 15px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .progress-bar-before .stepper-main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 0 10px;
+            gap: 5px;
+            max-width: 100%;
+        }
+        
+        .progress-bar-before .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 0 0 auto;
+            position: relative;
+            z-index: 2;
+            width: 60px;
+            margin: 0 1px;
+        }
+        
+        .progress-bar-before .step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .progress-bar-before .step.active .step-circle {
+            background: #2c3e50;
+            color: white;
+        }
+        
+        .progress-bar-before .step.completed .step-circle {
+            background: #374151;
+            color: white;
+        }
+        
+        .progress-bar-before .step-label {
+            font-size: 10px;
+            color: #6c757d;
+            text-align: center;
+            font-weight: 500;
+            line-height: 1.2;
+            max-width: 55px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            padding: 0 2px;
+        }
+        
+        .progress-bar-before .step.active .step-label {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        /* Styles APRÈS (corrigés) */
+        .progress-bar-after {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 1.5rem 1rem;
+            border-top: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(12px);
+        }
+        
+        .progress-bar-after .stepper-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0;
+        }
+        
+        .progress-bar-after .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .progress-bar-after .step-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #f5f5f5;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1rem;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-bar-after .step.active .step-circle {
+            background: #1f2937;
+            color: white;
+            border-color: #1f2937;
+            transform: scale(1.1);
+            box-shadow: 0 4px 16px rgba(31, 41, 55, 0.3);
+        }
+        
+        .progress-bar-after .step.completed .step-circle {
+            background: #374151;
+            color: white;
+            border-color: #374151;
+            box-shadow: 0 2px 12px rgba(55, 65, 81, 0.2);
+        }
+        
+        .progress-bar-after .step-label {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            text-align: center;
+            font-weight: 500;
+            line-height: 1.2;
+            transition: all 0.4s ease;
+            white-space: nowrap;
+        }
+        
+        .progress-bar-after .step.active .step-label {
+            color: #1f2937;
+            font-weight: 700;
+            transform: translateY(-2px);
+        }
+        
+        .progress-bar-after .step.completed .step-label {
+            color: #374151;
+            font-weight: 600;
+        }
+        
+        /* Ligne de progression */
+        .stepper-main {
+            position: relative;
+        }
+        
+        .stepper-main::before {
+            content: "";
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            height: 2px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            z-index: 1;
+        }
+        
+        .progress-bar-after .stepper-main::before {
+            top: 24px;
+            left: 24px;
+            right: 24px;
+            height: 3px;
+        }
+        
+        .stepper-progress {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            height: 2px;
+            background: #374151;
+            border-radius: 2px;
+            transition: width 0.6s ease;
+            z-index: 1;
+            width: 75%;
+        }
+        
+        .progress-bar-after .stepper-progress {
+            top: 24px;
+            left: 24px;
+            height: 3px;
+        }
+        
+        .issues-list {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem;
+        }
+        
+        .issues-list h4 {
+            color: #dc2626;
+            margin: 0 0 0.5rem 0;
+            font-size: 0.9rem;
+        }
+        
+        .issues-list ul {
+            margin: 0;
+            padding-left: 1.2rem;
+            font-size: 0.85rem;
+            color: #7f1d1d;
+        }
+        
+        .improvements-list {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem;
+        }
+        
+        .improvements-list h4 {
+            color: #16a34a;
+            margin: 0 0 0.5rem 0;
+            font-size: 0.9rem;
+        }
+        
+        .improvements-list ul {
+            margin: 0;
+            padding-left: 1.2rem;
+            font-size: 0.85rem;
+            color: #14532d;
+        }
+        
+        .summary {
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .summary h3 {
+            color: #1e293b;
+            margin: 0 0 1rem 0;
+        }
+        
+        .summary p {
+            color: #64748b;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-section {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .mobile-simulator {
+                width: 100%;
+                max-width: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🔧 Correction Barre de Progression Mobile</h1>
+            <p>Transformation d'une barre compacte vers un style desktop unifié</p>
+        </div>
+        
+        <div class="comparison-section">
+            <div class="before-after before">
+                <div class="section-header">
+                    ❌ AVANT - Version Mobile Compacte
+                </div>
+                
+                <div class="mobile-simulator">
+                    <div class="mobile-content">
+                        <div class="progress-bar-before">
+                            <div class="stepper-main">
+                                <div class="step completed">
+                                    <div class="step-circle">✓</div>
+                                    <div class="step-label">Prestat...</div>
+                                </div>
+                                <div class="step completed">
+                                    <div class="step-circle">✓</div>
+                                    <div class="step-label">Pratic...</div>
+                                </div>
+                                <div class="step completed">
+                                    <div class="step-circle">✓</div>
+                                    <div class="step-label">Date &...</div>
+                                </div>
+                                <div class="step active">
+                                    <div class="step-circle">4</div>
+                                    <div class="step-label">Inform...</div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-circle">5</div>
+                                    <div class="step-label">Confir...</div>
+                                </div>
+                                <div class="stepper-progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="issues-list">
+                    <h4>🚨 Problèmes identifiés :</h4>
+                    <ul>
+                        <li>Cercles trop petits (32px)</li>
+                        <li>Labels tronqués avec "..."</li>
+                        <li>Police trop petite (10px)</li>
+                        <li>Espacement serré (gap: 5px)</li>
+                        <li>Style différent du desktop</li>
+                        <li>Difficile à lire sur mobile</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="before-after after">
+                <div class="section-header">
+                    ✅ APRÈS - Style Desktop Unifié
+                </div>
+                
+                <div class="mobile-simulator">
+                    <div class="mobile-content">
+                        <div class="progress-bar-after">
+                            <div class="stepper-main">
+                                <div class="step completed">
+                                    <div class="step-circle">✓</div>
+                                    <div class="step-label">Prestation</div>
+                                </div>
+                                <div class="step completed">
+                                    <div class="step-circle">✓</div>
+                                    <div class="step-label">Praticienne</div>
+                                </div>
+                                <div class="step completed">
+                                    <div class="step-circle">✓</div>
+                                    <div class="step-label">Date & Heure</div>
+                                </div>
+                                <div class="step active">
+                                    <div class="step-circle">4</div>
+                                    <div class="step-label">Informations</div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-circle">5</div>
+                                    <div class="step-label">Confirmation</div>
+                                </div>
+                                <div class="stepper-progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="improvements-list">
+                    <h4>🎯 Améliorations apportées :</h4>
+                    <ul>
+                        <li>Cercles identiques au desktop (48px)</li>
+                        <li>Labels complets et lisibles</li>
+                        <li>Police optimisée (0.85rem)</li>
+                        <li>Espacement uniforme (space-between)</li>
+                        <li>Style 100% cohérent</li>
+                        <li>Expérience utilisateur améliorée</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="summary">
+            <h3>🚀 Résultat Final</h3>
+            <p>
+                La barre de progression mobile offre maintenant une expérience identique au desktop,
+                avec une lisibilité parfaite et un design cohérent sur toutes les plateformes.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Ligne de Progression Sans Traverser les Cercles</title>
+    <link rel="stylesheet" href="assets/css/booking-form.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8f9fa;
+        }
+        
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .demo-header {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .demo-header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .demo-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+        }
+        
+        .comparison-item {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .comparison-item.before {
+            border-color: #ef4444;
+        }
+        
+        .comparison-item.after {
+            border-color: #10b981;
+        }
+        
+        .comparison-header {
+            padding: 1rem;
+            font-weight: 600;
+            text-align: center;
+            color: white;
+            font-size: 0.9rem;
+        }
+        
+        .before .comparison-header {
+            background: #ef4444;
+        }
+        
+        .after .comparison-header {
+            background: #10b981;
+        }
+        
+        .mobile-simulator {
+            width: 350px;
+            margin: 1rem auto;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mobile-content {
+            padding: 0;
+        }
+        
+        /* Style AVANT (ligne traverse les cercles) */
+        .progress-before {
+            background: white;
+            padding: 20px 15px;
+        }
+        
+        .progress-before .stepper-main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 0 10px;
+            gap: 8px;
+        }
+        
+        .progress-before .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex: 0 0 auto;
+            position: relative;
+            z-index: 2;
+            width: 60px;
+        }
+        
+        .progress-before .step-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .progress-before .step.active .step-circle {
+            background: #4a5568;
+            color: white;
+        }
+        
+        .progress-before .step.completed .step-circle {
+            background: #4a5568;
+            color: white;
+        }
+        
+        .progress-before .step-label {
+            font-size: 11px;
+            color: #9ca3af;
+            text-align: center;
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 55px;
+        }
+        
+        .progress-before .step.active .step-label {
+            color: #4a5568;
+            font-weight: 500;
+        }
+        
+        .progress-before .step.completed .step-label {
+            color: #4a5568;
+            font-weight: 500;
+        }
+        
+        /* Ligne AVANT (traverse les cercles) */
+        .progress-before .stepper-main::before {
+            content: "";
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            right: 18px;
+            height: 2px;
+            background: #e5e7eb;
+            border-radius: 1px;
+            z-index: 1;
+        }
+        
+        .progress-before .stepper-progress {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            height: 2px;
+            background: #4a5568;
+            border-radius: 1px;
+            z-index: 1;
+            width: 25%;
+        }
+        
+        .test-controls {
+            padding: 2rem;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .test-button {
+            padding: 0.75rem 1.5rem;
+            background: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .test-button:hover {
+            background: #2d3748;
+            transform: translateY(-1px);
+        }
+        
+        .improvement-note {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: #14532d;
+            text-align: center;
+        }
+        
+        .improvement-note strong {
+            color: #16a34a;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .mobile-simulator {
+                width: 100%;
+                max-width: 320px;
+            }
+            
+            .test-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🔧 Correction Ligne de Progression</h1>
+            <p>La ligne ne traverse plus les cercles, comme dans l'image de référence</p>
+        </div>
+        
+        <div class="comparison-grid">
+            <div class="comparison-item before">
+                <div class="comparison-header">
+                    ❌ AVANT - Ligne traverse les cercles
+                </div>
+                
+                <div class="mobile-simulator">
+                    <div class="mobile-content">
+                        <div class="progress-before">
+                            <div class="stepper-main">
+                                <div class="step completed">
+                                    <div class="step-circle">✓</div>
+                                    <div class="step-label">Prestation</div>
+                                </div>
+                                <div class="step active">
+                                    <div class="step-circle">2</div>
+                                    <div class="step-label">Praticie...</div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-circle">3</div>
+                                    <div class="step-label">Date & H...</div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-circle">4</div>
+                                    <div class="step-label">Informat...</div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-circle">5</div>
+                                    <div class="step-label">Confirma...</div>
+                                </div>
+                                <div class="stepper-progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="comparison-item after">
+                <div class="comparison-header">
+                    ✅ APRÈS - Ligne s'arrête aux bords des cercles
+                </div>
+                
+                <div class="mobile-simulator">
+                    <div class="mobile-content">
+                        <div class="planity-progress-bar">
+                            <div class="ib-stepper-main">
+                                <div class="ib-step completed">
+                                    <div class="ib-step-circle">✓</div>
+                                    <div class="ib-step-label">Prestation</div>
+                                </div>
+                                <div class="ib-step active">
+                                    <div class="ib-step-circle">2</div>
+                                    <div class="ib-step-label">Praticie...</div>
+                                </div>
+                                <div class="ib-step">
+                                    <div class="ib-step-circle">3</div>
+                                    <div class="ib-step-label">Date & H...</div>
+                                </div>
+                                <div class="ib-step">
+                                    <div class="ib-step-circle">4</div>
+                                    <div class="ib-step-label">Informat...</div>
+                                </div>
+                                <div class="ib-step">
+                                    <div class="ib-step-circle">5</div>
+                                    <div class="ib-step-label">Confirma...</div>
+                                </div>
+                                <div class="ib-stepper-progress" id="progress-bar" style="width: 25%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-controls">
+            <div class="test-buttons">
+                <button class="test-button" onclick="setStep(1)">Étape 1</button>
+                <button class="test-button" onclick="setStep(2)">Étape 2</button>
+                <button class="test-button" onclick="setStep(3)">Étape 3</button>
+                <button class="test-button" onclick="setStep(4)">Étape 4</button>
+                <button class="test-button" onclick="setStep(5)">Étape 5</button>
+            </div>
+            
+            <div class="improvement-note">
+                <strong>✅ Amélioration :</strong> La ligne de progression s'arrête maintenant aux bords des cercles 
+                au lieu de les traverser, créant un rendu plus propre et professionnel comme dans l'image de référence.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setStep(step) {
+            const steps = document.querySelectorAll('.ib-step');
+            const progressBar = document.getElementById('progress-bar');
+            
+            steps.forEach((stepEl, index) => {
+                const stepNumber = index + 1;
+                const circle = stepEl.querySelector('.ib-step-circle');
+                
+                stepEl.classList.remove('active', 'completed');
+                
+                if (stepNumber < step) {
+                    stepEl.classList.add('completed');
+                    circle.textContent = '✓';
+                } else if (stepNumber === step) {
+                    stepEl.classList.add('active');
+                    circle.textContent = stepNumber;
+                } else {
+                    circle.textContent = stepNumber;
+                }
+            });
+            
+            // Mettre à jour la barre de progression
+            const progressWidth = ((step - 1) / (steps.length - 1)) * 100;
+            progressBar.style.width = progressWidth + '%';
+            
+            console.log(`Étape ${step} activée - Progression: ${progressWidth}%`);
+        }
+        
+        // Initialiser à l'étape 2
+        setStep(2);
+    </script>
+</body>
+</html>

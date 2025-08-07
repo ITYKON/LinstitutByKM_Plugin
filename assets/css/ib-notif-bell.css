@@ -1,0 +1,651 @@
+/* ===== PANEL DE NOTIFICATIONS MODERNE & MINIMALISTE ===== */
+
+/* Variables CSS pour la cohérence */
+:root {
+    --ib-primary: #f8b4bc;
+    --ib-primary-light: #fce4e8;
+    --ib-secondary: #f4f6fb;
+    --ib-text: #2d3748;
+    --ib-text-light: #ebebeb;
+    --ib-border: #e2e8f0;
+    --ib-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --ib-radius: 16px;
+    --ib-radius-sm: 12px;
+    --ib-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== CLOCHE DE NOTIFICATIONS DANS LE HEADER ===== */
+.ib-notif-bell {
+
+:root {
+    --ib-primary: #e8b4cb;
+    --ib-primary-light: #f7e8f0;
+    --ib-primary-dark: #d89bb5;
+    --ib-primary-hover: #e5a7c1;
+    --ib-secondary: #faf7f8;
+    --ib-text: #374151;
+    --ib-text-light: #9ca3af;
+    --ib-border: #f3f4f6;
+    --ib-shadow: 0 6px 24px rgba(232, 180, 203, 0.15);
+    --ib-radius: 20px;
+    --ib-radius-sm: 14px;
+    --ib-transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.ib-notif-bell-btn {
+    background: transparent;
+    border: none;
+    color: var(--ib-text);
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--ib-transition);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ib-notif-bell-btn:hover {
+    background: var(--ib-primary-light);
+    color: var(--ib-primary);
+    transform: scale(1.05);
+
+.ib-notif-bell-btn {
+    background: var(--ib-secondary);
+    border: none;
+    color: var(--ib-primary-dark);
+    padding: 10px;
+    border-radius: var(--ib-radius);
+    cursor: pointer;
+    transition: var(--ib-transition);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--ib-shadow);
+}
+
+.ib-notif-bell-btn:hover {
+    background: var(--ib-primary-light);
+    color: var(--ib-primary-hover);
+    transform: scale(1.08);
+    box-shadow: 0 8px 32px rgba(232,180,203,0.18);
+}
+}
+
+.ib-notif-bell-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 1.5;
+
+.ib-notif-bell-btn svg {
+    width: 22px;
+    height: 22px;
+    stroke: var(--ib-primary-dark);
+    stroke-width: 1.7;
+    fill: none;
+    transition: var(--ib-transition);
+}
+    fill: none;
+}
+
+.ib-notif-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+.ib-notif-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: var(--ib-primary);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+    min-width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--ib-secondary);
+    box-shadow: 0 4px 12px rgba(232,180,203,0.18);
+    letter-spacing: 0.5px;
+    transition: var(--ib-transition);
+}
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== PANEL PRINCIPAL ===== */
+
+.ib-notif-bell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-right: 2rem;
+}
+.ib-notif-panel {
+    position: fixed;
+    top: 80px;
+    right: 24px;
+    width: 420px;
+    max-height: calc(100vh - 120px);
+    background: #ffffff;
+    border-radius: var(--ib-radius);
+    box-shadow: var(--ib-shadow);
+    border: 1px solid var(--ib-border);
+    z-index: 9999;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow: hidden;
+    transform: translateX(100%);
+    transition: var(--ib-transition);
+}
+
+.ib-notif-panel.active {
+    transform: translateX(0);
+}
+
+/* ===== HEADER DU PANEL ===== */
+.ib-notif-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--ib-border);
+    background: linear-gradient(135deg, var(--ib-primary-light) 0%, #ffffff 100%);
+}
+
+.ib-notif-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.ib-notif-title h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ib-text);
+    margin: 0;
+}
+
+.ib-notif-count {
+    background: var(--ib-primary);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ib-notif-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.ib-notif-btn {
+    background: transparent;
+    border: 1px solid var(--ib-border);
+    padding: 6px 12px;
+    border-radius: var(--ib-radius-sm);
+    font-size: 12px;
+    color: var(--ib-text-light);
+    cursor: pointer;
+    transition: var(--ib-transition);
+    font-weight: 500;
+}
+
+.ib-notif-btn:hover {
+    background: var(--ib-secondary);
+    border-color: var(--ib-primary);
+    color: var(--ib-text);
+}
+
+.ib-notif-btn.primary {
+    background: var(--ib-primary);
+    border-color: var(--ib-primary);
+    color: white;
+}
+
+.ib-notif-btn.primary:hover {
+    background: #e8a3ac;
+}
+
+/* ===== FILTRES ET ONGLETS ===== */
+.ib-notif-filters {
+    display: flex;
+    gap: 2px;
+    margin-top: 12px;
+    background: var(--ib-secondary);
+    padding: 4px;
+    border-radius: var(--ib-radius-sm);
+}
+
+.ib-notif-tab {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ib-text-light);
+    cursor: pointer;
+    transition: var(--ib-transition);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+}
+
+.ib-notif-tab.active {
+    background: white;
+    color: var(--ib-text);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ib-notif-tab svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ===== CONTENU DES NOTIFICATIONS ===== */
+.ib-notif-content {
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 16px 0;
+}
+
+.ib-notif-group {
+    margin-bottom: 24px;
+}
+
+.ib-notif-group-title {
+    padding: 0 24px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ib-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ===== CARTE DE NOTIFICATION ===== */
+.ib-notif-card {
+    margin: 0 16px 8px;
+    padding: 16px;
+    background: white;
+    border: 1px solid var(--ib-border);
+    border-radius: var(--ib-radius-sm);
+    cursor: pointer;
+    transition: var(--ib-transition);
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.ib-notif-card:hover {
+    border-color: var(--ib-primary);
+    box-shadow: 0 4px 12px rgba(248, 180, 188, 0.15);
+    transform: translateY(-1px);
+}
+
+.ib-notif-card.selected {
+    background: var(--ib-primary-light);
+    border-color: var(--ib-primary);
+}
+
+.ib-notif-card.unread {
+    background: linear-gradient(135deg, #fef7f7 0%, #ffffff 100%);
+    border-left: 3px solid var(--ib-primary);
+}
+
+/* ===== ICÔNE DE NOTIFICATION ===== */
+.ib-notif-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ib-secondary);
+    transition: var(--ib-transition);
+}
+
+.ib-notif-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--ib-text-light);
+    stroke-width: 1.5;
+    fill: none;
+}
+
+/* ===== MODERNISATION DES ICONES ET COULEURS ===== */
+.ib-notif-card.reservation .ib-notif-icon {
+    background: var(--ib-primary-light);
+}
+.ib-notif-card.reservation .ib-notif-icon svg {
+    stroke: var(--ib-primary);
+}
+.ib-notif-card.confirmation .ib-notif-icon {
+    background: #f6ffed;
+}
+.ib-notif-card.confirmation .ib-notif-icon svg {
+    stroke: #52c41a;
+}
+.ib-notif-card.cancellation .ib-notif-icon {
+    background: #fff2f0;
+}
+.ib-notif-card.cancellation .ib-notif-icon svg {
+    stroke: #ff4d4f;
+}
+.ib-notif-card.email .ib-notif-icon {
+    background: var(--ib-primary-light);
+}
+.ib-notif-card.email .ib-notif-icon svg {
+    stroke: var(--ib-primary-dark);
+}
+
+/* ===== CONTENU DE LA CARTE ===== */
+.ib-notif-card-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.ib-notif-client {
+    font-weight: 600;
+    color: var(--ib-text);
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.ib-notif-action {
+    color: var(--ib-text-light);
+    font-size: 13px;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.ib-notif-service {
+    font-weight: 500;
+    color: var(--ib-text);
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.ib-notif-time {
+    font-size: 11px;
+    color: var(--ib-text-light);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ===== BADGE DE STATUT ===== */
+.ib-notif-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ib-notif-badge.new {
+    background: #fff2e8;
+    color: #fa8c16;
+}
+
+.ib-notif-badge.confirmed {
+    background: #f6ffed;
+    color: #52c41a;
+}
+
+.ib-notif-badge.cancelled {
+    background: #fff2f0;
+    color: #ff4d4f;
+}
+
+/* ===== CHECKBOX DE SÉLECTION ===== */
+.ib-notif-checkbox {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--ib-border);
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    transition: var(--ib-transition);
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.ib-notif-card.selectable .ib-notif-checkbox {
+    opacity: 1;
+    transform: scale(1);
+    animation: ib-checkbox-appear 0.3s ease-out;
+}
+
+.ib-notif-card.selectable .ib-notif-checkbox:checked {
+    background: var(--ib-primary);
+    border-color: var(--ib-primary);
+}
+
+.ib-notif-card.selectable .ib-notif-checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.ib-notif-card.selectable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ib-notif-card.selectable:hover {
+    background: var(--ib-primary-light);
+    transform: translateY(-2px);
+}
+
+.ib-notif-card.selected {
+    background: var(--ib-primary-light);
+    border-color: var(--ib-primary);
+    box-shadow: 0 4px 12px rgba(248, 180, 188, 0.3);
+}
+
+@keyframes ib-checkbox-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ===== MODERNISATION PANEL DE SÉLECTION ===== */
+.ib-notif-batch-bar {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    background: var(--ib-primary-light);
+    border-radius: var(--ib-radius);
+    box-shadow: 0 8px 32px rgba(232,180,203,0.18);
+    border: 1px solid var(--ib-primary);
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: var(--ib-transition);
+    z-index: 10000;
+    min-width: 400px;
+}
+
+.ib-notif-batch-bar.active {
+    transform: translateY(0);
+    opacity: 1;
+    box-shadow: 0 16px 48px rgba(232,180,203,0.22);
+}
+
+.ib-notif-batch-actions {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+}
+
+.ib-notif-btn.small {
+    padding: 6px 14px;
+    font-size: 13px;
+    border-radius: 10px;
+    background: var(--ib-primary);
+    color: #fff;
+    border: none;
+    box-shadow: 0 2px 8px rgba(232,180,203,0.10);
+    transition: var(--ib-transition);
+}
+
+.ib-notif-btn.small:hover {
+    background: var(--ib-primary-hover);
+    color: #fff;
+}
+
+.ib-notif-batch-select-all {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.ib-notif-batch-info {
+    font-size: 15px;
+    color: var(--ib-primary-dark);
+    font-weight: 600;
+    min-width: 80px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .ib-notif-panel {
+        width: calc(100vw - 32px);
+        right: 16px;
+        left: 16px;
+    }
+    
+    .ib-notif-batch-bar {
+        width: calc(100vw - 32px);
+        right: 16px;
+        left: 16px;
+        min-width: auto;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px 16px;
+    }
+
+    .ib-notif-batch-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .ib-notif-batch-select-all {
+        align-items: center;
+    }
+
+    .ib-notif-batch-filters {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .ib-notif-batch-bar {
+        bottom: 16px;
+        right: 8px;
+        left: 8px;
+        width: calc(100vw - 16px);
+    }
+
+    .ib-notif-batch-actions {
+        gap: 4px;
+    }
+
+    .ib-notif-btn {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes ib-notif-slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes ib-notif-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ib-notif-card {
+    animation: ib-notif-fade-in 0.3s ease-out;
+}
+
+/* ===== SCROLLBAR PERSONNALISÉE ===== */
+.ib-notif-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ib-notif-content::-webkit-scrollbar-track {
+    background: var(--ib-secondary);
+    border-radius: 3px;
+}
+
+.ib-notif-content::-webkit-scrollbar-thumb {
+    background: var(--ib-border);
+    border-radius: 3px;
+}
+
+.ib-notif-content::-webkit-scrollbar-thumb:hover {
+    background: var(--ib-primary);
+}

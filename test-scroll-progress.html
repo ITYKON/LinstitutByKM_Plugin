@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Scroll Automatique - Barre de Progression</title>
+    <link rel="stylesheet" href="assets/css/booking-form.css">
+    <style>
+        /* Simulation de la navigation WordPress */
+        #wpadminbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 32px;
+            background: #23282d;
+            z-index: 99999;
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            font-size: 13px;
+        }
+
+        .site-header {
+            position: fixed;
+            top: 32px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .site-header.fixed {
+            position: fixed;
+        }
+
+        /* Styles de test pour simuler du contenu */
+        .test-content {
+            height: 200vh;
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+            padding: 2rem;
+            margin-top: 92px; /* Admin bar + header */
+        }
+        
+        .test-section {
+            background: white;
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .test-button {
+            background: #1f2937;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0.5rem;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        
+        .test-button:hover {
+            background: #374151;
+            transform: translateY(-1px);
+        }
+        
+        .test-info {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #0c4a6e;
+        }
+        
+        /* Simulation mobile */
+        @media (max-width: 768px) {
+            #wpadminbar {
+                height: 46px;
+            }
+
+            .site-header {
+                top: 46px;
+            }
+
+            .test-content {
+                padding: 1rem;
+                margin-top: 106px; /* Admin bar mobile + header */
+            }
+
+            .test-section {
+                margin: 1rem 0;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="admin-bar has-fixed-header">
+    <!-- Simulation de l'admin bar WordPress -->
+    <div id="wpadminbar">
+        <span>WordPress Admin Bar</span>
+    </div>
+
+    <!-- Simulation du header du thème -->
+    <header class="site-header fixed">
+        <div>Navigation du Site</div>
+    </header>
+
+    <!-- Barre de progression Planity -->
+    <div class="planity-progress-bar">
+        <div class="progress-container">
+            <div class="ib-stepper-main">
+                <div class="ib-step active" data-step="1">
+                    <div class="ib-step-circle">1</div>
+                    <div class="ib-step-label">Préstation</div>
+                </div>
+                <div class="ib-step" data-step="2">
+                    <div class="ib-step-circle">2</div>
+                    <div class="ib-step-label">Praticienne</div>
+                </div>
+                <div class="ib-step" data-step="3">
+                    <div class="ib-step-circle">3</div>
+                    <div class="ib-step-label">Date & Heure</div>
+                </div>
+                <div class="ib-step" data-step="4">
+                    <div class="ib-step-circle">4</div>
+                    <div class="ib-step-label">Informations</div>
+                </div>
+                <div class="ib-step" data-step="5">
+                    <div class="ib-step-circle">5</div>
+                    <div class="ib-step-label">Confirmation</div>
+                </div>
+                <div class="ib-stepper-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenu de test -->
+    <div class="test-content">
+        <div class="test-section">
+            <h1>Test du Scroll Automatique</h1>
+            <div class="test-info">
+                <strong>Instructions de test :</strong><br>
+                1. Scrollez vers le bas de la page<br>
+                2. Cliquez sur les boutons de navigation<br>
+                3. Vérifiez que la barre de progression reste visible<br>
+                4. Testez sur mobile et desktop
+            </div>
+            
+            <h2>Boutons de Test Navigation</h2>
+            <button class="test-button" onclick="testGoToStep(1)">Étape 1 - Préstation</button>
+            <button class="test-button" onclick="testGoToStep(2)">Étape 2 - Praticienne</button>
+            <button class="test-button" onclick="testGoToStep(3)">Étape 3 - Date & Heure</button>
+            <button class="test-button" onclick="testGoToStep(4)">Étape 4 - Informations</button>
+            <button class="test-button" onclick="testGoToStep(5)">Étape 5 - Confirmation</button>
+
+            <h2>Test Boutons "Choisir" Service</h2>
+            <div style="background: white; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 0.5rem;">
+                    <div>
+                        <h4 style="margin: 0; color: #1f2937;">PROTÉINE</h4>
+                        <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">Service professionnel</p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span style="color: #6b7280;">3h</span>
+                        <button class="test-button" onclick="testSelectService('PROTÉINE')">Choisir</button>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 0.5rem;">
+                    <div>
+                        <h4 style="margin: 0; color: #1f2937;">BOTOX</h4>
+                        <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">Service professionnel</p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span style="color: #6b7280;">1h</span>
+                        <button class="test-button" onclick="testSelectService('BOTOX')">Choisir</button>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px;">
+                    <div>
+                        <h4 style="margin: 0; color: #1f2937;">KÉRATINE</h4>
+                        <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">Service professionnel</p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span style="color: #6b7280;">3h</span>
+                        <button class="test-button" onclick="testSelectService('KÉRATINE')">Choisir</button>
+                    </div>
+                </div>
+            </div>
+
+            <h2>Test Sélection Date & Créneaux</h2>
+            <div style="background: white; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                <h3 style="margin-top: 0;">Dates Disponibles</h3>
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
+                    <button class="test-button" onclick="testSelectDate('2025-08-06')" style="padding: 0.5rem; font-size: 0.9rem;">6</button>
+                    <button class="test-button" onclick="testSelectDate('2025-08-13')" style="padding: 0.5rem; font-size: 0.9rem;">13</button>
+                    <button class="test-button" onclick="testSelectDate('2025-08-20')" style="padding: 0.5rem; font-size: 0.9rem;">20</button>
+                    <button class="test-button" onclick="testSelectDate('2025-08-27')" style="padding: 0.5rem; font-size: 0.9rem;">27</button>
+                </div>
+
+                <h3 data-test="slots-section">Créneaux Disponibles</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    <button class="test-button" onclick="testSelectSlot('09:00')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">09:00</button>
+                    <button class="test-button" onclick="testSelectSlot('10:30')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">10:30</button>
+                    <button class="test-button" onclick="testSelectSlot('14:00')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">14:00</button>
+                    <button class="test-button" onclick="testSelectSlot('15:30')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">15:30</button>
+                    <button class="test-button" onclick="testSelectSlot('17:00')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">17:00</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Section de Test 1</h2>
+            <p>Cette section simule du contenu long pour tester le scroll automatique. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        </div>
+
+        <div class="test-section">
+            <h2>Section de Test 2</h2>
+            <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+        </div>
+
+        <div class="test-section">
+            <h2>Section de Test 3</h2>
+            <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</p>
+        </div>
+
+        <div class="test-section">
+            <h2>Test Mobile</h2>
+            <div class="test-info">
+                Pour tester sur mobile :<br>
+                1. Ouvrez les outils de développement (F12)<br>
+                2. Activez le mode responsive<br>
+                3. Sélectionnez un appareil mobile<br>
+                4. Testez les boutons de navigation
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Simulation de l'état de réservation
+        window.bookingState = {
+            step: 1
+        };
+
+        // Fonction utilitaire pour le scroll automatique (comme dans le vrai code)
+        function scrollToProgressBar(callback, delay = 300) {
+            const progressBar = document.querySelector(".planity-progress-bar") || document.querySelector(".ib-stepper-main");
+            if (progressBar) {
+                const isMobile = window.innerWidth <= 768;
+
+                // Calculer l'offset en tenant compte de la navigation
+                let navigationHeight = 0;
+                const adminBar = document.getElementById("wpadminbar");
+                if (adminBar && adminBar.offsetHeight > 0) {
+                    navigationHeight += adminBar.offsetHeight;
+                }
+
+                // Détecter un header fixe
+                const header = document.querySelector('.site-header.fixed');
+                if (header && window.getComputedStyle(header).position === 'fixed') {
+                    navigationHeight += header.offsetHeight;
+                }
+
+                // Offset supplémentaire pour l'espacement
+                const extraOffset = isMobile ? 10 : 20;
+                const totalOffset = navigationHeight + extraOffset;
+
+                // Calculer la position de la barre de progression
+                const progressBarRect = progressBar.getBoundingClientRect();
+                const progressBarTop = window.pageYOffset + progressBarRect.top;
+                const targetPosition = Math.max(0, progressBarTop - totalOffset);
+
+                // Animation du conteneur
+                progressBar.classList.add("step-changing");
+                setTimeout(() => {
+                    progressBar.classList.remove("step-changing");
+                }, 300);
+
+                // Scroll fluide vers la barre de progression
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: "smooth",
+                });
+
+                console.log(`📍 Scroll automatique - Navigation: ${navigationHeight}px, Target: ${targetPosition}px`);
+
+                // Exécuter le callback après le délai
+                if (callback && typeof callback === 'function') {
+                    setTimeout(callback, delay);
+                }
+            } else {
+                // Fallback si pas de barre de progression trouvée
+                if (callback && typeof callback === 'function') {
+                    callback();
+                }
+            }
+        }
+
+        // Fonction de test pour la navigation
+        function testGoToStep(step) {
+            console.log(`Test navigation vers étape ${step}`);
+
+            // Utiliser la fonction utilitaire pour le scroll automatique
+            scrollToProgressBar(() => {
+                // Mettre à jour l'état et l'affichage
+                window.bookingState.step = step;
+                updateProgressBarTest(step);
+            });
+        }
+
+        // Fonction de test pour la sélection de service
+        function testSelectService(serviceName) {
+            console.log(`Test sélection service: ${serviceName}`);
+
+            // Utiliser la fonction utilitaire pour le scroll automatique
+            scrollToProgressBar(() => {
+                // Simuler la sélection du service et passage à l'étape 2
+                window.bookingState.step = 2;
+                updateProgressBarTest(2);
+                console.log(`Service "${serviceName}" sélectionné, passage à l'étape 2`);
+            });
+        }
+
+        // Fonction de test pour la sélection de date
+        function testSelectDate(dateStr) {
+            console.log(`Test sélection date: ${dateStr}`);
+
+            // Utiliser la fonction utilitaire pour le scroll automatique
+            scrollToProgressBar(() => {
+                // Simuler la sélection de la date (reste sur étape 3)
+                window.bookingState.selectedDate = dateStr;
+                console.log(`Date "${dateStr}" sélectionnée`);
+
+                // Scroll vers les créneaux sur mobile après le scroll vers la progress bar
+                if (window.innerWidth <= 700) {
+                    setTimeout(() => {
+                        const slotsSection = document.querySelector('[data-test="slots-section"]');
+                        if (slotsSection) {
+                            slotsSection.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                            });
+                        }
+                    }, 100);
+                }
+            }, 200);
+        }
+
+        // Fonction de test pour la sélection de créneau
+        function testSelectSlot(slot) {
+            console.log(`Test sélection créneau: ${slot}`);
+
+            // Utiliser la fonction utilitaire pour le scroll automatique
+            scrollToProgressBar(() => {
+                // Simuler la sélection du créneau et passage à l'étape 4
+                window.bookingState.selectedSlot = slot;
+                window.bookingState.step = 4;
+                updateProgressBarTest(4);
+                console.log(`Créneau "${slot}" sélectionné, passage à l'étape 4`);
+            });
+        }
+
+        // Fonction de test pour mettre à jour la barre de progression
+        function updateProgressBarTest(currentStep) {
+            const steps = document.querySelectorAll(".ib-stepper-main .ib-step");
+            const progressBar = document.querySelector(".ib-stepper-main .ib-stepper-progress");
+
+            // Mettre à jour les étapes
+            steps.forEach((step, index) => {
+                const stepNumber = index + 1;
+                step.classList.remove("active", "completed");
+                
+                if (stepNumber === currentStep) {
+                    step.classList.add("active");
+                } else if (stepNumber < currentStep) {
+                    step.classList.add("completed");
+                }
+            });
+
+            // Mettre à jour la barre de progression
+            if (progressBar && steps.length > 0) {
+                const totalSteps = steps.length;
+                let progressWidth = 0;
+                if (currentStep > 1) {
+                    progressWidth = ((currentStep - 1) / (totalSteps - 1)) * 100;
+                }
+                progressBar.style.width = progressWidth + "%";
+                console.log(`Progress: step ${currentStep}/${totalSteps} = ${progressWidth}%`);
+            }
+        }
+
+        // Fonction pour ajuster la position de la barre de progression
+        function adjustProgressBarPosition() {
+            const progressBar = document.querySelector(".planity-progress-bar");
+            if (!progressBar) return;
+
+            let topOffset = 0;
+
+            // Détecter l'admin bar WordPress
+            const adminBar = document.getElementById("wpadminbar");
+            if (adminBar && adminBar.offsetHeight > 0) {
+                topOffset += adminBar.offsetHeight;
+            }
+
+            // Détecter un header fixe du thème
+            const header = document.querySelector('.site-header.fixed');
+            if (header && window.getComputedStyle(header).position === 'fixed') {
+                topOffset += header.offsetHeight;
+            }
+
+            // Appliquer l'offset
+            progressBar.style.top = topOffset + 'px';
+
+            console.log(`📍 Position barre de progression ajustée: ${topOffset}px`);
+        }
+
+        // Initialiser la barre de progression au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgressBarTest(1);
+            adjustProgressBarPosition();
+            console.log('Test page loaded - Scroll automatique activé');
+        });
+
+        // Réajuster lors du redimensionnement
+        window.addEventListener('resize', adjustProgressBarPosition);
+    </script>
+</body>
+</html>

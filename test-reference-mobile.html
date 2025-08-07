@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Barre de Progression Mobile Référence</title>
+    <link rel="stylesheet" href="assets/css/booking-form.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8f9fa;
+        }
+        
+        .test-container {
+            max-width: 375px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mobile-header {
+            background: #2d3748;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .mobile-header h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+        
+        .mobile-header p {
+            margin: 5px 0 0 0;
+            font-size: 12px;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+        
+        .institut-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .institut-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+            margin: 0 0 10px 0;
+            letter-spacing: 1px;
+        }
+        
+        .institut-address {
+            font-size: 13px;
+            color: #6b7280;
+            margin: 0 0 5px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .institut-address::before {
+            content: "📍";
+            margin-right: 8px;
+        }
+        
+        .institut-phone {
+            font-size: 13px;
+            color: #6b7280;
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .institut-phone::before {
+            content: "📞";
+            margin-right: 8px;
+        }
+        
+        .progress-section {
+            background: white;
+            padding: 0;
+        }
+        
+        .test-controls {
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .test-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .test-button:hover {
+            background: #2d3748;
+            transform: translateY(-1px);
+        }
+        
+        .test-button:active {
+            transform: translateY(0);
+        }
+        
+        .reference-note {
+            background: #e0f2fe;
+            border: 1px solid #0288d1;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px;
+            font-size: 13px;
+            color: #01579b;
+            line-height: 1.4;
+        }
+        
+        .reference-note strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #0277bd;
+        }
+        
+        .specs-list {
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px;
+            font-size: 12px;
+            color: #374151;
+        }
+        
+        .specs-list h4 {
+            margin: 0 0 10px 0;
+            font-size: 13px;
+            color: #1f2937;
+        }
+        
+        .specs-list ul {
+            margin: 0;
+            padding-left: 15px;
+            line-height: 1.5;
+        }
+        
+        .specs-list li {
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <!-- Header mobile comme dans l'image -->
+        <div class="mobile-header">
+            <h1>KM</h1>
+            <p>L'INSTITUT BY KM</p>
+        </div>
+        
+        <!-- Informations institut -->
+        <div class="institut-info">
+            <div class="institut-name">L'INSTITUT BY KM</div>
+            <div class="institut-address">20 Rue des frères Mellali 06000 Béjaïa, Algérie</div>
+            <div class="institut-phone">0770 30 73 85</div>
+        </div>
+        
+        <!-- Barre de progression - identique à l'image -->
+        <div class="progress-section">
+            <div class="planity-progress-bar">
+                <div class="ib-stepper-main">
+                    <div class="ib-step completed">
+                        <div class="ib-step-circle">✓</div>
+                        <div class="ib-step-label">Service</div>
+                    </div>
+                    <div class="ib-step active">
+                        <div class="ib-step-circle">2</div>
+                        <div class="ib-step-label">Praticie...</div>
+                    </div>
+                    <div class="ib-step">
+                        <div class="ib-step-circle">3</div>
+                        <div class="ib-step-label">Date & H...</div>
+                    </div>
+                    <div class="ib-step">
+                        <div class="ib-step-circle">4</div>
+                        <div class="ib-step-label">Informat...</div>
+                    </div>
+                    <div class="ib-step">
+                        <div class="ib-step-circle">5</div>
+                        <div class="ib-step-label">Confirma...</div>
+                    </div>
+                    <div class="ib-stepper-progress" style="width: 25%;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contrôles de test -->
+        <div class="test-controls">
+            <button class="test-button" onclick="setStep(1)">Étape 1 - Service</button>
+            <button class="test-button" onclick="setStep(2)">Étape 2 - Praticienne</button>
+            <button class="test-button" onclick="setStep(3)">Étape 3 - Date & Heure</button>
+            <button class="test-button" onclick="setStep(4)">Étape 4 - Informations</button>
+            <button class="test-button" onclick="setStep(5)">Étape 5 - Confirmation</button>
+        </div>
+        
+        <div class="reference-note">
+            <strong>📱 Rendu identique à l'image de référence :</strong>
+            • Cercles de 36px avec couleur #4a5568<br>
+            • Labels tronqués avec "..." comme dans l'image<br>
+            • Espacement centré avec gap de 8px<br>
+            • Ligne de progression fine (2px)<br>
+            • Style épuré sans ombres ni bordures
+        </div>
+        
+        <div class="specs-list">
+            <h4>🎯 Spécifications techniques :</h4>
+            <ul>
+                <li>Cercles : 36px × 36px</li>
+                <li>Police : 14px pour les cercles, 11px pour les labels</li>
+                <li>Couleur active : #4a5568</li>
+                <li>Couleur inactive : #e5e7eb</li>
+                <li>Labels : max-width 55px avec ellipsis</li>
+                <li>Ligne : 2px de hauteur</li>
+                <li>Espacement : gap 8px, padding 20px 15px</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function setStep(step) {
+            const steps = document.querySelectorAll('.ib-step');
+            const progressBar = document.querySelector('.ib-stepper-progress');
+            
+            steps.forEach((stepEl, index) => {
+                const stepNumber = index + 1;
+                const circle = stepEl.querySelector('.ib-step-circle');
+                
+                stepEl.classList.remove('active', 'completed');
+                
+                if (stepNumber < step) {
+                    stepEl.classList.add('completed');
+                    circle.textContent = '✓';
+                } else if (stepNumber === step) {
+                    stepEl.classList.add('active');
+                    circle.textContent = stepNumber;
+                } else {
+                    circle.textContent = stepNumber;
+                }
+            });
+            
+            // Mettre à jour la barre de progression
+            const progressWidth = ((step - 1) / (steps.length - 1)) * 100;
+            progressBar.style.width = progressWidth + '%';
+            
+            console.log(`Étape ${step} activée - Progression: ${progressWidth}%`);
+        }
+        
+        // Initialiser à l'étape 2 comme dans l'image
+        setStep(2);
+    </script>
+</body>
+</html>

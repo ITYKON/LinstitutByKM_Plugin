@@ -1,0 +1,16 @@
+msgid "Clair"
+msgstr "Clair"
+
+msgid "Sombre"
+msgstr "Sombre"
+
+msgid "Auto (selon l’OS)"
+msgstr "Auto (selon l’OS)"
+
+msgid "Mode d’affichage :"
+msgstr "Mode d’affichage :"
+
+msgid "Enregistrer"
+msgstr "Enregistrer"
+
+# Ajoutez ici toutes les chaînes à traduire du plugin

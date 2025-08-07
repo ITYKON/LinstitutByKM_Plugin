@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug PDF Ticket</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        
+        .booking-ticket-modern {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 500px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .ticket-success-icon {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .ticket-success-icon svg {
+            width: 48px;
+            height: 48px;
+            color: #10b981;
+        }
+        
+        .ticket-success-badge {
+            background: #10b981;
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            margin: 1rem 0;
+            font-size: 18px;
+        }
+        
+        .ticket-success-message {
+            text-align: center;
+            color: #374151;
+            margin: 1.5rem 0;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        .ticket-details {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .ticket-details > div {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .ticket-details > div:last-child {
+            border-bottom: none;
+        }
+        
+        .ticket-label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+        
+        .ticket-value {
+            color: #111827;
+            font-size: 14px;
+            text-align: right;
+        }
+        
+        .download-btn {
+            background: #111827;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            display: block;
+            margin: 1.5rem auto 0;
+        }
+        
+        .download-btn:hover {
+            background: #374151;
+        }
+        
+        .debug-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 14px;
+        }
+        
+        .error-info {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 14px;
+            color: #721c24;
+        }
+        
+        .success-info {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 14px;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <h1>Debug PDF Ticket Generation</h1>
+    
+    <div id="debug-log" class="debug-info">
+        <strong>Debug Log:</strong><br>
+        Initialisation...
+    </div>
+    
+    <div class="booking-ticket-modern" id="test-ticket">
+        <div class="ticket-success-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6L9 17l-5-5"/>
+            </svg>
+        </div>
+        <div class="ticket-success-badge">Réservation confirmée</div>
+        <div class="ticket-success-message">Merci pour votre réservation !<br>Un email de confirmation vous a été envoyé.</div>
+        <div class="ticket-details">
+            <div>
+                <span class="ticket-label">Service</span>
+                <span class="ticket-value">Soin du visage</span>
+            </div>
+            <div>
+                <span class="ticket-label">Praticienne</span>
+                <span class="ticket-value">Lamia</span>
+            </div>
+            <div>
+                <span class="ticket-label">Date</span>
+                <span class="ticket-value">2025-07-31</span>
+            </div>
+            <div>
+                <span class="ticket-label">Créneau</span>
+                <span class="ticket-value">11:30</span>
+            </div>
+            <div>
+                <span class="ticket-label">Client</span>
+                <span class="ticket-value">Test Client</span>
+            </div>
+            <div>
+                <span class="ticket-label">Email</span>
+                <span class="ticket-value">test@example.com</span>
+            </div>
+            <div>
+                <span class="ticket-label">Téléphone</span>
+                <span class="ticket-value">+33 1 23 45 67 89</span>
+            </div>
+            <div>
+                <span class="ticket-label">Prix</span>
+                <span class="ticket-value">50,00 DA</span>
+            </div>
+        </div>
+        <button class="download-btn" id="download-ticket-btn">Télécharger le ticket</button>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        function addDebugLog(message, type = 'info') {
+            const debugLog = document.getElementById('debug-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}<br>`;
+            
+            if (type === 'error') {
+                debugLog.className = 'error-info';
+            } else if (type === 'success') {
+                debugLog.className = 'success-info';
+            } else {
+                debugLog.className = 'debug-info';
+            }
+            
+            debugLog.innerHTML += logEntry;
+            console.log(`[PDF Debug] ${message}`);
+        }
+        
+        function generatePDF() {
+            addDebugLog('🎫 Début génération PDF...');
+            
+            const ticket = document.getElementById('test-ticket');
+            const btn = document.getElementById('download-ticket-btn');
+            
+            if (!ticket) {
+                addDebugLog('❌ Ticket non trouvé', 'error');
+                return;
+            }
+            
+            if (!window.html2pdf) {
+                addDebugLog('❌ html2pdf non disponible', 'error');
+                return;
+            }
+            
+            addDebugLog('✅ html2pdf disponible');
+            
+            // Masquer le bouton avant export
+            btn.style.display = 'none';
+            
+            // Créer une copie du ticket
+            const ticketClone = ticket.cloneNode(true);
+            addDebugLog('✅ Clone du ticket créé');
+            
+            // Appliquer les styles inline pour le PDF
+            ticketClone.style.cssText = `
+                width: 210mm !important;
+                max-width: 210mm !important;
+                min-height: auto !important;
+                background: #ffffff !important;
+                padding: 20mm !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border-radius: 12px !important;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+                color: #000000 !important;
+                position: relative !important;
+                border: 1px solid #e5e7eb !important;
+            `;
+            
+            // Masquer le bouton dans la copie
+            const downloadBtn = ticketClone.querySelector('#download-ticket-btn');
+            if (downloadBtn) {
+                downloadBtn.style.display = 'none !important';
+            }
+            
+            // Ajouter la copie au DOM temporairement
+            ticketClone.style.position = 'absolute';
+            ticketClone.style.left = '-9999px';
+            ticketClone.style.top = '0';
+            ticketClone.id = 'ticket-clone';
+            document.body.appendChild(ticketClone);
+            
+            addDebugLog('✅ Clone ajouté au DOM');
+            
+            // Forcer le rendu
+            ticketClone.offsetHeight;
+            
+            setTimeout(() => {
+                const opt = {
+                    margin: [10, 10, 10, 10],
+                    filename: `ticket-reservation-test-${new Date().toISOString().split('T')[0]}.pdf`,
+                    image: {
+                        type: 'jpeg',
+                        quality: 0.98,
+                    },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor: '#ffffff',
+                        logging: true,
+                        allowTaint: false,
+                        foreignObjectRendering: true,
+                        letterRendering: true,
+                        width: 794,
+                        height: 1123,
+                    },
+                    jsPDF: {
+                        unit: 'pt',
+                        format: 'a4',
+                        orientation: 'portrait',
+                        compress: true,
+                    },
+                };
+                
+                addDebugLog('🔧 Configuration PDF: ' + JSON.stringify(opt, null, 2));
+                addDebugLog('📄 Contenu ticket: ' + ticketClone.innerHTML.substring(0, 200) + '...');
+                
+                html2pdf()
+                    .set(opt)
+                    .from(ticketClone)
+                    .save()
+                    .then(() => {
+                        addDebugLog('🎉 PDF généré avec succès !', 'success');
+                        // Nettoyer
+                        if (document.body.contains(ticketClone)) {
+                            document.body.removeChild(ticketClone);
+                        }
+                        btn.style.display = 'block';
+                    })
+                    .catch((error) => {
+                        addDebugLog('❌ Erreur PDF: ' + error.message, 'error');
+                        console.error('Erreur complète:', error);
+                        // Nettoyer
+                        if (document.body.contains(ticketClone)) {
+                            document.body.removeChild(ticketClone);
+                        }
+                        btn.style.display = 'block';
+                    });
+            }, 500);
+        }
+        
+        // Attacher l'événement au bouton
+        document.addEventListener('DOMContentLoaded', function() {
+            addDebugLog('✅ DOM chargé');
+            
+            const btn = document.getElementById('download-ticket-btn');
+            if (btn) {
+                btn.addEventListener('click', generatePDF);
+                addDebugLog('✅ Événement click attaché au bouton');
+            } else {
+                addDebugLog('❌ Bouton non trouvé', 'error');
+            }
+            
+            // Vérifier si html2pdf est chargé
+            if (window.html2pdf) {
+                addDebugLog('✅ html2pdf chargé avec succès');
+            } else {
+                addDebugLog('❌ html2pdf non chargé', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

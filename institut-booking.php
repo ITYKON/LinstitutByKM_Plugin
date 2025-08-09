@@ -633,8 +633,8 @@ function handle_add_booking() {
 
         // Create notification for admin (using 'admin' string as target)
         $msg = $firstname . ' ' . $lastname . ' a réservé ' . ($service ? $service->name : '') . ' le ' . $date . ' (' . ($employee ? $employee->name : '') . ')';
-        // Lien vers la liste complète des réservations
-        $link = admin_url('admin.php?page=institut-booking-bookings');
+        // Lien vers la liste complète des réservations sur le site de production
+        $link = 'https://linstitutbykm.com/wp-admin/admin.php?page=institut-booking-bookings';
         if (function_exists('ib_add_notification')) {
             ib_add_notification('reservation', $msg, 'admin', $link, 'unread');
         }

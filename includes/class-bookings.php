@@ -35,8 +35,8 @@ if (!function_exists('ib_add_notification')) {
             // Forcer le type à 'reservation' pour assurer la compatibilité avec le système de notifications AJAX
             $type = 'reservation';
             
-            // Lien vers la page principale des réservations (liste complète)
-            $link = admin_url('admin.php?page=institut-booking-bookings');
+            // Lien vers la page principale des réservations (liste complète) sur le site de production
+            $link = 'https://linstitutbykm.com/wp-admin/admin.php?page=institut-booking-bookings';
         }
         
         $wpdb->insert($wpdb->prefix . 'ib_notifications', [

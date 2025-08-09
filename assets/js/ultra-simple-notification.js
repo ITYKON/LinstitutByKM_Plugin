@@ -2763,13 +2763,12 @@ window.testWithNotifications = function () {
 };
 
 // Fonction pour recharger les notifications
-window.refreshNotifications = function () {
-  console.log("🔄 Rechargement des notifications");
+function refreshNotifications() {
   loadRealNotifications();
-};
+}
 
-// Fonction de test simple pour débugger
-window.debugNotifications = function () {
+// Fonction pour vérifier les nouvelles notifications (sans recharger toute la liste)
+function checkForNewNotifications() {
   console.log("🔧 === DEBUG NOTIFICATIONS ===");
 
   // 1. Vérifier les variables

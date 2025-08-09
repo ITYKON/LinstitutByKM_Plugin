@@ -554,7 +554,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
               }" />
             </div>
             <div class="phone-field-with-country" style="margin-bottom:2.1em;">
-              <label for="client-phone" style="color:#606060 !important ;font-size:1.04em;margin-bottom:0.4em;display:block;">Téléphone (optionnel)</label>
+              <label for="client-phone" style="color:#606060 !important ;font-size:1.04em;margin-bottom:0.4em;display:block;">Téléphone</label>
               <div id="simple-country-selector-container"></div>
               <input id="client-phone" type="hidden" value="${
                 bookingState.client.phone || ""
@@ -2148,7 +2148,27 @@ window.scrollToProgressBar = function(callback, delay = 300) {
     // --- SUPPRIMER toute initialisation intl-tel-input ---
 
     function showError(input, message) {
-      let error = input.parentNode.querySelector(".ib-error-msg");
+      // Cas spécial pour le champ téléphone
+      const isPhoneInput = input.id === 'client-phone' || 
+                         (input.classList && input.classList.contains('simple-phone-input'));
+      
+      let targetInput = input;
+      let parentElement = input.parentNode;
+      
+      // Si c'est le champ téléphone caché, on cible le conteneur parent
+      if (isPhoneInput && input.type === 'hidden') {
+        const phoneContainer = document.querySelector('.phone-field-with-country');
+        if (phoneContainer) {
+          parentElement = phoneContainer;
+          // On cible le champ de saisie visible si disponible
+          const visibleInput = document.querySelector('.simple-phone-input');
+          if (visibleInput) {
+            targetInput = visibleInput;
+          }
+        }
+      }
+      
+      let error = parentElement.querySelector(".ib-error-msg");
       if (!error) {
         error = document.createElement("span");
         error.className = "ib-error-msg";
@@ -2157,15 +2177,48 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         error.style.display = "block";
         error.style.marginTop = "0.3em";
         error.style.fontWeight = "500";
-        input.parentNode.appendChild(error);
+        // Insérer après le conteneur du champ de téléphone
+        parentElement.appendChild(error);
       }
       error.textContent = message;
-      input.classList.add("ib-error");
+      targetInput.classList.add("ib-error");
+      
+      // Ajouter une bordure rouge au conteneur du sélecteur de pays si c'est le champ téléphone
+      if (isPhoneInput) {
+        const selectorContainer = document.querySelector('.simple-phone-container');
+        if (selectorContainer) {
+          selectorContainer.style.borderColor = '#e05c5c';
+        }
+      }
     }
     function clearError(input) {
-      let error = input.parentNode.querySelector(".ib-error-msg");
+      // Gestion spéciale pour le champ téléphone
+      const isPhoneInput = input.id === 'client-phone' || 
+                         (input.classList && input.classList.contains('simple-phone-input'));
+      
+      let parentElement = input.parentNode;
+      let targetInput = input;
+      
+      if (isPhoneInput) {
+        const phoneContainer = document.querySelector('.phone-field-with-country');
+        if (phoneContainer) {
+          parentElement = phoneContainer;
+          // Cibler le champ de saisie visible si disponible
+          const visibleInput = document.querySelector('.simple-phone-input');
+          if (visibleInput) {
+            targetInput = visibleInput;
+          }
+        }
+        // Supprimer la bordure rouge du conteneur
+        const selectorContainer = document.querySelector('.simple-phone-container');
+        if (selectorContainer) {
+          selectorContainer.style.borderColor = '#d1d5db'; // Couleur de bordure par défaut
+        }
+      }
+      
+      let error = parentElement.querySelector(".ib-error-msg");
       if (error) error.remove();
-      input.classList.remove("ib-error");
+      targetInput.classList.remove("ib-error");
     }
     function isValidName(str) {
       // Noms/prénoms : lettres, espaces, tirets, apostrophes, pas de chiffres
@@ -2311,18 +2364,24 @@ window.scrollToProgressBar = function(callback, delay = 300) {
             console.log("🔍 [DEBUG] Aucun sélecteur ni input disponible");
           }
 
-          // Traiter le téléphone comme optionnel (comme l'email)
+          // Vérifier que le téléphone n'est pas vide (champ obligatoire)
           if (phoneValue === "") {
-            valid = true;
-            clearError(
-              input ||
-                window.simpleCountrySelector?.container.querySelector(
-                  ".simple-phone-input"
-                )
-            );
-            console.log(
-              "🔍 [DEBUG] Téléphone vide - considéré comme valide (optionnel)"
-            );
+            valid = false;
+            if (touched.phone) {
+              // Toujours utiliser l'input caché comme référence pour le téléphone
+              const phoneInput = document.getElementById('client-phone');
+              if (phoneInput) {
+                showError(phoneInput, "Le numéro de téléphone est obligatoire");
+              } else {
+                // Fallback si l'input caché n'est pas trouvé
+                showError(
+                  input || 
+                  (window.simpleCountrySelector?.container.querySelector(".simple-phone-input")),
+                  "Le numéro de téléphone est obligatoire"
+                );
+              }
+            }
+            console.log("🔍 [DEBUG] Téléphone vide - champ obligatoire");
           } else {
             // Si un numéro est saisi, le valider
             let validIntl = false;
@@ -2376,7 +2435,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
                   window.simpleCountrySelector?.container.querySelector(
                     ".simple-phone-input"
                   ),
-                "Numéro de téléphone invalide (format mobile, chiffres uniquement)"
+                "Numéro de téléphone invalide (format mobile international requis)"
               );
             } else {
               clearError(

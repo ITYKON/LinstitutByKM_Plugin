@@ -23,7 +23,7 @@ if (!function_exists('ib_add_notification')) {
         }
         
         // Pour les nouvelles réservations, on vérifie si elle n'est pas déjà confirmée
-        if ($type === 'booking_new' && preg_match('/Réservation #(\d+)/', $message, $matches)) {
+        if (($type === 'booking_new' || $type === 'reservation') && preg_match('/Réservation #(\d+)/', $message, $matches)) {
             $booking_id = $matches[1];
             $booking = $wpdb->get_row($wpdb->prepare("SELECT status FROM {$wpdb->prefix}ib_bookings WHERE id = %d", $booking_id));
             
@@ -31,6 +31,12 @@ if (!function_exists('ib_add_notification')) {
             if ($booking && in_array($booking->status, ['confirmed', 'completed'])) {
                 return;
             }
+            
+            // Forcer le type à 'reservation' pour assurer la compatibilité avec le système de notifications AJAX
+            $type = 'reservation';
+            
+            // Lien vers la page principale des réservations (liste complète)
+            $link = admin_url('admin.php?page=institut-booking-bookings');
         }
         
         $wpdb->insert($wpdb->prefix . 'ib_notifications', [
@@ -41,17 +47,7 @@ if (!function_exists('ib_add_notification')) {
             'link' => $link,
             'created_at' => current_time('mysql'),
         ]);
-        
-        // Envoi d'un email premium à l'admin (user_id=1)
-        $admin_email = get_option('admin_email');
-        $subject = 'Notification Institut Booking : ' . $type;
-        $body = '<div style="font-family:Inter,sans-serif;font-size:16px;padding:24px;background:#f7e6ff;border-radius:18px;max-width:520px;margin:0 auto;">
-            <h2 style="color:#e573c7;margin-top:0;">Notification Institut Booking</h2>
-            <p style="color:#6d3a7b;">' . $message . '</p>' .
-            ($link ? '<p><a href="' . esc_url($link) . '" style="background:#e573c7;color:#fff;padding:10px 22px;border-radius:12px;text-decoration:none;font-weight:600;">Voir la réservation</a></p>' : '') .
-            '<p style="color:#b39ddb;font-size:13px;margin-top:32px;">Envoyé le ' . date_i18n('d/m/Y H:i') . '</p></div>';
-        $headers = ['Content-Type: text/html; charset=UTF-8'];
-        wp_mail($admin_email, $subject, $body, $headers);
+               
     }
 }
 
@@ -102,8 +98,8 @@ class IB_Bookings {
         $admin_id = 1;
         $result = $wpdb->insert_id; // Récupérer l'ID de la réservation insérée
         $message = 'Nouvelle réservation #' . $result . ' : ' . esc_html($service ? $service->name : 'Service') . ' pour ' . esc_html($data['client_name']) . ' le ' . esc_html($data['date']) . ' (' . esc_html($employee ? $employee->name : 'Employé') . ')';
-        $link = admin_url('admin.php?page=institut-booking-bookings&action=edit&id=' . $result);
-        ib_add_notification('booking_new', $message, 'admin', $link, 'unread');
+        $link = admin_url('admin.php?page=institut-booking-bookings');
+        ib_add_notification('reservation', $message, 'admin', $link, 'unread');
         // Envoi uniquement du mail de remerciement à la création
         // L'email de confirmation sera envoyé quand le statut passera à "confirmée"
         // Notifications avancées
@@ -133,8 +129,9 @@ class IB_Bookings {
                 if ($s && isset($s->name)) $service_name = $s->name;
             }
             $msg = "$client a réservé $service_name le $date.";
-            $link = admin_url('admin.php?page=institut-booking-bookings&action=edit&id=' . $result);
-            ib_add_notification('booking_new', $msg, 'admin', $link, 'unread');
+            $link = admin_url('admin.php?page=institut-booking-bookings');
+            // Utiliser 'reservation' comme type pour la compatibilité avec le système de notifications AJAX
+            ib_add_notification('reservation', $msg, 'admin', $link, 'unread');
             // Envoi de l'email de remerciement au client
             IB_Notifications::send_thank_you($result);
         }
@@ -253,7 +250,7 @@ class IB_Bookings {
                 $wpdb->delete(
                     $wpdb->prefix . 'ib_notifications',
                     [
-                        'type' => 'booking_new',
+                        'type' => 'reservation',
                         'message' => ['LIKE' => '%Réservation #' . $booking->id . '%']
                     ],
                     ['%s', '%s']

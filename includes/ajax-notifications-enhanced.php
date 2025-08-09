@@ -49,7 +49,7 @@ class IB_Ajax_Notifications_Enhanced {
         // Construire la requête - MODIFIÉ pour ne retourner que les nouvelles réservations
         $where_conditions = [
             "target = 'admin'",
-            "type = 'booking_new'"  // On ne garde que les nouvelles réservations
+            "type = 'reservation'"  // On ne garde que les nouvelles réservations
         ];
         $params = [];
         
@@ -82,7 +82,8 @@ class IB_Ajax_Notifications_Enhanced {
         
         // Compter les non lues - MODIFIÉ pour ne compter que les nouvelles réservations
         $unread_query = $wpdb->prepare(
-            "SELECT COUNT(*) FROM $table WHERE target = 'admin' AND status = 'unread' AND type = 'booking_new'"
+            "SELECT COUNT(*) FROM $table WHERE target = %s AND status = %s AND type = %s",
+            'admin', 'unread', 'reservation'
         );
         $unread_count = $wpdb->get_var($unread_query);
         
@@ -223,12 +224,14 @@ class IB_Ajax_Notifications_Enhanced {
         $table_name = $wpdb->prefix . 'ib_notifications';
         
         // Compter le nombre de notifications avant suppression pour le log
-        $count_before = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE type = 'booking_new'");
+        $count_before = $wpdb->get_var(
+            $wpdb->prepare("SELECT COUNT(*) FROM $table_name WHERE type = %s", 'reservation')
+        );
         
         // Supprimer uniquement les notifications de nouvelles réservations
         $result = $wpdb->delete(
             $table_name,
-            ['type' => 'booking_new'],
+            ['type' => 'reservation'],
             ['%s']
         );
         
@@ -264,8 +267,8 @@ class IB_Ajax_Notifications_Enhanced {
         
         global $wpdb;
         $table = $wpdb->prefix . 'ib_notifications';
-        $query = "SELECT COUNT(*) FROM $table WHERE target = 'admin'";
-        $params = [];
+        $query = "SELECT COUNT(*) FROM $table WHERE target = %s";
+        $params = ['admin'];
         
         if (!empty($last_check)) {
             $query .= " AND created_at > %s";

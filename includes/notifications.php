@@ -618,8 +618,8 @@ class IB_Notifications {
         
         // Pour le panneau de notifications, on ne veut que les notifications de nouvelles réservations
         if ($is_for_notification_panel) {
-            $sql .= " AND type = 'booking_new'";
-            error_log('[IB Booking] get_recent - Filtrage sur le type booking_new activé');
+            $sql .= " AND type = 'reservation'";
+            error_log('[IB Booking] get_recent - Filtrage sur le type reservation activé');
         }
         
         if (!empty($search)) {

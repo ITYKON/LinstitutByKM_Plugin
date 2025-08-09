@@ -316,7 +316,7 @@ class IB_Notifications_Refonte_Integration {
         switch ($tab) {
             case 'bookings':
                 // Pour l'onglet des réservations, afficher uniquement les nouvelles réservations non confirmées
-                $where_conditions[] = "type = 'booking_new' AND status != 'archived'";
+                $where_conditions[] = "type = 'reservation' AND status != 'archived'";
                 break;
             case 'emails':
                 $where_conditions[] = "type = 'email' AND status != 'archived'";
@@ -327,7 +327,7 @@ class IB_Notifications_Refonte_Integration {
             case 'all':
             default:
                 // Dans l'onglet principal, afficher uniquement les nouvelles réservations non confirmées
-                $where_conditions[] = "type = 'booking_new' AND status != 'archived'";
+                $where_conditions[] = "type = 'reservation' AND status != 'archived'";
                 break;
         }
 
@@ -363,7 +363,7 @@ class IB_Notifications_Refonte_Integration {
             "SELECT COUNT(*) FROM {$table}
              WHERE target = 'admin'
              AND status != 'archived'
-             AND type IN ('booking_new', 'booking_confirmed', 'booking_cancelled')"
+             AND type IN ('reservation', 'booking_confirmed', 'booking_cancelled')"
         ));
 
         // Emails
@@ -437,7 +437,7 @@ class IB_Notifications_Refonte_Integration {
         $wpdb->query("
             DELETE n1 FROM {$table} n1
             INNER JOIN {$table} n2 ON n1.message LIKE CONCAT('%', SUBSTRING_INDEX(SUBSTRING_INDEX(n2.message, ' pour ', -1), ' le ', 1), '%')
-            WHERE n1.type = 'booking_new'
+             AND n1.type = 'reservation'
             AND n2.type IN ('booking_confirmed', 'booking_cancelled')
             AND n1.created_at < n2.created_at
         ");

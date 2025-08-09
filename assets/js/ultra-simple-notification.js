@@ -1348,7 +1348,8 @@ function displayNotifications(notifications, unreadCount) {
   // Mettre à jour le badge avec le count de la réponse
   updateBadgeDisplay(unreadCount);
   
-  // Ajouter le support du mode batch
+  // Configurer les gestionnaires d'événements
+  setupNotificationClickHandler();
   setupBatchMode();
 }
 
@@ -1592,6 +1593,7 @@ function generateNotificationHTML(notification) {
     <div class="notification-item ${notification.type} ${isRead ? "read" : ""}"
          data-notification-id="${notification.id}"
          data-type="${notification.type}"
+         data-link="${notification.link || '#'}"
          style="
            padding: 20px 28px;
            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
@@ -2305,6 +2307,34 @@ window.deleteGroupedEmails = function(dateGroup) {
 // Variables globales pour le mode batch
 let isBatchMode = false;
 let selectedNotifications = new Set();
+
+// Gestionnaire de clic sur une notification
+function setupNotificationClickHandler() {
+  const $ = jQuery;
+  
+  $(document).on('click', '.notification-item', function(e) {
+    // Ne pas déclencher la redirection si on clique sur un bouton d'action
+    if ($(e.target).closest('button, a').length) {
+      return;
+    }
+    
+    const $notification = $(this);
+    const notificationId = $notification.data('notification-id');
+    const notificationType = $notification.data('type');
+    const link = $notification.data('link');
+    
+    // Vérifier si c'est une notification de réservation avec un lien valide
+    if (notificationType === 'reservation' && link) {
+      // Marquer comme lue si ce n'est pas déjà fait
+      if (!$notification.hasClass('read')) {
+        markAsRead(notificationId);
+      }
+      
+      // Rediriger vers la page de réservation
+      window.location.href = link;
+    }
+  });
+}
 
 // Fonction pour configurer le mode batch
 function setupBatchMode() {

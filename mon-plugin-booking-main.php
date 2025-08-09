@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Booking-plugin-master
+Plugin Name: Booking-plugin-KM
 Description: Plugin de réservation institut.
-Version: 1.0.1
+Version: 2.0
 */
 
 // Prevent direct access

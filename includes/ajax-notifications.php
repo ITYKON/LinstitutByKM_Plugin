@@ -380,7 +380,7 @@ class IB_Ajax_Notifications {
             'booking_confirmed' => 'confirmed',
             'booking_cancelled' => 'cancelled',
             'booking_pending' => 'pending',
-            'booking_new' => 'new',
+            'reservation' => 'new',
             'email' => 'generic'
         ];
         return $type_map[$type] ?? 'generic';
@@ -394,7 +394,7 @@ class IB_Ajax_Notifications {
             'booking_confirmed' => '✅',
             'booking_cancelled' => '❌',
             'booking_pending' => '⏳',
-            'booking_new' => '🆕',
+            'reservation' => '🆕',
             'email' => '📧'
         ];
         return $icon_map[$type] ?? '🔔';
@@ -408,7 +408,7 @@ class IB_Ajax_Notifications {
             'booking_confirmed' => 'Réservation confirmée',
             'booking_cancelled' => 'Réservation annulée',
             'booking_pending' => 'Réservation en attente',
-            'booking_new' => 'Nouvelle réservation',
+            'reservation' => 'Nouvelle réservation',
             'email' => 'Email'
         ];
         return $title_map[$type] ?? 'Notification';

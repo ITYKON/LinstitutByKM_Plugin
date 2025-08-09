@@ -1,9 +1,9 @@
 <?php
 require_once plugin_dir_path(__FILE__) . 'includes/api-rest.php';
 /**
- * Plugin Name: Booking-plugin-master
- * Description: Un plugin de réservation simple avec praticiennes, services et agenda.
- * Version: 1.0
+ * Plugin Name: Booking-plugin-KM
+ * Description: Un plugin de réservation  avec praticiennes, services et agenda.
+ * Version: 2.0
  * Author: Ykon
  */
 
@@ -633,7 +633,8 @@ function handle_add_booking() {
 
         // Create notification for admin (using 'admin' string as target)
         $msg = $firstname . ' ' . $lastname . ' a réservé ' . ($service ? $service->name : '') . ' le ' . $date . ' (' . ($employee ? $employee->name : '') . ')';
-        $link = admin_url('admin.php?page=institut-booking-bookings&action=edit&id=' . $booking_id);
+        // Lien vers la liste complète des réservations
+        $link = admin_url('admin.php?page=institut-booking-bookings');
         if (function_exists('ib_add_notification')) {
             ib_add_notification('reservation', $msg, 'admin', $link, 'unread');
         }

@@ -4354,33 +4354,76 @@ body,
 }
 
 /* Personnalisation case à cocher RGPD */
+.ib-legal-checkbox {
+  position: relative;
+  padding-left: 1.8em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  min-height: 1.5em;
+  margin: 1em 0;
+}
+
 .ib-legal-checkbox input[type="checkbox"] {
-  appearance: none;
-  -webkit-appearance: none;
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.ib-legal-checkbox label {
+  position: relative;
+  cursor: pointer;
+  padding-left: 0.5em;
+  margin: 0;
+  font-size: 0.97em;
+  color: #606060;
+  line-height: 1.4;
+  display: inline;
+}
+
+.ib-legal-checkbox label:before {
+  content: '';
+  position: absolute;
+  left: -1.8em;
+  top: 0.1em;
   width: 1.1em;
   height: 1.1em;
   border: 2px solid #d1d5db;
-  border-radius: 0;
   background: #ffffff;
-  cursor: pointer;
-  position: relative;
-  transition: none;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
-.ib-legal-checkbox input[type="checkbox"]:checked {
-  background: #606060 !important;
-  border-color: #606060 !important;
-}
-
-.ib-legal-checkbox input[type="checkbox"]:checked::after {
-  content: "✓";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #f8f8f8;
+.ib-legal-checkbox input[type="checkbox"]:checked + label:before {
+  background: #606060;
+  border-color: #606060;
+  content: '✓';
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.8em;
   font-weight: bold;
+  line-height: 1.1em;
+}
+
+/* Style pour les liens dans le label */
+.ib-legal-checkbox a {
+  color: #606060;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+  display: inline;
+}
+
+.ib-legal-checkbox a:hover {
+  color: #404040;
 }
 
 input[type="checkbox"] {

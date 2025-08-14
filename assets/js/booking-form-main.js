@@ -560,16 +560,16 @@ window.scrollToProgressBar = function(callback, delay = 300) {
                 bookingState.client.phone || ""
               }"/>
             </div>
-            <!-- NOUVELLE CASE À COCHER RGPD, liens à jour -->
-            <div class="ib-legal-checkbox" style="margin:1em 0;">
-              <label style="font-size:0.97em; color:#606060;">
-                <input id="client-privacy" type="checkbox" required style="accent-color:#606060;width:1.1em;height:1.1em;" />
+            <!-- Case à cocher RGPD avec meilleure expérience mobile -->
+            <div class="ib-legal-checkbox">
+              <input id="client-privacy" type="checkbox" required />
+              <label for="client-privacy">
                 J'ai lu et j'accepte la
-                <a href="https://linstitutbykm.com/privacy-policy/" target="_blank" rel="noopener" style="color:#606060; text-decoration:underline;">
+                <a href="https://linstitutbykm.com/privacy-policy/" target="_blank" rel="noopener">
                   politique de confidentialité
                 </a>
                 et les
-                <a href="https://linstitutbykm.com/refund_returns" target="_blank" rel="noopener" style="color:#606060; text-decoration:underline;">
+                <a href="https://linstitutbykm.com/refund_returns" target="_blank" rel="noopener">
                   conditions générales
                 </a>.
               </label>

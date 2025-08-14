@@ -1921,18 +1921,20 @@ window.scrollToProgressBar = function(callback, delay = 300) {
               renderModernCalendar();
               renderModernSlotsList();
 
-              // Scroll automatique vers la barre de progression après sélection de date
-              window.scrollToProgressBar(() => {
-                // Scroll vers les créneaux sur mobile après le scroll vers la progress bar
-                if (window.innerWidth <= 700) {
-                  setTimeout(() => {
-                    const slots = document.getElementById("slots-list");
-                    if (slots)
-                      slots.scrollIntoView({
-                        behavior: "smooth",
-                        block: "start",
-                      });
-                  }, 100);
+              // Smooth scroll to show the slots without revealing the footer
+              setTimeout(() => {
+                const slotsSection = document.getElementById("slots-list");
+                if (slotsSection) {
+                  // Calculate the position to scroll to (current scroll position + slots section position - some offset)
+                  const headerOffset = 120; // Adjust this value based on your header height
+                  const elementPosition = slotsSection.getBoundingClientRect().top;
+                  const offsetPosition = window.pageYOffset + elementPosition - headerOffset;
+                  
+                  // Smooth scroll to the calculated position
+                  window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                  });
                 }
               }, 200);
             };

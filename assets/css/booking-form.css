@@ -6482,21 +6482,31 @@ input[type="checkbox"] {
 @media (max-width: 768px) {
   /* Container mobile - Style Planity avec padding amélioré */
   .booking-step-infos-modern {
-    padding: 1.5rem 1.5rem !important;
-    margin: 0.5rem 1rem !important;
+    padding: 1.75rem 1.5rem !important;
+    margin: 0 auto !important;
     border-radius: 16px !important;
-    max-width: calc(100% - 2rem) !important;
+    max-width: 540px !important;
+    width: calc(100% - 2rem) !important;
+    box-sizing: border-box;
+    display: block !important;
+    position: relative !important;
+    left: 0 !important;
+    right: 0 !important;
   }
 
   /* Titre mobile - Style Planity */
   .booking-step-infos-modern h2 {
+    width: 100%;
     font-size: 20px !important;
     margin-bottom: 1.2rem !important;
   }
 
   /* Groupes d'inputs mobile */
   .input-group-modern {
-    margin-bottom: 1.2rem !important;
+    margin: 0 auto 1.2rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
   }
 
   /* Inputs mobile - Style Planity optimisé */
@@ -6505,6 +6515,8 @@ input[type="checkbox"] {
     padding: 14px 14px 14px 44px !important;
     border-radius: 10px !important;
     min-height: 48px !important;
+    width: 100% !important;
+    box-sizing: border-box;
   }
 
   /* Labels mobile - Style Planity */
@@ -6758,16 +6770,17 @@ input[type="checkbox"] {
 /* 1. Centrage et largeur du ticket sur mobile */
 @media (max-width: 600px) {
   .booking-ticket-modern {
-    margin: 0.1em auto 0.1em auto !important;
-    max-width: 98vw !important;
-    min-width: 0 !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
+    margin: 1rem auto !important;
+    width: calc(100% - 2rem) !important;
+    max-width: 540px !important;
     box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    justify-content: center !important;
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
   }
 }
 

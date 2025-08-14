@@ -378,6 +378,10 @@ window.scrollToProgressBar = function(callback, delay = 300) {
 
       // Reset complet si retour à l'étape 1
       if (step === 1) {
+        // Sauvegarder le numéro de téléphone actuel
+        const currentPhone = bookingState.client?.phone || '';
+        
+        // Réinitialiser l'état
         bookingState.selectedService = null;
         bookingState.selectedEmployee = null;
         bookingState.selectedDate = null;
@@ -386,7 +390,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           firstname: "",
           lastname: "",
           email: "",
-          phone: "",
+          phone: currentPhone, // Conserver le numéro de téléphone
         };
 
         // Synchroniser avec le global
@@ -396,6 +400,17 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         window.bookingState.selectedSlot = null;
 
         localStorage.removeItem("bookingState");
+        
+        // Réinitialiser le sélecteur de pays si disponible
+        if (window.simpleCountrySelector) {
+          setTimeout(() => {
+            if (currentPhone) {
+              window.simpleCountrySelector.setPhoneNumber(currentPhone);
+            } else {
+              window.simpleCountrySelector.setPhoneNumber("");
+            }
+          }, 100);
+        }
       }
       updateBookingState();
       renderStepContent();
@@ -553,12 +568,20 @@ window.scrollToProgressBar = function(callback, delay = 300) {
                 bookingState.client.email || ""
               }" />
             </div>
-            <div class="phone-field-with-country" style="margin-bottom:2.1em;">
+            <div id="phone-field-container" class="phone-field-with-country" style="margin-bottom:0.5em;">
               <label for="client-phone" style="color:#606060 !important ;font-size:1.04em;margin-bottom:0.4em;display:block;">Téléphone</label>
               <div id="simple-country-selector-container"></div>
               <input id="client-phone" type="hidden" value="${
                 bookingState.client.phone || ""
               }"/>
+              <div id="phone-error" class="error-message" style="color: #dc2626; font-size: 0.85em; margin-top: 0.5em; display: none; padding: 5px; background-color: #fef2f2; border-radius: 4px;">
+                <span style="display: flex; align-items: center; gap: 5px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  Le numéro doit contenir au moins 9 chiffres
+                </span>
+              </div>
             </div>
             <!-- Case à cocher RGPD avec meilleure expérience mobile -->
             <div class="ib-legal-checkbox">
@@ -1152,19 +1175,20 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       }
 
       if (bookingState.step < 5) {
-        // const next = document.createElement("button");
-        // next.className = "next btn-next";
-        // next.setAttribute("data-action", "next");
+        const next = document.createElement("button");
+        next.className = "next btn-next";
+        next.setAttribute("data-action", "next");
 
-        // // Texte du bouton selon l'étape
-        // const buttonTexts = {
-        //   1: "Choisir la praticienne →",
-        //   2: "Choisir la date →",
-        //   3: "Mes informations →",
-        //   4: "Confirmer la réservation",
-        // };
+        // Texte du bouton selon l'étape
+        const buttonTexts = {
+          1: "Choisir la praticienne →",
+          2: "Choisir la date →",
+          3: "Mes informations →",
+          4: "Confirmer la réservation",
+        };
 
         next.innerHTML = buttonTexts[bookingState.step] || "Suivant →";
+        actions.appendChild(next);
         next.onclick = () => {
           if (bookingState.step === 1 && !bookingState.selectedService) {
             showBookingNotification("Sélectionnez un service.");
@@ -1203,23 +1227,11 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         restart.textContent = "Nouvelle réservation";
         restart.setAttribute("data-action", "restart");
         restart.onclick = () => {
-          bookingState = {
-            step: 1,
-            selectedCategory: "ALL",
-            selectedService: null,
-            selectedEmployee: null,
-            selectedDate: null,
-            selectedSlot: null,
-            services: window.bookingServices || [],
-            employees: window.bookingEmployees || [],
-            client: {
-              firstname: "",
-              lastname: "",
-              email: "",
-              phone: "",
-            },
-          };
-          goToStep(1);
+          // Réinitialiser l'état de réservation dans le localStorage
+          localStorage.removeItem("bookingState");
+          
+          // Rafraîchir la page pour réinitialiser complètement le formulaire
+          window.location.reload();
         };
         actions.appendChild(restart);
       }
@@ -2275,6 +2287,13 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         numberWithoutCountry = cleanNumber.substring(countryCode.length);
       }
       
+      // Validation minimale de 9 chiffres pour tous les pays
+      if (numberWithoutCountry.length < 9) {
+        console.log('[DEBUG] Numéro trop court:', numberWithoutCountry.length, 'chiffres (minimum 9 requis)');
+        return false;
+      }
+      
+      // Validation spécifique par pays si nécessaire
       switch(countryCode) {
         case '33': // France
           // 9 chiffres (sans le 0) ou 10 chiffres (avec le 0)
@@ -2287,11 +2306,12 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           
         case '216': // Tunisie
           // 8 chiffres (sans le 0) ou 9 chiffres (avec le 0)
-          return [8, 9].includes(numberWithoutCountry.length);
+          // On garde cette règle spécifique mais on applique le minimum de 9 chiffres
+          return numberWithoutCountry.length >= 9 && [8, 9].includes(numberWithoutCountry.length);
           
         default:
-          // Pour les autres pays: entre 6 et 13 chiffres (sans le code pays)
-          return numberWithoutCountry.length >= 6 && numberWithoutCountry.length <= 13;
+          // Pour les autres pays: minimum 9 chiffres, maximum 13 chiffres (sans le code pays)
+          return numberWithoutCountry.length >= 9 && numberWithoutCountry.length <= 13;
       }
     }
 
@@ -2408,8 +2428,15 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       };
 
       function validateField(input, type) {
+        // Vérifier si l'input est null ou undefined
+        if (!input) {
+          console.error("❌ [ERREUR] L'élément input est null ou undefined pour le type:", type);
+          return false;
+        }
+        
         let valid = true;
-        let value = input.value;
+        // Vérifier que input.value existe avant de l'utiliser
+        let value = input && input.value ? input.value : "";
         if (type === "firstname" || type === "lastname") {
           valid = isValidName(value);
           if (!valid && touched[type]) {
@@ -2484,24 +2511,16 @@ window.scrollToProgressBar = function(callback, delay = 300) {
             console.log("🔍 [DEBUG] Aucun sélecteur ni input disponible");
           }
 
-          // Vérifier que le téléphone n'est pas vide (champ obligatoire)
+          // Vérifier que le téléphone n'est pas vide
           if (phoneValue === "") {
             valid = false;
             if (touched.phone) {
               // Toujours utiliser l'input caché comme référence pour le téléphone
-              const phoneInput = document.getElementById('client-phone');
-              if (phoneInput) {
-                showError(phoneInput, "Le numéro de téléphone est obligatoire");
-              } else {
-                // Fallback si l'input caché n'est pas trouvé
-                showError(
-                  input || 
-                  (window.simpleCountrySelector?.container.querySelector(".simple-phone-input")),
-                  "Le numéro de téléphone est obligatoire"
-                );
-              }
+              const phoneInput = document.getElementById('client-phone') || 
+                               (window.simpleCountrySelector?.container?.querySelector(".simple-phone-input"));
+             
             }
-            console.log("🔍 [DEBUG] Téléphone vide - champ obligatoire");
+            console.log("🔍 [DEBUG] Téléphone vide - invalide");
           } else {
             // Si un numéro est saisi, le valider
             let validIntl = false;
@@ -2529,13 +2548,21 @@ window.scrollToProgressBar = function(callback, delay = 300) {
               console.log("🔍 [DEBUG] Aucune méthode de validation disponible");
             }
 
-            // Validation plus tolérante pendant la saisie
-            if (phoneValue.length > 0 && phoneValue.length < 9) {
-              console.log(
-                "⏳ [DEBUG] Numéro en cours de saisie, validation temporaire"
-              );
-              validIntl = true; // Temporairement valide pendant la saisie
-              validCustom = true;
+            // Validation stricte même pendant la saisie
+            if (phoneValue.length > 0) {
+              // Compter uniquement les chiffres pour la validation
+              const digitCount = phoneValue.replace(/\D/g, '').length;
+              if (digitCount < 9) {
+                console.log(
+                  `⏳ [DEBUG] Numéro trop court: ${digitCount} chiffres (minimum 9 requis)`
+                );
+                validIntl = false;
+                validCustom = false;
+              } else {
+                console.log(
+                  `✅ [DEBUG] Numéro valide: ${digitCount} chiffres`
+                );
+              }
             }
 
             console.log("[PHONE VALIDATION]", {
@@ -2549,21 +2576,78 @@ window.scrollToProgressBar = function(callback, delay = 300) {
             });
 
             valid = validIntl && validCustom;
+            
+            console.log('[DEBUG] Validation du téléphone:', {
+              phoneValue,
+              valid,
+              validIntl,
+              validCustom,
+              touched: touched.phone,
+              hasError: !valid && touched.phone
+            });
+            
+            // Afficher directement un message d'erreur si la validation échoue
             if (!valid && touched.phone) {
-              showError(
-                input ||
-                  window.simpleCountrySelector?.container.querySelector(
-                    ".simple-phone-input"
-                  ),
-                "Numéro de téléphone invalide (format mobile international requis)"
-              );
+              console.log('[DEBUG] Affichage du message d\'erreur');
+              // Récupérer ou créer le conteneur d'erreur
+              console.log('[DEBUG] Recherche du conteneur d\'erreur...');
+              
+              // Trouver le conteneur parent du champ téléphone
+              const phoneFieldContainer = document.querySelector('.phone-field-with-country');
+              if (!phoneFieldContainer) {
+                console.error('[ERREUR] Conteneur du champ téléphone introuvable');
+                return;
+              }
+              
+              let errorContainer = phoneFieldContainer.nextElementSibling;
+              
+              // Vérifier si le prochain élément est déjà notre conteneur d'erreur
+              if (!errorContainer || !errorContainer.classList.contains('phone-error-container')) {
+                console.log('[DEBUG] Création d\'un nouveau conteneur d\'erreur');
+                errorContainer = document.createElement('div');
+                errorContainer.className = 'phone-error-container';
+                errorContainer.style.marginTop = '10px';
+                errorContainer.style.padding = '8px';
+                errorContainer.style.backgroundColor = '#fef2f2';
+                errorContainer.style.borderLeft = '4px solid #dc2626';
+                errorContainer.style.borderRadius = '4px';
+                errorContainer.style.display = 'block';
+                
+                // Ajouter le message d'erreur
+                errorContainer.innerHTML = `
+                  <div style="display: flex; align-items: center; color: #dc2626; font-size: 0.9em;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; flex-shrink: 0;">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <span>Numéro de téléphone invalide</span>
+                  </div>
+                `;
+                
+                // Insérer après le champ téléphone
+                console.log('[DEBUG] Recherche du champ téléphone...');
+                const phoneField = document.querySelector('.phone-field-with-country');
+                console.log('[DEBUG] Champ téléphone trouvé:', phoneField);
+                if (phoneField && phoneField.parentNode) {
+                  console.log('[DEBUG] Insertion du message d\'erreur après le champ téléphone');
+                  phoneField.parentNode.insertBefore(errorContainer, phoneField.nextSibling);
+                }
+              } else {
+                // Le conteneur existe déjà, on s'assure qu'il est visible
+                errorContainer.style.display = 'block';
+              }
             } else {
-              clearError(
-                input ||
-                  window.simpleCountrySelector?.container.querySelector(
-                    ".simple-phone-input"
-                  )
-              );
+              // Cacher le message d'erreur si la validation réussit
+              console.log('[DEBUG] Validation réussie, masquage du message d\'erreur');
+              const phoneFieldContainer = document.querySelector('.phone-field-with-country');
+              if (phoneFieldContainer) {
+                const errorContainer = phoneFieldContainer.nextElementSibling;
+                if (errorContainer && errorContainer.classList.contains('phone-error-container')) {
+                  console.log('[DEBUG] Masquage du conteneur d\'erreur existant');
+                  errorContainer.style.display = 'none';
+                }
+              }
             }
           }
         }
@@ -2572,10 +2656,27 @@ window.scrollToProgressBar = function(callback, delay = 300) {
 
       function validateAll() {
         let valid = true;
-        const firstnameValid = validateField(firstnameInput, "firstname");
-        const lastnameValid = validateField(lastnameInput, "lastname");
-        const emailValid = validateField(emailInput, "email");
-        const phoneValid = validateField(phoneInput, "phone");
+        
+        // Vérifier que tous les champs d'entrée sont valides avant de les utiliser
+        const inputs = {
+          firstname: firstnameInput,
+          lastname: lastnameInput,
+          email: emailInput,
+          phone: phoneInput
+        };
+        
+        // Valider chaque champ s'il existe
+        const firstnameValid = inputs.firstname ? validateField(inputs.firstname, "firstname") : false;
+        const lastnameValid = inputs.lastname ? validateField(inputs.lastname, "lastname") : false;
+        const emailValid = inputs.email ? validateField(inputs.email, "email") : false;
+        const phoneValid = inputs.phone ? validateField(inputs.phone, "phone") : false;
+        
+        // Journaliser si des champs sont manquants
+        Object.entries(inputs).forEach(([name, input]) => {
+          if (!input) {
+            console.error(`❌ [ERREUR] Le champ ${name} est null ou non trouvé`);
+          }
+        });
 
         // Vérifier la case de politique de confidentialité
         const privacyCheckbox = document.getElementById("client-privacy");
@@ -2607,48 +2708,82 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         { input: emailInput, type: "email" },
         { input: phoneInput, type: "phone" },
       ].forEach(({ input, type }) => {
-        input.addEventListener("blur", function () {
-          touched[type] = true;
-          validateField(input, type);
-          validateAll();
-        });
-        input.addEventListener("input", function () {
-          if (touched[type]) validateField(input, type);
-          validateAll();
-        });
+        // Vérifier que l'input existe avant d'ajouter des écouteurs
+        if (input) {
+          input.addEventListener("blur", function () {
+            touched[type] = true;
+            validateField(input, type);
+            validateAll();
+          });
+          
+          input.addEventListener("input", function () {
+            if (touched[type]) validateField(input, type);
+            validateAll();
+          });
+          
+          console.log(`✅ Écouteurs d'événements ajoutés pour le champ ${type}`);
+        } else {
+          console.error(`❌ Impossible d'ajouter les écouteurs d'événements pour le champ ${type}: input non trouvé`);
+        }
       });
 
       // Empêche la saisie de chiffres dans nom/prénom
-      [firstnameInput, lastnameInput].forEach((input) => {
-        input.addEventListener("keypress", function (e) {
-          if (/[0-9]/.test(e.key)) e.preventDefault();
+      [
+        { input: firstnameInput, name: "prénom" },
+        { input: lastnameInput, name: "nom" }
+      ].forEach(({ input, name }) => {
+        if (input) {
+          input.addEventListener("keypress", function (e) {
+            if (/[0-9]/.test(e.key)) {
+              console.log(`⚠️ Tentative de saisie d'un chiffre dans le champ ${name} bloquée`);
+              e.preventDefault();
+            }
+          });
+        } else {
+          console.error(`❌ Impossible d'ajouter la validation pour le champ ${name}: input non trouvé`);
+        }
+      });
+
+      // Gestion du champ téléphone
+      if (phoneInput) {
+        // Empêche la saisie de caractères non numériques dans le champ téléphone
+        phoneInput.addEventListener("keypress", function (e) {
+          // Autorise uniquement les chiffres, espaces, tirets et points
+          if (!/[0-9\s\-\.]/.test(e.key)) {
+            console.log("⚠️ Caractère non autorisé dans le champ téléphone:", e.key);
+            e.preventDefault();
+            return false;
+          }
         });
-      });
-      // Empêche la saisie de caractères non numériques dans le champ téléphone
-      phoneInput.addEventListener("keypress", function (e) {
-        // Autorise uniquement les chiffres, espaces, tirets et points
-        if (!/[0-9\s\-\.]/.test(e.key)) {
-          e.preventDefault();
-          return false;
-        }
-      });
 
-      // Nettoyage supplémentaire sur le collage (paste) et la validation
-      phoneInput.addEventListener('paste', function(e) {
-        // Récupère les données collées
-        const pastedData = (e.clipboardData || window.clipboardData).getData('text');
-        // Vérifie si des caractères non autorisés sont présents
-        if (/[^0-9\s\-\.]/.test(pastedData)) {
-          e.preventDefault();
-          return false;
-        }
-      });
+        // Nettoyage supplémentaire sur le collage (paste) et la validation
+        phoneInput.addEventListener('paste', function(e) {
+          console.log("📋 Collage détecté dans le champ téléphone");
+          // Récupère les données collées
+          const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+          console.log("📋 Données collées:", pastedData);
+          
+          // Vérifie si des caractères non autorisés sont présents
+          if (/[^0-9\s\-\.]/.test(pastedData)) {
+            console.log("⚠️ Données collées non autorisées, collage bloqué");
+            e.preventDefault();
+            return false;
+          }
+          console.log("✅ Données collées autorisées");
+        });
 
-      // Nettoyage de la valeur lors de la perte de focus
-      phoneInput.addEventListener('blur', function() {
-        // Supprime tous les caractères non numériques sauf les espaces, tirets et points
-        this.value = this.value.replace(/[^0-9\s\-\.]/g, '');
-      });
+        // Nettoyage de la valeur lors de la perte de focus
+        phoneInput.addEventListener('blur', function() {
+          console.log("🔍 Perte de focus du champ téléphone, nettoyage en cours...");
+          // Supprime tous les caractères non numériques sauf les espaces, tirets et points
+          const oldValue = this.value;
+          this.value = this.value.replace(/[^0-9\s\-\.]/g, '');
+          
+          if (oldValue !== this.value) {
+            console.log("🔍 Valeur nettoyée:", this.value);
+          }
+        });
+      } // Fin de if (phoneInput)
 
       // Écouteur pour la case de politique de confidentialité
       const privacyCheckbox = document.getElementById("client-privacy");
@@ -3069,6 +3204,10 @@ window.scrollToProgressBar = function(callback, delay = 300) {
 
   // Fonction pour initialiser le sélecteur de pays simple
   function initSimpleCountrySelector() {
+    if (window.simpleCountrySelector) {
+      console.log("🔍 [DEBUG] Sélecteur de pays déjà initialisé");
+      return;
+    }
     console.log("🔍 [DEBUG] Début initSimpleCountrySelector");
     console.log(
       "🔍 [DEBUG] window.simpleCountrySelector avant:",
@@ -3241,48 +3380,15 @@ window.scrollToProgressBar = function(callback, delay = 300) {
             hiddenInput.value = window.getPhoneNumber ? window.getPhoneNumber() : cleanedValue;
           }
           
-          // Valider le format du numéro
-          const isValid = isValidPhoneNumber(cleanedValue);
-          const formGroup = this.closest('.form-group') || this.parentElement;
-          
-          if (formGroup) {
-            if (cleanedValue && !isValid) {
-              formGroup.classList.add('has-error');
-              // Ne pas afficher d'erreur pendant la saisie, seulement après le blur
-            } else {
-              formGroup.classList.remove('has-error');
-            }
-          }
+          // La validation complète se fera uniquement au blur
         });
         
         // Gérer l'événement blur pour la validation finale
         phoneInput.addEventListener("blur", function() {
           const cleanedValue = cleanPhoneNumber(this.value);
           const isValid = isValidPhoneNumber(cleanedValue);
-          const formGroup = this.closest('.form-group') || this.parentElement;
           
-          if (formGroup) {
-            if (cleanedValue && !isValid) {
-              formGroup.classList.add('has-error');
-              // Afficher un message d'erreur spécifique
-              let errorMsg = formGroup.querySelector('.error-message');
-              if (!errorMsg) {
-                errorMsg = document.createElement('div');
-                errorMsg.className = 'error-message';
-                errorMsg.style.color = '#e53e3e';
-                errorMsg.style.fontSize = '0.875rem';
-                errorMsg.style.marginTop = '0.25rem';
-                formGroup.appendChild(errorMsg);
-              }
-              errorMsg.textContent = 'Veuillez entrer un numéro de téléphone valide';
-            } else {
-              formGroup.classList.remove('has-error');
-              const errorMsg = formGroup.querySelector('.error-message');
-              if (errorMsg) {
-                errorMsg.remove();
-              }
-            }
-          }
+          
         });
         
         // Prévenir le collage de texte non valide
@@ -3432,9 +3538,8 @@ window.scrollToProgressBar = function(callback, delay = 300) {
     } catch (error) {
       console.error("❌ Erreur lors de l'initialisation du sélecteur:", error);
     }
-  }
-  // Fin de la fonction initBooking()
-
+  } // Fin de la fonction initSimpleCountrySelector
+  
   // Démarrer l'initialisation
   initBookingWhenReady();
 })(); // Fin de la fonction auto-exécutée

@@ -2257,27 +2257,138 @@ window.scrollToProgressBar = function(callback, delay = 300) {
     // Rendre la fonction disponible globalement
     window.formatDuration = formatDuration;
 
+    // Fonction utilitaire pour nettoyer un numéro de téléphone
+    function cleanPhoneNumber(str) {
+      if (!str) return '';
+      // Supprimer tous les caractères non numériques
+      return str.replace(/[^0-9+]/g, '');
+    }
+
+    // Fonction pour valider la longueur d'un numéro selon le pays
+    function validatePhoneLength(number, countryCode) {
+      // Garder uniquement les chiffres pour la validation de longueur
+      const cleanNumber = number.replace(/[^0-9]/g, '');
+      
+      // Si le numéro commence par le code pays, on l'enlève pour la validation
+      let numberWithoutCountry = cleanNumber;
+      if (countryCode && cleanNumber.startsWith(countryCode)) {
+        numberWithoutCountry = cleanNumber.substring(countryCode.length);
+      }
+      
+      switch(countryCode) {
+        case '33': // France
+          // 9 chiffres (sans le 0) ou 10 chiffres (avec le 0)
+          return [9, 10].includes(numberWithoutCountry.length);
+          
+        case '213': // Algérie
+        case '212': // Maroc
+          // 9 chiffres (sans le 0) ou 10 chiffres (avec le 0)
+          return [9, 10].includes(numberWithoutCountry.length);
+          
+        case '216': // Tunisie
+          // 8 chiffres (sans le 0) ou 9 chiffres (avec le 0)
+          return [8, 9].includes(numberWithoutCountry.length);
+          
+        default:
+          // Pour les autres pays: entre 6 et 13 chiffres (sans le code pays)
+          return numberWithoutCountry.length >= 6 && numberWithoutCountry.length <= 13;
+      }
+    }
+
     function isValidPhoneNumber(str) {
-      const cleaned = str.replace(/\D/g, "");
+      if (!str || typeof str !== 'string') return false;
+      
+      console.log('[DEBUG] Validation du numéro:', str);
+      
+      // Nettoyer le numéro (supprimer tous les caractères non numériques sauf le +)
+      const cleaned = cleanPhoneNumber(str);
+      if (!cleaned) {
+        console.log('[DEBUG] Numéro vide après nettoyage');
+        return false;
+      }
+      
+      // Récupérer le code pays
       let country = "";
-      if (window.iti && window.iti.getSelectedCountryData) {
+      if (window.getPlanityCountryCode) {
+        country = window.getPlanityCountryCode().replace("+", "");
+        console.log('[DEBUG] Code pays détecté (Planity):', country);
+      } else if (window.iti && window.iti.getSelectedCountryData) {
         country = window.iti.getSelectedCountryData().dialCode;
+        console.log('[DEBUG] Code pays détecté (intl-tel):', country);
+      } else {
+        console.log('[DEBUG] Aucun code pays détecté');
       }
-      // France : +33, 9 chiffres, commence par 6 ou 7 (mobile), avec ou sans 0 initial
-      if (country === "33") {
-        // 06xxxxxxxx ou 07xxxxxxxx ou 6xxxxxxxx ou 7xxxxxxxx
-        return (
-          /^0[67][0-9]{8}$/.test(cleaned) || /^[67][0-9]{8}$/.test(cleaned)
-        );
+      
+      // Si on a un code pays, on valide en conséquence
+      if (country) {
+        // Validation de la longueur en fonction du pays
+        const isValidLength = validatePhoneLength(cleaned, country);
+        console.log('[DEBUG] Longueur valide pour', country, ':', isValidLength);
+        
+        if (!isValidLength) {
+          console.log('[DEBUG] Longueur invalide pour le pays', country, 'numéro', cleaned);
+          return false;
+        }
+        
+        // Préparer le numéro pour validation (sans code pays)
+        let numberWithoutCountry = cleaned;
+        
+        // Supprimer le code pays s'il est présent au début
+        if (cleaned.startsWith(country)) {
+          numberWithoutCountry = cleaned.substring(country.length);
+        } else if (cleaned.startsWith('0' + country)) {
+          numberWithoutCountry = cleaned.substring(country.length + 1);
+        } else if (cleaned.startsWith('00' + country)) {
+          numberWithoutCountry = cleaned.substring(country.length + 2);
+        } else if (cleaned.startsWith('+')) {
+          // Si le numéro commence par + mais pas par le code pays, on le supprime
+          numberWithoutCountry = cleaned.substring(1);
+        }
+        
+        // Supprimer les espaces et caractères spéciaux restants
+        numberWithoutCountry = numberWithoutCountry.replace(/[^0-9]/g, '');
+        
+        console.log('[DEBUG] Numéro sans code pays:', numberWithoutCountry);
+        
+        // Validation spécifique par pays
+        switch(country) {
+          case '33': // France
+            // Format accepté : 6 ou 7 suivi de 8 chiffres (avec ou sans 0 initial)
+            const frValid = /^[67]\d{8}$/.test(numberWithoutCountry) || 
+                          /^0[67]\d{8}$/.test(numberWithoutCountry);
+            console.log('[DEBUG] Validation France:', frValid);
+            return frValid;
+            
+          case '213': // Algérie
+          case '212': // Maroc
+            // Format accepté : 5, 6 ou 7 suivi de 8 chiffres (avec ou sans 0 initial)
+            const dzmaValid = /^[5-7]\d{8}$/.test(numberWithoutCountry) || 
+                            /^0[5-7]\d{8}$/.test(numberWithoutCountry);
+            console.log('[DEBUG] Validation Algérie/Maroc:', dzmaValid);
+            return dzmaValid;
+            
+          case '216': // Tunisie
+            // Format accepté : 8 chiffres (avec ou sans 0 initial)
+            const tnValid = /^\d{8}$/.test(numberWithoutCountry) || 
+                          /^0\d{8}$/.test(numberWithoutCountry);
+            console.log('[DEBUG] Validation Tunisie:', tnValid);
+            return tnValid;
+            
+          default:
+            // Pour les autres pays: entre 6 et 13 chiffres
+            const defaultValid = numberWithoutCountry.length >= 6 && 
+                               numberWithoutCountry.length <= 13;
+            console.log('[DEBUG] Validation autre pays:', defaultValid);
+            return defaultValid;
+        }
       }
-      // Algérie : +213, 9 chiffres, commence par 5, 6 ou 7 (mobile), avec ou sans 0 initial
-      if (country === "213") {
-        return (
-          /^0[5-7][0-9]{8}$/.test(cleaned) || /^[5-7][0-9]{8}$/.test(cleaned)
-        );
-      }
-      // Autres pays : 6 à 15 chiffres
-      return /^\d{6,15}$/.test(cleaned);
+      
+      // Si pas de code pays, on fait une validation générique
+      const digitsOnly = cleaned.replace(/[^0-9]/g, '');
+      const genericValid = digitsOnly.length >= 6 && digitsOnly.length <= 15;
+      console.log('[DEBUG] Validation générique:', genericValid);
+      
+      return genericValid;
     }
 
     // --- Validation UX moderne ---
@@ -2513,9 +2624,30 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           if (/[0-9]/.test(e.key)) e.preventDefault();
         });
       });
-      // Empêche la saisie de lettres dans téléphone
+      // Empêche la saisie de caractères non numériques dans le champ téléphone
       phoneInput.addEventListener("keypress", function (e) {
-        if (/[^0-9\s\-\.]/.test(e.key)) e.preventDefault();
+        // Autorise uniquement les chiffres, espaces, tirets et points
+        if (!/[0-9\s\-\.]/.test(e.key)) {
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      // Nettoyage supplémentaire sur le collage (paste) et la validation
+      phoneInput.addEventListener('paste', function(e) {
+        // Récupère les données collées
+        const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+        // Vérifie si des caractères non autorisés sont présents
+        if (/[^0-9\s\-\.]/.test(pastedData)) {
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      // Nettoyage de la valeur lors de la perte de focus
+      phoneInput.addEventListener('blur', function() {
+        // Supprime tous les caractères non numériques sauf les espaces, tirets et points
+        this.value = this.value.replace(/[^0-9\s\-\.]/g, '');
       });
 
       // Écouteur pour la case de politique de confidentialité
@@ -2551,9 +2683,27 @@ window.scrollToProgressBar = function(callback, delay = 300) {
             }
             validateAll();
           });
-          // Empêche la saisie de lettres dans le champ téléphone personnalisé
+          // Empêche la saisie de caractères non numériques dans le champ téléphone personnalisé
           customPhoneInput.addEventListener("keypress", function (e) {
-            if (/[^0-9\s\-\.]/.test(e.key)) e.preventDefault();
+            // Autorise uniquement les chiffres, espaces, tirets et points
+            if (!/[0-9\s\-\.]/.test(e.key)) {
+              e.preventDefault();
+              return false;
+            }
+          });
+
+          // Nettoyage supplémentaire sur le collage (paste) pour le champ personnalisé
+          customPhoneInput.addEventListener('paste', function(e) {
+            const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+            if (/[^0-9\s\-\.]/.test(pastedData)) {
+              e.preventDefault();
+              return false;
+            }
+          });
+
+          // Nettoyage de la valeur lors de la perte de focus pour le champ personnalisé
+          customPhoneInput.addEventListener('blur', function() {
+            this.value = this.value.replace(/[^0-9\s\-\.]/g, '');
           });
         }
       }
@@ -2893,6 +3043,30 @@ window.scrollToProgressBar = function(callback, delay = 300) {
     goToStep(1);
   } // Fin de initBooking
 
+  // Fonction utilitaire pour nettoyer et formater un numéro de téléphone en temps réel
+  function formatPhoneInput(input) {
+    if (!input) return '';
+    
+    // Récupérer la position du curseur
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    
+    // Récupérer la valeur actuelle
+    let value = input.value;
+    
+    // Nettoyer la valeur (conserver uniquement les chiffres et le + initial)
+    const cleaned = cleanPhoneNumber(value);
+    
+    // Mettre à jour la valeur nettoyée
+    input.value = cleaned;
+    
+    // Restaurer la position du curseur en tenant compte des caractères supprimés
+    const diff = value.length - cleaned.length;
+    input.setSelectionRange(Math.max(0, start - diff), Math.max(0, end - diff));
+    
+    return cleaned;
+  }
+
   // Fonction pour initialiser le sélecteur de pays simple
   function initSimpleCountrySelector() {
     console.log("🔍 [DEBUG] Début initSimpleCountrySelector");
@@ -2996,14 +3170,139 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         }
       });
 
-      // Écouter les changements du numéro de téléphone
+      // Écouter les changements du numéro de téléphone avec validation en temps réel
       const phoneInput = container.querySelector(".simple-phone-input");
       if (phoneInput) {
-        phoneInput.addEventListener("input", function () {
+        // Ajouter des attributs pour le contrôle de la saisie
+        phoneInput.setAttribute('inputmode', 'tel');
+        phoneInput.setAttribute('pattern', '[0-9+]*');
+        phoneInput.setAttribute('autocomplete', 'tel');
+        
+        // Fonction pour obtenir la longueur maximale selon le pays
+        function getMaxPhoneLength() {
+          let country = "";
+          if (window.getPlanityCountryCode) {
+            country = window.getPlanityCountryCode().replace("+", "");
+          } else if (window.iti && window.iti.getSelectedCountryData) {
+            country = window.iti.getSelectedCountryData().dialCode;
+          }
+          
+          // Longueur maximale en fonction du pays (uniquement pour le numéro, sans le code pays)
+          const maxLengths = {
+            '33': 10,   // France: 9 ou 10 chiffres (avec/sans 0 initial)
+            '213': 10,  // Algérie: 9 ou 10 chiffres
+            '212': 10,  // Maroc: 9 ou 10 chiffres
+            '216': 9    // Tunisie: 8 ou 9 chiffres
+          };
+          
+          // Par défaut: 13 chiffres max (uniquement pour le numéro, sans le code pays)
+          return maxLengths[country] || 13;
+        }
+
+        // Empêcher la saisie de caractères non numériques et limiter la longueur
+        phoneInput.addEventListener('keydown', function(e) {
+          const currentValue = this.value;
+          const selection = window.getSelection().toString();
+          
+          // Autoriser : backspace, delete, tab, escape, enter, home, end, flèches
+          if ([8, 9, 13, 27, 35, 36, 37, 38, 39, 40].includes(e.keyCode) || 
+              // Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+              (e.ctrlKey === true && [65, 67, 86, 88].includes(e.keyCode))) {
+            return;
+          }
+          
+          // Si la touche est suppr ou backspace, laisser faire
+          if (e.keyCode === 46 || e.keyCode === 8) {
+            return;
+          }
+          
+          // Vérifier la longueur maximale
+          const maxLength = getMaxPhoneLength();
+          if (currentValue.length >= maxLength && !selection) {
+            e.preventDefault();
+            return false;
+          }
+          
+          // Autoriser uniquement les chiffres et le signe +
+          if (!/^[0-9+]$/.test(e.key)) {
+            e.preventDefault();
+            return false;
+          }
+        });
+
+        // Gérer l'événement input pour la validation en temps réel
+        phoneInput.addEventListener("input", function (e) {
+          // Nettoyer et formater le numéro
+          const cleanedValue = formatPhoneInput(this);
+          
+          // Mettre à jour le champ caché avec la valeur nettoyée
           const hiddenInput = document.querySelector("#client-phone");
           if (hiddenInput) {
-            hiddenInput.value = window.getPhoneNumber();
+            hiddenInput.value = window.getPhoneNumber ? window.getPhoneNumber() : cleanedValue;
           }
+          
+          // Valider le format du numéro
+          const isValid = isValidPhoneNumber(cleanedValue);
+          const formGroup = this.closest('.form-group') || this.parentElement;
+          
+          if (formGroup) {
+            if (cleanedValue && !isValid) {
+              formGroup.classList.add('has-error');
+              // Ne pas afficher d'erreur pendant la saisie, seulement après le blur
+            } else {
+              formGroup.classList.remove('has-error');
+            }
+          }
+        });
+        
+        // Gérer l'événement blur pour la validation finale
+        phoneInput.addEventListener("blur", function() {
+          const cleanedValue = cleanPhoneNumber(this.value);
+          const isValid = isValidPhoneNumber(cleanedValue);
+          const formGroup = this.closest('.form-group') || this.parentElement;
+          
+          if (formGroup) {
+            if (cleanedValue && !isValid) {
+              formGroup.classList.add('has-error');
+              // Afficher un message d'erreur spécifique
+              let errorMsg = formGroup.querySelector('.error-message');
+              if (!errorMsg) {
+                errorMsg = document.createElement('div');
+                errorMsg.className = 'error-message';
+                errorMsg.style.color = '#e53e3e';
+                errorMsg.style.fontSize = '0.875rem';
+                errorMsg.style.marginTop = '0.25rem';
+                formGroup.appendChild(errorMsg);
+              }
+              errorMsg.textContent = 'Veuillez entrer un numéro de téléphone valide';
+            } else {
+              formGroup.classList.remove('has-error');
+              const errorMsg = formGroup.querySelector('.error-message');
+              if (errorMsg) {
+                errorMsg.remove();
+              }
+            }
+          }
+        });
+        
+        // Prévenir le collage de texte non valide
+        phoneInput.addEventListener('paste', function(e) {
+          e.preventDefault();
+          const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+          const cleaned = cleanPhoneNumber(pastedText);
+          
+          // Insérer le texte nettoyé à la position du curseur
+          const start = this.selectionStart;
+          const end = this.selectionEnd;
+          const newValue = this.value.substring(0, start) + cleaned + this.value.substring(end);
+          
+          // Mettre à jour la valeur et positionner le curseur
+          this.value = newValue;
+          const newCursorPos = start + cleaned.length;
+          this.setSelectionRange(newCursorPos, newCursorPos);
+          
+          // Déclencher l'événement input pour la validation
+          this.dispatchEvent(new Event('input'));
         });
       }
 

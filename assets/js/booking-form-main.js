@@ -1484,19 +1484,26 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         // Gestion du clic sur l'en-tête
         accordionHeader.onclick = () => {
           const isOpen = accordionItem.classList.contains("open");
-
-          // Fermer tous les autres accordéons
-          accordionContainer
-            .querySelectorAll(".accordion-item")
-            .forEach((item) => {
-              item.classList.remove("open");
-              item.querySelector(".accordion-arrow").textContent = "▼";
-            });
-
-          // Ouvrir/fermer l'accordéon cliqué
-          if (!isOpen) {
+          
+          // Toggle l'état de l'accordéon cliqué
+          if (isOpen) {
+            accordionItem.classList.remove("open");
+            accordionHeader.querySelector(".accordion-arrow").textContent = "▼";
+          } else {
             accordionItem.classList.add("open");
             accordionHeader.querySelector(".accordion-arrow").textContent = "▲";
+            
+            // Faire défiler jusqu'au contenu de l'accordéon
+            setTimeout(() => {
+              const content = accordionItem.querySelector('.accordion-content');
+              if (content) {
+                content.scrollIntoView({ 
+                  behavior: 'smooth',
+                  block: 'nearest',
+                  inline: 'start'
+                });
+              }
+            }, 50);
           }
         };
 

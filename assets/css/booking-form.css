@@ -3785,10 +3785,12 @@ body,
   background: #f8f9fa;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  margin-bottom: 0.5rem;
-  overflow: hidden;
+  margin-bottom: 1rem;
+  overflow: visible;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
+  transition: all 0.3s ease;
 }
 
 .accordion-header {
@@ -3822,10 +3824,15 @@ body,
   overflow: hidden;
   transition: max-height 0.3s ease;
   background: white;
+  padding: 0 1rem;
+  margin: 0;
+  will-change: max-height;
 }
 
 .accordion-item.open .accordion-content {
-  max-height: 1000px;
+  max-height: 5000px; /* Large enough to contain all services */
+  padding-bottom: 1rem;
+  overflow: visible;
 }
 
 .accordion-item.open .accordion-arrow {
@@ -3833,8 +3840,14 @@ body,
 }
 
 .accordion-service-item {
-  padding: 1rem 1rem;
+  padding: 1rem 0.5rem;
   border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.2s ease;
+}
+
+.accordion-service-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0.5rem;
 }
 
 .accordion-service-item:last-child {

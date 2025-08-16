@@ -494,7 +494,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           renderServicesGrid();
           break;
         case 2:
-          inner = `<div class='booking-main-content'><h2 class='text-center mb-6'>Choisissez votre praticienne</h2><div class="grid" id="employees-grid"></div></div>`;
+          inner = `<div class='booking-main-content'><h2 class='text-center mb-6'>Choisissez votre praticienne</h2> <h2 class='text-center mb-6'>Sans préférence</h2><div class="grid" id="employees-grid"></div></div>`;
           content.innerHTML = inner;
           renderEmployeesGrid();
           break;

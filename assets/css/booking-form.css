@@ -3071,6 +3071,7 @@ button[data-action="back"]:hover,
 .booking-step-date-modern > .slots-col {
   height: auto;
   min-height: 0;
+  align-items: center;
 }
 #calendar-days .calendar-grid {
   min-height: 252px;
@@ -3888,7 +3889,7 @@ body,
   .category-accordion-title {
     font-size: 1.1rem;
     margin-bottom: 0.8rem;
-    padding: 0;
+    padding: 0px 15px;
   }
 
   .accordion-header {
@@ -5226,7 +5227,7 @@ input[type="checkbox"] {
     gap: 0.6rem !important;
     max-height: 70vh !important;
     overflow-y: auto !important;
-    padding: 0.8rem !important;
+    padding: 0rem 3rem !important;
   }
 
   .slots-col .slot-btn {

@@ -494,7 +494,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           renderServicesGrid();
           break;
         case 2:
-          inner = `<div class='booking-main-content'><h2 class='text-center mb-6'>Choisissez votre praticienne</h2><div class="grid" id="employees-grid"></div></div>`;
+          inner = `<div class='booking-main-content'><h2 class='text-center mb-6'>Choisissez votre praticienne</h2> <h2 class='text-center mb-6'>sans préférence</h2><div class="grid" id="employees-grid"></div></div>`;
           content.innerHTML = inner;
           renderEmployeesGrid();
           break;
@@ -547,9 +547,9 @@ window.scrollToProgressBar = function(callback, delay = 300) {
               <label for="client-email" class="booking-label-modern" style="display:flex;align-items:center;gap:0.5em;margin-bottom:0.3em;font-size:1em;">
                 <span style="display:inline-block;width:1.2em;height:1.2em;vertical-align:middle;">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#7B6F5B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="10" rx="2"/><path d="M3 5l7 6l7-6"/></svg>
-                </span> Email (optionnel)
+                </span> Email
               </label>
-              <input id="client-email" class="booking-input-modern" type="email" placeholder="Votre email (optionnel)" value="${
+              <input id="client-email" class="booking-input-modern" type="email" placeholder="Votre email" required value="${
                 bookingState.client.email || ""
               }" />
             </div>

@@ -28,7 +28,7 @@ if (isset($_POST['add_booking'])) {
     // Récupérer le prix du service
     $service = IB_Services::get_by_id($service_id);
     $service_price = $service ? $service->price : 0;
-    if (!$client_name || !$client_email || !$service_id || !$employee_id || !$date || !$time || !$status) {
+    if (!$client_name || !$service_id || !$employee_id || !$date || !$time || !$status) {
         echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Veuillez remplir tous les champs obligatoires.</p></div>';
     } else {
         $result = IB_Bookings::add([
@@ -215,7 +215,7 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
           <label for="add-booking-client-name">Client</label>
           <input id="add-booking-client-name" name="client_name" required>
           <label for="add-booking-client-email">Email</label>
-          <input id="add-booking-client-email" name="client_email" type="email" required>
+          <input id="add-booking-client-email" name="client_email" type="email" >
           <div style="width:260px;max-width:100%;margin-bottom:1.2em;">
             <label for="add-booking-client-phone">Téléphone</label>
             <div style="display:flex;align-items:center;">

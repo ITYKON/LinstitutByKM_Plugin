@@ -2449,18 +2449,17 @@ window.scrollToProgressBar = function(callback, delay = 300) {
             clearError(input);
           }
         } else if (type === "email") {
-          if (value.trim() === "") {
-            valid = false;
-            if (touched.email) {
-              showError(input, "L'email est obligatoire");
-            }
-          } else {
+          if (value.trim() !== "") {
             valid = isValidEmail(value);
             if (!valid) {
               showError(input, "Format d'email invalide");
             } else {
               clearError(input);
             }
+          } else {
+            // Champ vide est accepté
+            valid = true;
+            clearError(input);
           }
         } else if (type === "phone") {
           // Récupérer la valeur du champ téléphone

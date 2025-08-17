@@ -562,9 +562,9 @@ window.scrollToProgressBar = function(callback, delay = 300) {
               <label for="client-email" class="booking-label-modern" style="display:flex;align-items:center;gap:0.5em;margin-bottom:0.3em;font-size:1em;">
                 <span style="display:inline-block;width:1.2em;height:1.2em;vertical-align:middle;">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#7B6F5B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="10" rx="2"/><path d="M3 5l7 6l7-6"/></svg>
-                </span> Email (optionnel)
+                </span> Email <span style="color:#dc2626">*</span>
               </label>
-              <input id="client-email" class="booking-input-modern" type="email" placeholder="Votre email (optionnel)" value="${
+              <input id="client-email" class="booking-input-modern" type="email" placeholder="Votre email" required value="${
                 bookingState.client.email || ""
               }" />
             </div>
@@ -2450,12 +2450,14 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           }
         } else if (type === "email") {
           if (value.trim() === "") {
-            valid = true;
-            clearError(input);
+            valid = false;
+            if (touched.email) {
+              showError(input, "L'email est obligatoire");
+            }
           } else {
             valid = isValidEmail(value);
-            if (!valid && touched.email) {
-              showError(input, "Email invalide");
+            if (!valid) {
+              showError(input, "Format d'email invalide");
             } else {
               clearError(input);
             }
@@ -2681,6 +2683,11 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         // Vérifier la case de politique de confidentialité
         const privacyCheckbox = document.getElementById("client-privacy");
         const privacyValid = privacyCheckbox ? privacyCheckbox.checked : false;
+        
+        // Si la case est cochée et que l'email est vide, on le marque comme touché pour afficher l'erreur
+        if (privacyCheckbox && privacyCheckbox.checked && emailInput && emailInput.value.trim() === '') {
+          touched.email = true;
+        }
 
         console.log("🔍 [VALIDATE ALL]", {
           firstname: firstnameValid,
@@ -2721,9 +2728,21 @@ window.scrollToProgressBar = function(callback, delay = 300) {
             validateAll();
           });
           
-          console.log(`✅ Écouteurs d'événements ajoutés pour le champ ${type}`);
+          console.log(` [Écouteurs d'événements ajoutés pour le champ ${type}`);
         } else {
-          console.error(`❌ Impossible d'ajouter les écouteurs d'événements pour le champ ${type}: input non trouvé`);
+          console.error(` [Impossible d'ajouter les écouteurs d'événements pour le champ ${type}: input non trouvé`);
+        }
+      });
+
+      // Valider l'email avant de passer au champ téléphone
+      phoneInput.addEventListener("focus", function() {
+        if (emailInput) {
+          // Si l'email n'a pas encore été touché, on le marque comme touché
+          if (!touched.email) {
+            touched.email = true;
+            validateField(emailInput, "email");
+          }
+          validateAll();
         }
       });
 
@@ -2735,12 +2754,12 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         if (input) {
           input.addEventListener("keypress", function (e) {
             if (/[0-9]/.test(e.key)) {
-              console.log(`⚠️ Tentative de saisie d'un chiffre dans le champ ${name} bloquée`);
+              console.log(` [Tentative de saisie d'un chiffre dans le champ ${name} bloquée`);
               e.preventDefault();
             }
           });
         } else {
-          console.error(`❌ Impossible d'ajouter la validation pour le champ ${name}: input non trouvé`);
+          console.error(` [Impossible d'ajouter la validation pour le champ ${name}: input non trouvé`);
         }
       });
 
@@ -2750,7 +2769,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         phoneInput.addEventListener("keypress", function (e) {
           // Autorise uniquement les chiffres, espaces, tirets et points
           if (!/[0-9\s\-\.]/.test(e.key)) {
-            console.log("⚠️ Caractère non autorisé dans le champ téléphone:", e.key);
+            console.log(" [Caractère non autorisé dans le champ téléphone:", e.key);
             e.preventDefault();
             return false;
           }
@@ -2758,29 +2777,29 @@ window.scrollToProgressBar = function(callback, delay = 300) {
 
         // Nettoyage supplémentaire sur le collage (paste) et la validation
         phoneInput.addEventListener('paste', function(e) {
-          console.log("📋 Collage détecté dans le champ téléphone");
+          console.log(" [Collage détecté dans le champ téléphone");
           // Récupère les données collées
           const pastedData = (e.clipboardData || window.clipboardData).getData('text');
-          console.log("📋 Données collées:", pastedData);
+          console.log(" [Données collées:", pastedData);
           
           // Vérifie si des caractères non autorisés sont présents
           if (/[^0-9\s\-\.]/.test(pastedData)) {
-            console.log("⚠️ Données collées non autorisées, collage bloqué");
+            console.log(" [Données collées non autorisées, collage bloqué");
             e.preventDefault();
             return false;
           }
-          console.log("✅ Données collées autorisées");
+          console.log(" [Données collées autorisées");
         });
 
         // Nettoyage de la valeur lors de la perte de focus
         phoneInput.addEventListener('blur', function() {
-          console.log("🔍 Perte de focus du champ téléphone, nettoyage en cours...");
+          console.log(" [Perte de focus du champ téléphone, nettoyage en cours...");
           // Supprime tous les caractères non numériques sauf les espaces, tirets et points
           const oldValue = this.value;
           this.value = this.value.replace(/[^0-9\s\-\.]/g, '');
           
           if (oldValue !== this.value) {
-            console.log("🔍 Valeur nettoyée:", this.value);
+            console.log(" [Valeur nettoyée:", this.value);
           }
         });
       } // Fin de if (phoneInput)
@@ -2789,6 +2808,11 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       const privacyCheckbox = document.getElementById("client-privacy");
       if (privacyCheckbox) {
         privacyCheckbox.addEventListener("change", function () {
+          // Si on coche la case et que l'email est vide, on le marque comme touché
+          if (this.checked && emailInput && emailInput.value.trim() === '') {
+            touched.email = true;
+            validateField(emailInput, 'email');
+          }
           validateAll();
         });
       }

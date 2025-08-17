@@ -1358,9 +1358,18 @@ jQuery(function($){
     // Formater lors de la soumission
     var formSelector = phoneFieldId.includes('add') ? '.ib-booking-form-admin' : '#ib-modal-edit-booking form';
     $(formSelector).on('submit', function() {
-      var phone = $('#' + phoneFieldId).val().replace(/\D/g, '');
+      var phoneInput = $('#' + phoneFieldId);
+      var phone = phoneInput.val().replace(/\D/g, '');
       var country = $('#' + dropdownId + '-value').val();
-      $('#' + phoneFieldId).val(country + phone);
+      // Vérifier si le numéro commence déjà par le code pays (avec ou sans +)
+      var countryDigits = country.replace(/\D/g, '');
+      if (!phone.startsWith(countryDigits)) {
+        // Ajouter le code pays avec le signe +
+        phoneInput.val(country + ' ' + phone);
+      } else {
+        // Le code pays est déjà présent, on le conserve avec le signe +
+        phoneInput.val(country + ' ' + phone.substring(countryDigits.length));
+      }
     });
 
     console.log('Dropdown créé avec succès pour:', phoneFieldId);

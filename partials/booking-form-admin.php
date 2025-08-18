@@ -7,8 +7,8 @@
   <form method="post" class="ib-booking-form-admin" autocomplete="off">
     <label for="add-booking-client-name">Client</label>
     <input id="add-booking-client-name" name="client_name" required>
-    <label for="add-booking-client-email">Email</label>
-    <input id="add-booking-client-email" name="client_email" type="email" >
+    <label for="add-booking-client-email">Email (optionnel)</label>
+    <input id="add-booking-client-email" name="client_email" type="email" formnovalidate>
     <div style="width:260px;max-width:100%;margin-bottom:1.2em;">
       <label for="add-booking-client-phone">Téléphone</label>
       <input id="add-booking-client-phone" name="client_phone" type="tel" required placeholder="Téléphone" style="padding-left: 60px;">

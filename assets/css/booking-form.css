@@ -1340,8 +1340,8 @@ body {
 }
 
 .slot-btn:hover {
-  background: #f3f4f6;
-  transform: translateY(-1px);
+  background: none;
+  transform: none;
 }
 
 .slot-btn.booked {
@@ -1610,9 +1610,9 @@ body {
   justify-content: center;
 }
 .slot-btn:hover:not([disabled]) {
-  background: #374151;
-  color: #fff;
-  border: 1.5px solid #374151;
+  background: none;
+  color: inherit;
+  border: 1.5px solid #d1d5db;
   transform: scale(1.07);
 }
 .slot-btn[disabled] {
@@ -2305,8 +2305,8 @@ body {
 
 .slot-btn:hover,
 .slot-btn:focus {
-  background: #f8fafc;
-  color: #1f2937;
+  background: none;
+  color: inherit;
   border-color: #e5e7eb;
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -3299,8 +3299,8 @@ body,
 }
 .slot-btn:hover,
 .slot-btn:focus {
-  background: #f3f4f6;
-  color: #374151;
+  background: none;
+  color: inherit;
   border: 1.5px solid #d1d5db;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   transform: scale(1.03);
@@ -5657,10 +5657,10 @@ input[type="checkbox"] {
     opacity: 0.5 !important;
   }
 
-  .slot-btn:hover,
-  .slot-btn-planity:hover,
-  button[class*="slot"]:hover,
-  [class*="slot"] button:hover,
+  .slot-btn,
+  .slot-btn-planity,
+  button[class*="slot"],
+  [class*="slot"] button,
   #slots-list button:hover,
   .slots-grid-planity button:hover {
     background: #f3f4f6 !important;
@@ -5802,11 +5802,11 @@ input[type="checkbox"] {
       background: #ffffff !important;
     }
 
-    .slots-col .slot-btn:hover,
-    #slots-list .slot-btn:hover,
-    .slots-grid .slot-btn:hover,
-    .slots-container .slot-btn:hover,
-    .booking-step-date-modern .slot-btn:hover {
+    .slots-col .slot-btn,
+    #slots-list .slot-btn,
+    .slots-grid .slot-btn,
+    .slots-container .slot-btn,
+    .booking-step-date-modern .slot-btn {
       color: #374151 !important;
       background: #f3f4f6 !important;
       border-color: #d1d5db !important;
@@ -5828,14 +5828,14 @@ input[type="checkbox"] {
     font-weight: 500 !important;
   }
 
-  .slots-col .slot-btn:hover,
-  #slots-list .slot-btn:hover,
-  .slots-grid .slot-btn:hover,
-  .slots-container .slot-btn:hover,
-  .booking-step-date-modern .slot-btn:hover,
-  div[class*="slots"] .slot-btn:hover,
-  div[class*="slots"] button:hover,
-  .booking-main-content .slot-btn:hover {
+  .slots-col .slot-btn,
+  #slots-list .slot-btn,
+  .slots-grid .slot-btn,
+  .slots-container .slot-btn,
+  .booking-step-date-modern .slot-btn,
+  div[class*="slots"] .slot-btn,
+  div[class*="slots"] button,
+  .booking-main-content .slot-btn {
     color: #374151 !important;
     background: #f3f4f6 !important;
     border-color: #d1d5db !important;
@@ -5905,7 +5905,6 @@ input[type="checkbox"] {
 
   /* Animations et micro-interactions */
   .card:hover,
-  .slot-btn:hover,
   .calendly-day:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
@@ -7768,3 +7767,72 @@ input[type="checkbox"] {
 }
 
 /* ===== FIN SÉLECTEUR TÉLÉPHONE PLANITY ===== */
+
+/* ===== SUPPRESSION EFFET BLEU CRÉNEAUX ===== */
+.slot-btn,
+.slot-btn-planity,
+#slots-list button,
+.slots-grid-planity button,
+.slots-grid button,
+.slots-container button,
+.booking-step-date-modern button,
+div[class*="slots"] button,
+button[class*="slot"] {
+  background: #f8f8f8 !important;
+  color: #606060 !important;
+  border: 1.5px solid #e5e5e5 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+}
+
+.slot-btn:hover,
+.slot-btn:focus,
+.slot-btn:active,
+.slot-btn-planity:hover,
+.slot-btn-planity:focus,
+.slot-btn-planity:active,
+#slots-list button:hover,
+#slots-list button:focus,
+#slots-list button:active,
+.slots-grid-planity button:hover,
+.slots-grid-planity button:focus,
+.slots-grid-planity button:active,
+.slots-grid button:hover,
+.slots-grid button:focus,
+.slots-grid button:active,
+.slots-container button:hover,
+.slots-container button:focus,
+.slots-container button:active,
+.booking-step-date-modern button:hover,
+.booking-step-date-modern button:focus,
+.booking-step-date-modern button:active,
+div[class*="slots"] button:hover,
+div[class*="slots"] button:focus,
+div[class*="slots"] button:active,
+button[class*="slot"]:hover,
+button[class*="slot"]:focus,
+button[class*="slot"]:active {
+  background: #f0f0f0 !important;
+  color: #404040 !important;
+  border-color: #d1d5db !important;
+  box-shadow: none !important;
+  transform: none !important;
+  outline: none !important;
+}
+
+/* Style pour les boutons sélectionnés */
+.slot-btn[disabled],
+.slot-btn-planity[disabled],
+#slots-list button[disabled],
+.slots-grid-planity button[disabled],
+.slots-grid button[disabled],
+.slots-container button[disabled],
+.booking-step-date-modern button[disabled],
+div[class*="slots"] button[disabled],
+button[class*="slot"][disabled] {
+  background: #1f2937 !important;
+  color: #ffffff !important;
+  border-color: #1f2937 !important;
+  cursor: not-allowed !important;
+}

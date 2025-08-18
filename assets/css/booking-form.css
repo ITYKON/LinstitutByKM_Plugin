@@ -1065,16 +1065,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.2rem 1.5rem;
+  padding: 1rem 1.5rem;
   border-bottom: 1px solid #e5e7eb;
-  background: white;
-  transition: background-color 0.2s ease;
   cursor: pointer;
+  transition: all 0.2s ease;
   min-height: 80px;
+  background: #ffffff;
 }
 
 .service-item-planity:hover {
-  background: #f9fafb;
+  background: #ffffff;
 }
 
 .category-services-container .service-item-planity:last-child {
@@ -1082,9 +1082,9 @@ body {
 }
 
 .service-item-planity.selected {
-  background: #1f2937;
-  color: #ffffff;
-  border-left: 4px solid #1f2937;
+  background: #ffffff;
+  color: inherit;
+  border-left: 4px solid #e5e7eb;
 }
 
 .service-info-planity {
@@ -3013,18 +3013,16 @@ button[data-action="back"]:hover,
 /* ÉTATS HOVER ET SÉLECTION PLANITY */
 .employee-card-modern:hover,
 .employee-card-modern:focus {
-  background: #f9fafb;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-  border-color: #d1d5db;
+  background: #ffffff;
+  transform: none;
+  border-color: #e5e7eb;
 }
 
 .employee-card-modern.selected {
-  background: #111827;
-  color: #ffffff;
-  border-color: #111827;
-  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.2);
-  transform: translateY(-1px);
+  background: #ffffff;
+  color: inherit;
+  border-color: #e5e7eb;
+  transform: none;
 }
 /* AVATAR PRATICIENNE PLANITY */
 .employee-card-modern img,

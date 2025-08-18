@@ -1687,12 +1687,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
 
     function createServiceItem(srv) {
       const serviceItem = document.createElement("div");
-      serviceItem.className =
-        "service-item-planity" +
-        (bookingState.selectedService &&
-        bookingState.selectedService.id === srv.id
-          ? " selected"
-          : "");
+      serviceItem.className = "service-item-planity";
 
       // Correction affichage prix
       let priceText = "";
@@ -1771,8 +1766,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
 
       // Ajouter la carte "Sans préférence"
       const noPreferenceCard = document.createElement("div");
-      noPreferenceCard.className = "employee-card-modern" +
-        (bookingState.selectedEmployee === null ? " selected" : "");
+      noPreferenceCard.className = "employee-card-modern";
       noPreferenceCard.onclick = () => {
         bookingState.selectedEmployee = null; // null indique qu'aucune préférence n'est choisie
         renderEmployeesGrid();

@@ -1737,16 +1737,12 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         goToStep(3);
       };
       noPreferenceCard.innerHTML = `
-        <div style="width:72px;height:72px;border-radius:50%;background:#f8f0f4;display:flex;align-items:center;justify-content:center;margin:0 auto;">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke=" #7B6F5B" stroke-width="2">
-            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
-            <path d="M12 8v4"></path>
-            <path d="M12 16h.01"></path>
-          </svg>
-        </div>
+        <span><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-4 8-4 8-4s8 0 8 4"/>
+        </svg></span>
         <div class="mt-3 text-center">
-          <div class="font-bold text-brown-400 text-base mb-1">Sans préférence</div>
-          <div class="text-xs text-gray-500">Nous choisirons pour vous</div>
+          <div class="font-bold text-black-400 text-base mb-1">Sans préférence</div>
         </div>
       `;
       grid.appendChild(noPreferenceCard);
@@ -1772,7 +1768,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         card.innerHTML = `
           ${imgHtml}
           <div class="mt-3 text-center">
-            <div class="font-bold text-brown-400 text-base mb-1">${emp.name}</div>
+            <div class="font-bold text-black-400 text-base mb-1">${emp.name}</div>
           </div>
         `;
         grid.appendChild(card);
@@ -1877,18 +1873,18 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       const cal = document.getElementById("calendar-days");
       const header = document.getElementById("calendar-header");
       const monthNames = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
+        "Janvier",
+        "Février",
+        "Mars",
+        "Avril",
+        "Mai",
+        "Juin",
+        "Juillet",
+        "Août",
+        "Septembre",
+        "Octobre",
+        "Novembre",
+        "Décembre",
       ];
       const weekDays = ["L", "M", "M", "J", "V", "S", "D"];
       if (!window.calendarState)

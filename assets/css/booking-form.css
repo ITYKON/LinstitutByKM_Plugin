@@ -2914,16 +2914,72 @@ button[data-action="back"]:hover,
 
 /* CARTES PRATICIENNE PLANITY MODERNE */
 .employee-card-modern {
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
-  padding: 2rem 1.5rem;
-  margin: 0.5rem;
+  padding: 1.5rem 0.75rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin: 0.25rem;
+  min-height: 180px;
+}
+
+.employee-avatar {
+  margin-bottom: 0.75rem;
+}
+
+.employee-avatar .avatar-placeholder {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f0f4;
+  color: #7B6F5B;
+  margin: 0 auto;
+}
+
+.employee-info {
+  width: 100%;
+}
+
+.employee-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.employee-card-modern.selected {
+  background: #111827;
+  color: #ffffff;
+  border-color: #111827;
+}
+
+.employee-card-modern.selected .employee-name {
+  color: #ffffff;
+}
+
+.employee-card-modern.selected .avatar-placeholder {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+
+.employee-card-modern.selected .avatar-placeholder svg {
+  color: #111827 !important;
+  stroke: #111827 !important;
+}
+
+.employee-card-modern {
   min-width: 200px;
   /* max-width: 240px; */
   min-height: 200px;
@@ -5889,11 +5945,11 @@ input[type="checkbox"] {
   /* Conteneur du ticket de réservation */
   #booking-step-content {
     padding: 1rem !important;
-    margin: 0 auto !important;
+    margin: 20px auto !important;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 60vh;
+    min-height: 24vh;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;

@@ -1166,7 +1166,6 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         back.textContent = "← Précédent";
         back.setAttribute("data-action", "back");
         back.onclick = () => {
-          // Utiliser la fonction utilitaire pour le scroll automatique
           window.scrollToProgressBar(() => {
             goToStep(bookingState.step - 1);
           }, 200);
@@ -1174,63 +1173,17 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         actions.appendChild(back);
       }
 
-      if (bookingState.step < 5) {
-        const next = document.createElement("button");
-        next.className = "next btn-next";
-        next.setAttribute("data-action", "next");
+      // SUPPRESSION DES BOUTONS NEXT : on ne crée plus de bouton "next" pour passer à l'étape suivante
+      // L'utilisateur passe à l'étape suivante uniquement en cliquant sur une prestation, praticienne, créneau, etc.
 
-        // Texte du bouton selon l'étape
-        const buttonTexts = {
-          1: "Choisir la praticienne →",
-          2: "Choisir la date →",
-          3: "Mes informations →",
-          4: "Confirmer la réservation",
-        };
-
-        next.innerHTML = buttonTexts[bookingState.step] || "Suivant →";
-        actions.appendChild(next);
-        next.onclick = () => {
-          if (bookingState.step === 1 && !bookingState.selectedService) {
-            showBookingNotification("Sélectionnez un service.");
-            return;
-          }
-          if (bookingState.step === 2 && !bookingState.selectedEmployee) {
-            showBookingNotification("Sélectionnez une praticienne.");
-            return;
-          }
-          if (
-            bookingState.step === 3 &&
-            (!bookingState.selectedDate || !bookingState.selectedSlot)
-          ) {
-            showBookingNotification("Sélectionnez une date et un créneau.");
-            return;
-          }
-          if (
-            bookingState.step === 4 &&
-            (!bookingState.client.firstname ||
-              !bookingState.client.lastname ||
-              !bookingState.client.phone)
-          ) {
-            showBookingNotification("Merci de remplir tous les champs.");
-            return;
-          }
-
-          // Utiliser la fonction utilitaire pour le scroll automatique
-          window.scrollToProgressBar(() => {
-            goToStep(bookingState.step + 1);
-          }, 200);
-        };
-        actions.appendChild(next);
-      } else if (bookingState.step === 5) {
+      // On garde le bouton "Nouvelle réservation" à la fin (étape 5)
+      if (bookingState.step === 5) {
         const restart = document.createElement("button");
         restart.className = "next btn-next";
         restart.textContent = "Nouvelle réservation";
         restart.setAttribute("data-action", "restart");
         restart.onclick = () => {
-          // Réinitialiser l'état de réservation dans le localStorage
           localStorage.removeItem("bookingState");
-          
-          // Rafraîchir la page pour réinitialiser complètement le formulaire
           window.location.reload();
         };
         actions.appendChild(restart);

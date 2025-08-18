@@ -1738,7 +1738,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       };
       noPreferenceCard.innerHTML = `
         <div style="width:72px;height:72px;border-radius:50%;background:#f8f0f4;display:flex;align-items:center;justify-content:center;margin:0 auto;">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#7B6F5B" stroke-width="2">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke=" #7B6F5B" stroke-width="2">
             <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
             <path d="M12 8v4"></path>
             <path d="M12 16h.01"></path>
@@ -1788,11 +1788,29 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         selectedEmployee: bookingState.selectedEmployee,
       });
 
-      if (!bookingState.selectedService || !bookingState.selectedEmployee) {
-        console.log("❌ Préstation ou employé non sélectionné");
+      if (!bookingState.selectedService) {
+        console.log("❌ Aucune prestation sélectionnée");
         window.availableDays = {};
         if (cb) cb();
         return;
+      }
+      
+      // Si pas de préférence de praticienne, on en sélectionne une au hasard
+      let selectedEmployee = bookingState.selectedEmployee;
+      if (!selectedEmployee) {
+        const employeeIds = (bookingState.selectedService.employee_ids || []).map(Number);
+        const availableEmployees = bookingState.employees.filter(e => employeeIds.includes(Number(e.id)));
+        if (availableEmployees.length > 0) {
+          selectedEmployee = availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
+          console.log("🎲 Praticienne sélectionnée aléatoirement:", selectedEmployee);
+          // Mettre à jour le bookingState avec la praticienne sélectionnée
+          bookingState.selectedEmployee = selectedEmployee;
+        } else {
+          console.log("❌ Aucune praticienne disponible pour ce service");
+          window.availableDays = {};
+          if (cb) cb();
+          return;
+        }
       }
 
       // Check if jQuery is available
@@ -1994,16 +2012,46 @@ window.scrollToProgressBar = function(callback, delay = 300) {
 
     function renderModernSlotsList() {
       const slotsList = document.getElementById("slots-list");
+      
+      // Ensure bookingState is properly initialized
+      if (!bookingState) {
+        console.error("bookingState is not defined");
+        return;
+      }
+      
+      // Initialize selectedEmployee if not exists
+      if (!bookingState.selectedEmployee) {
+        bookingState.selectedEmployee = null;
+      }
+      
       // Afficher un message si aucune date sélectionnée
       if (!bookingState.selectedDate) {
         slotsList.innerHTML =
           '<div class="no-slots">Sélectionnez une date</div>';
         return;
       }
-      if (!bookingState.selectedEmployee || !bookingState.selectedService) {
+      
+      // Vérifier si un service est sélectionné
+      if (!bookingState.selectedService) {
         slotsList.innerHTML =
-          '<div class="no-slots">Veuillez sélectionner un service et une praticienne</div>';
+          '<div class="no-slots">Veuillez sélectionner un service</div>';
         return;
+      }
+      
+      // Si pas de praticienne sélectionnée, en choisir une au hasard
+      if (!bookingState.selectedEmployee) {
+        const employeeIds = (bookingState.selectedService.employee_ids || []).map(Number);
+        const availableEmployees = bookingState.employees ? 
+          bookingState.employees.filter(e => employeeIds.includes(Number(e.id))) : [];
+          
+        if (availableEmployees.length > 0) {
+          bookingState.selectedEmployee = availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
+          console.log("🎲 Praticienne sélectionnée aléatoirement pour l'affichage des créneaux:", bookingState.selectedEmployee);
+        } else {
+          slotsList.innerHTML =
+            '<div class="no-slots">Aucune praticienne disponible pour ce service</div>';
+          return;
+        }
       }
       console.log("Déclenchement AJAX get_available_slots", bookingState); // DEBUG
       let html = "";

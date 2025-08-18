@@ -1345,28 +1345,44 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       const container = document.getElementById("category-buttons");
       container.innerHTML = "";
 
-      // Utilise la bonne propriété pour les catégories
-      const cats = [
-        "ALL",
-        ...Array.from(
-          new Set(
-            bookingState.services.map((s) => s.category_name).filter(Boolean)
-          )
-        ),
-      ];
-      console.log("Catégories générées:", cats);
+      // Extraire les catégories uniques
+      const uniqueCategories = [];
+      const seen = new Set();
+      
+      bookingState.services.forEach(service => {
+        const category = service.category_name?.trim();
+        if (category && !seen.has(category)) {
+          seen.add(category);
+          uniqueCategories.push(category);
+        }
+      });
+      
+      // Trier par ordre alphabétique en ignorant la casse, les accents et la ponctuation
+      uniqueCategories.sort((a, b) => 
+        a.localeCompare(b, 'fr', {
+          sensitivity: 'base',
+          ignorePunctuation: true,
+          numeric: true
+        })
+      );
+      
+      // Ajouter 'ALL' au début et supprimer les doublons
+      const cats = ["ALL", ...uniqueCategories];
+      console.log("Catégories générées (avant affichage):", cats);
 
       // Créer les boutons pour desktop
       const buttonsContainer = document.createElement("div");
-      buttonsContainer.className = "category-buttons-desktop";
+      buttonsContainer.className = "category-buttons-container";
+      
+      // Créer un wrapper pour les boutons avec défilement
+      const buttonsWrapper = document.createElement("div");
+      buttonsWrapper.className = "category-buttons-wrapper";
 
       cats.forEach((cat) => {
         const btn = document.createElement("button");
         btn.textContent = cat;
         btn.title = cat;
-        btn.className =
-          "booking-category-btn" +
-          (cat === bookingState.selectedCategory ? " active" : "");
+        btn.className = "booking-category-btn" + (cat === bookingState.selectedCategory ? " active" : "");
         btn.onclick = () => {
           bookingState.selectedCategory = cat;
           renderServicesGrid();
@@ -1376,8 +1392,13 @@ window.scrollToProgressBar = function(callback, delay = 300) {
             servicesSection.scrollIntoView({ behavior: "smooth" });
           }
         };
-        buttonsContainer.appendChild(btn);
+        buttonsWrapper.appendChild(btn);
+        console.log("Bouton ajouté:", cat);
       });
+      
+      // Vérifier l'ordre des boutons après leur création
+      const buttonTexts = Array.from(buttonsWrapper.children).map(btn => btn.textContent);
+      console.log("Catégories triées pour l'affichage:", buttonTexts);
 
       // Créer l'accordéon pour mobile
       const accordionContainer = document.createElement("div");
@@ -1398,8 +1419,13 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         servicesByCategory[category].push(service);
       });
 
+      // Trier les noms de catégories par ordre alphabétique en ignorant la casse et les accents
+      const sortedCategories = Object.keys(servicesByCategory).sort((a, b) => 
+        a.localeCompare(b, 'fr', {sensitivity: 'base'})
+      );
+      
       // Créer un accordéon pour chaque catégorie
-      Object.keys(servicesByCategory).forEach((categoryName) => {
+      sortedCategories.forEach((categoryName) => {
         const categoryServices = servicesByCategory[categoryName];
 
         const accordionItem = document.createElement("div");
@@ -1524,6 +1550,9 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         accordionContainer.appendChild(accordionItem);
       });
 
+      // Ajouter le wrapper des boutons au conteneur
+      buttonsContainer.appendChild(buttonsWrapper);
+      
       // Ajouter les deux versions au container
       container.appendChild(buttonsContainer);
       container.appendChild(accordionContainer);
@@ -1553,7 +1582,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         return;
       }
 
-      // Grouper les services par catégorie
+      // Grouper les services par catégorie et les trier par ordre alphabétique
       const servicesByCategory = {};
       filtered.forEach((service) => {
         const categoryName = service.category_name || "Sans catégorie";
@@ -1562,14 +1591,27 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         }
         servicesByCategory[categoryName].push(service);
       });
+      
+      // Trier les services dans chaque catégorie par nom
+      Object.keys(servicesByCategory).forEach(category => {
+        servicesByCategory[category].sort((a, b) => 
+          a.name.localeCompare(b.name, 'fr', {sensitivity: 'base'})
+        );
+      });
+
+      // Trier les noms de catégories par ordre alphabétique
+      const sortedCategories = Object.keys(servicesByCategory).sort((a, b) => 
+        a.localeCompare(b, 'fr', {sensitivity: 'base', ignorePunctuation: true})
+      );
 
       // Afficher chaque catégorie avec ses services
-      Object.keys(servicesByCategory).forEach((categoryName) => {
+      sortedCategories.forEach((categoryName) => {
         const services = servicesByCategory[categoryName];
         const maxServicesShown = 5; // Limite d'affichage par catégorie
         const servicesToShow = services.slice(0, maxServicesShown);
         const remainingServices = services.length - maxServicesShown;
 
+// ...
         // Créer l'en-tête de catégorie
         const categoryHeader = document.createElement("div");
         categoryHeader.className = "category-header-planity";

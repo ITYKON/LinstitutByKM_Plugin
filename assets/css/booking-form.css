@@ -5893,7 +5893,7 @@ input[type="checkbox"] {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 60vh;
+    min-height: 30vh;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -5914,7 +5914,7 @@ input[type="checkbox"] {
   .booking-step-infos-modern h2:first-child,
   .booking-step-date-modern h2:first-child {
     margin-top: 0 !important;
-    margin-bottom: 0.8rem !important;
+    margin-bottom: 2rem !important;
     padding-top: 0 !important;
   }
 

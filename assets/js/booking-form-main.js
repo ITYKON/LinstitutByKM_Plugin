@@ -1370,13 +1370,9 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       const cats = ["ALL", ...uniqueCategories];
       console.log("Catégories générées (avant affichage):", cats);
 
-      // Créer les boutons pour desktop
+      // Créer le conteneur des boutons de catégorie pour desktop
       const buttonsContainer = document.createElement("div");
-      buttonsContainer.className = "category-buttons-container";
-      
-      // Créer un wrapper pour les boutons avec défilement
-      const buttonsWrapper = document.createElement("div");
-      buttonsWrapper.className = "category-buttons-wrapper";
+      buttonsContainer.className = "booking-categories";
 
       cats.forEach((cat) => {
         const btn = document.createElement("button");
@@ -1392,12 +1388,12 @@ window.scrollToProgressBar = function(callback, delay = 300) {
             servicesSection.scrollIntoView({ behavior: "smooth" });
           }
         };
-        buttonsWrapper.appendChild(btn);
+        buttonsContainer.appendChild(btn);
         console.log("Bouton ajouté:", cat);
       });
       
       // Vérifier l'ordre des boutons après leur création
-      const buttonTexts = Array.from(buttonsWrapper.children).map(btn => btn.textContent);
+      const buttonTexts = Array.from(buttonsContainer.children).map(btn => btn.textContent);
       console.log("Catégories triées pour l'affichage:", buttonTexts);
 
       // Créer l'accordéon pour mobile
@@ -1426,7 +1422,14 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       
       // Créer un accordéon pour chaque catégorie
       sortedCategories.forEach((categoryName) => {
-        const categoryServices = servicesByCategory[categoryName];
+        // Trier les services de cette catégorie par ordre alphabétique
+        const categoryServices = servicesByCategory[categoryName].sort((a, b) => 
+          a.name.localeCompare(b.name, 'fr', {
+            sensitivity: 'base',
+            ignorePunctuation: true,
+            numeric: true
+          })
+        );
 
         const accordionItem = document.createElement("div");
         accordionItem.className = "accordion-item";
@@ -1550,9 +1553,6 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         accordionContainer.appendChild(accordionItem);
       });
 
-      // Ajouter le wrapper des boutons au conteneur
-      buttonsContainer.appendChild(buttonsWrapper);
-      
       // Ajouter les deux versions au container
       container.appendChild(buttonsContainer);
       container.appendChild(accordionContainer);

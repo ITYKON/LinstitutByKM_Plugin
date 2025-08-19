@@ -109,8 +109,8 @@ function ib_admin_menu() {
 
     add_submenu_page(
         'institut-booking',
-        __('Clients', 'institut-booking'),
-        __('Clients', 'institut-booking'),
+    __('Clientes', 'institut-booking'),
+    __('Clientes', 'institut-booking'),
         'read',
         'institut-booking-clients',
         'institut_booking_fullpage'

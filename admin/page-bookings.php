@@ -412,7 +412,7 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
         <table class="ib-table-bookings ib-invisible" style="width:100%;background:#fff;border-radius:14px;box-shadow:0 2px 16px #e9aebc22;margin-bottom:2em;">
           <thead style="background:#fbeff2;">
             <tr>
-              <th style="color:#e9aebc;cursor:pointer;" data-sort="client">Client <span class="sort-arrow"></span></th>
+              <th style="color:#e9aebc;cursor:pointer;" data-sort="client">Cliente <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="email">Email <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="phone">Téléphone <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="service">Service <span class="sort-arrow"></span></th>

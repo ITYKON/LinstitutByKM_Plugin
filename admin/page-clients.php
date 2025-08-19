@@ -46,7 +46,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
 <div class="ib-clients-page" style="background:#f6f7fa;min-height:100vh;padding:0;margin:0;">
   <div class="ib-clients-content">
     <div class="ib-admin-header" style="display:flex;align-items:center;justify-content:space-between;">
-      <h1 style="color:#e9aebc;font-size:2.2rem;font-weight:800;letter-spacing:-1px;">Clients</h1>
+      <h1 style="color:#e9aebc;font-size:2.2rem;font-weight:800;letter-spacing:-1px;">Clientes</h1>
       <button class="ib-btn accent" onclick="document.getElementById('ib-add-client-form').style.display='block';">+ Ajouter un client</button>
     </div>
     <div class="ib-admin-content">

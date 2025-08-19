@@ -6853,7 +6853,7 @@ input[type="checkbox"] {
 /* 1. Centrage et largeur du ticket sur mobile */
 @media (max-width: 600px) {
   .booking-ticket-modern {
-    margin: 1rem auto !important;
+    margin: 0.1rem auto !important;
     width: calc(100% - 2rem) !important;
     max-width: 540px !important;
     box-sizing: border-box !important;

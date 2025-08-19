@@ -25,36 +25,38 @@ if (isset($_POST['add_booking'])) {
     $start_time = $date && $time ? $date . ' ' . $time . ':00' : '';
     $status = sanitize_text_field($_POST['status'] ?? '');
     $extras = isset($_POST['extras']) ? maybe_serialize($_POST['extras']) : '';
-    // Récupérer le prix du service
-    $service = IB_Services::get_by_id($service_id);
-    $service_price = $service ? $service->price : 0;
+  // Récupérer le prix du service ou le prix saisi manuellement
+  $service = IB_Services::get_by_id($service_id);
+  $service_price = $service ? $service->price : 0;
+  $manual_price = isset($_POST['price']) && $_POST['price'] !== '' ? floatval($_POST['price']) : null;
+  $final_price = ($manual_price !== null) ? $manual_price : $service_price;
     if (!$client_name || !$service_id || !$employee_id || !$date || !$time || !$status) {
         echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Veuillez remplir tous les champs obligatoires.</p></div>';
+  } else {
+    $result = IB_Bookings::add([
+      'client_name' => $client_name,
+      'client_email' => $client_email,
+      'client_phone' => $client_phone,
+      'service_id' => $service_id,
+      'employee_id' => $employee_id,
+      'date' => $date,
+      'start_time' => $start_time,
+      'status' => $status,
+      'extras' => $extras,
+      'price' => $final_price
+    ]);
+    if ($result) {
+      IB_Logs::add(get_current_user_id(), 'ajout_reservation', json_encode(['booking_id' => $result, 'client_name' => $client_name]));
+
+      // Envoyer l'email de remerciement au client
+      require_once plugin_dir_path(__FILE__) . '../includes/notifications.php';
+      IB_Notifications::send_thank_you($result);
+
+      echo '<div class="notice notice-success" style="margin-bottom:1.5em;"><p>Réservation ajoutée avec succès.</p></div>';
     } else {
-        $result = IB_Bookings::add([
-            'client_name' => $client_name,
-            'client_email' => $client_email,
-            'client_phone' => $client_phone,
-            'service_id' => $service_id,
-            'employee_id' => $employee_id,
-            'date' => $date,
-            'start_time' => $start_time,
-            'status' => $status,
-            'extras' => $extras,
-            'price' => $service_price
-        ]);
-        if ($result) {
-            IB_Logs::add(get_current_user_id(), 'ajout_reservation', json_encode(['booking_id' => $result, 'client_name' => $client_name]));
-
-            // Envoyer l'email de remerciement au client
-            require_once plugin_dir_path(__FILE__) . '../includes/notifications.php';
-            IB_Notifications::send_thank_you($result);
-
-            echo '<div class="notice notice-success" style="margin-bottom:1.5em;"><p>Réservation ajoutée avec succès.</p></div>';
-        } else {
-            echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Erreur lors de l\'ajout de la réservation.</p></div>';
-        }
+      echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Erreur lors de l\'ajout de la réservation.</p></div>';
     }
+  }
 }
 // Traitement édition réservation
 if (isset($_POST['update_booking'])) {
@@ -417,8 +419,8 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
               <th style="cursor:pointer;" data-sort="employee">Praticienne <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="date">Date <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="heure">Heure <span class="sort-arrow"></span></th>
-              <th style="cursor:pointer;" data-sort="statut">Statut <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="price">Prix <span class="sort-arrow"></span></th>
+              <th style="cursor:pointer;" data-sort="statut">Statut <span class="sort-arrow"></span></th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -442,6 +444,12 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
                 }
                 echo esc_html($heure);
               ?></td>
+              <td style="font-weight:700;color:#7ec6b8;text-align:center;">
+                <?php
+                  $prix = isset($booking->price) ? $booking->price : 0;
+                  echo rtrim(rtrim(number_format($prix, 2, ',', ' '), '0'), ',') . ' DA';
+                ?>
+              </td>
               <td>
                 <form method="post" style="display:inline;">
                   <input type="hidden" name="change_status_booking_id" value="<?php echo $booking->id; ?>">
@@ -454,12 +462,6 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
                     <option value="no_show" <?php if($booking->status==='no_show') echo 'selected'; ?> style="background:#fbeee6;color: #bfa600 border:#bfa600;">No show</option>
                   </select>
                 </form>
-              </td>
-              <td style="font-weight:700;color:#7ec6b8;text-align:center;">
-                <?php
-                  $prix = isset($booking->price) ? $booking->price : 0;
-                  echo rtrim(rtrim(number_format($prix, 2, ',', ' '), '0'), ',') . ' DA';
-                ?>
               </td>
               <td class="ib-action-btns" style="white-space:nowrap;display:flex;gap:0.5em;align-items:center;">
                 <a href="admin.php?page=institut-booking-bookings&action=edit&id=<?php echo $booking->id; ?>" class="ib-icon-btn edit" title="Éditer">

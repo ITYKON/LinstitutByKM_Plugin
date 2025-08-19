@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Final - Barre de Progression Mobile</title>
+    <link rel="stylesheet" href="assets/css/booking-form.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8f9fa;
+        }
+        
+        .demo-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .demo-header {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .demo-header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .demo-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        
+        .progress-demo {
+            background: white;
+            padding: 0;
+        }
+        
+        .test-controls {
+            padding: 2rem;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .test-button {
+            padding: 0.75rem 1rem;
+            background: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .test-button:hover {
+            background: #2d3748;
+            transform: translateY(-1px);
+        }
+        
+        .test-button.active {
+            background: #1a202c;
+            box-shadow: 0 4px 12px rgba(74, 85, 104, 0.3);
+        }
+        
+        .features-list {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-size: 0.9rem;
+            color: #14532d;
+        }
+        
+        .features-list h4 {
+            margin: 0 0 1rem 0;
+            color: #16a34a;
+            font-size: 1rem;
+        }
+        
+        .features-list ul {
+            margin: 0;
+            padding-left: 1.2rem;
+            line-height: 1.6;
+        }
+        
+        .features-list li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .reference-comparison {
+            background: #eff6ff;
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #1e40af;
+        }
+        
+        .reference-comparison h4 {
+            margin: 0 0 1rem 0;
+            color: #1d4ed8;
+            font-size: 1rem;
+        }
+        
+        .specs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .spec-item {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+        
+        .spec-label {
+            font-weight: 600;
+            color: #1e40af;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            .test-buttons {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            
+            .specs-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>📱 Barre de Progression Mobile - Lisibilité Améliorée</h1>
+            <p>Labels plus espacés et lisibles comme dans votre nouvelle image</p>
+        </div>
+        
+        <div class="progress-demo">
+            <div class="planity-progress-bar">
+                <div class="ib-stepper-main">
+                    <div class="ib-step completed">
+                        <div class="ib-step-circle">✓</div>
+                        <div class="ib-step-label">Préstation</div>
+                    </div>
+                    <div class="ib-step completed">
+                        <div class="ib-step-circle">✓</div>
+                        <div class="ib-step-label">Praticienne</div>
+                    </div>
+                    <div class="ib-step active">
+                        <div class="ib-step-circle">3</div>
+                        <div class="ib-step-label">Date & Heure</div>
+                    </div>
+                    <div class="ib-step">
+                        <div class="ib-step-circle">4</div>
+                        <div class="ib-step-label">Informations</div>
+                    </div>
+                    <div class="ib-step">
+                        <div class="ib-step-circle">5</div>
+                        <div class="ib-step-label">Confirmation</div>
+                    </div>
+                    <div class="ib-stepper-progress" id="progress-bar" style="width: 50%;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-controls">
+            <div class="reference-comparison">
+                <h4>🎯 Correspondance avec votre image de référence :</h4>
+                <p>
+                    ✅ Ligne continue qui passe derrière les cercles<br>
+                    ✅ Cercles avec bordure blanche qui masquent la ligne<br>
+                    ✅ Espacement uniforme entre les étapes<br>
+                    ✅ Labels plus espacés et lisibles (12px, gap 12px)<br>
+                    ✅ Textes moins tronqués (max-width 70px)<br>
+                    ✅ Style épuré et professionnel
+                </p>
+                
+                <div class="specs-grid">
+                    <div class="spec-item">
+                        <span class="spec-label">Labels :</span>
+                        12px, max-width 70px, gap 12px
+                    </div>
+                    <div class="spec-item">
+                        <span class="spec-label">Ligne :</span>
+                        Continue, 3px de hauteur
+                    </div>
+                    <div class="spec-item">
+                        <span class="spec-label">Espacement :</span>
+                        space-between, padding 20px
+                    </div>
+                    <div class="spec-item">
+                        <span class="spec-label">Lisibilité :</span>
+                        Textes plus espacés et visibles
+                    </div>
+                </div>
+            </div>
+            
+            <div class="test-buttons">
+                <button class="test-button" onclick="setStep(1)" data-step="1">Étape 1</button>
+                <button class="test-button" onclick="setStep(2)" data-step="2">Étape 2</button>
+                <button class="test-button active" onclick="setStep(3)" data-step="3">Étape 3</button>
+                <button class="test-button" onclick="setStep(4)" data-step="4">Étape 4</button>
+                <button class="test-button" onclick="setStep(5)" data-step="5">Étape 5</button>
+            </div>
+            
+            <div class="features-list">
+                <h4>🚀 Améliorations de lisibilité :</h4>
+                <ul>
+                    <li><strong>Labels plus grands :</strong> Taille de police augmentée à 12px</li>
+                    <li><strong>Espacement vertical :</strong> Gap augmenté à 12px entre cercles et labels</li>
+                    <li><strong>Largeur optimisée :</strong> max-width augmentée à 70px pour moins de troncature</li>
+                    <li><strong>Padding ajouté :</strong> 2px de padding horizontal pour l'aération</li>
+                    <li><strong>Line-height améliorée :</strong> 1.3 pour une meilleure lisibilité</li>
+                    <li><strong>Style cohérent :</strong> Inspiré de votre nouvelle image de référence</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setStep(step) {
+            const steps = document.querySelectorAll('.ib-step');
+            const progressBar = document.getElementById('progress-bar');
+            const buttons = document.querySelectorAll('.test-button');
+            
+            // Mettre à jour les boutons
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                if (parseInt(btn.dataset.step) === step) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Mettre à jour les étapes
+            steps.forEach((stepEl, index) => {
+                const stepNumber = index + 1;
+                const circle = stepEl.querySelector('.ib-step-circle');
+                
+                stepEl.classList.remove('active', 'completed');
+                
+                if (stepNumber < step) {
+                    stepEl.classList.add('completed');
+                    circle.textContent = '✓';
+                } else if (stepNumber === step) {
+                    stepEl.classList.add('active');
+                    circle.textContent = stepNumber;
+                } else {
+                    circle.textContent = stepNumber;
+                }
+            });
+            
+            // Mettre à jour la barre de progression
+            const progressWidth = ((step - 1) / (steps.length - 1)) * 100;
+            progressBar.style.width = progressWidth + '%';
+            
+            console.log(`Étape ${step} activée - Progression: ${progressWidth}%`);
+        }
+        
+        // Initialiser à l'étape 3 comme dans votre image
+        setStep(3);
+    </script>
+</body>
+</html>

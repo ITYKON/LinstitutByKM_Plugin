@@ -1,0 +1,221 @@
+/* Simple Country Selector Styles */
+.simple-phone-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 48px;
+}
+
+.simple-country-selector {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-right: 1px solid #e5e7eb;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+  min-width: 100px;
+}
+
+.simple-country-selector:hover {
+  background: #f3f4f6;
+}
+
+.simple-flag {
+  font-size: 18px;
+  margin-right: 8px;
+}
+
+.simple-dial {
+  font-weight: 500;
+  color: #374151;
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.simple-arrow {
+  color: #6b7280;
+  transition: transform 0.2s ease;
+}
+
+.simple-phone-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #374151;
+  background: transparent;
+}
+
+.simple-phone-input::placeholder {
+  color: #9ca3af;
+}
+
+.simple-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-height: 300px;
+  overflow: hidden;
+  display: none;
+}
+
+.simple-search {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.simple-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+
+.simple-search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.simple-countries-list {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.simple-country-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.simple-country-item:hover {
+  background: #f3f4f6;
+}
+
+.simple-country-flag {
+  font-size: 16px;
+  margin-right: 12px;
+}
+
+.simple-country-name {
+  flex: 1;
+  font-size: 14px;
+  color: #374151;
+}
+
+.simple-country-dial {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Scrollbar styling */
+.simple-countries-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.simple-countries-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.simple-countries-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.simple-countries-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Focus states */
+.simple-phone-container:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .simple-country-selector {
+    padding: 10px 12px;
+    min-width: 80px;
+  }
+
+  .simple-phone-input {
+    padding: 10px 12px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  .simple-dropdown {
+    max-height: 250px;
+  }
+
+  .simple-flag {
+    font-size: 16px;
+  }
+
+  .simple-dial {
+    font-size: 13px;
+  }
+}
+
+/* Animation for dropdown */
+.simple-dropdown {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.simple-dropdown[style*="block"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Selected state */
+.simple-country-item.selected {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+/* Loading state */
+.simple-phone-container.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Error state */
+.simple-phone-container.error {
+  border-color: #ef4444;
+}
+
+.simple-phone-container.error:focus-within {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Success state */
+.simple-phone-container.success {
+  border-color: #10b981;
+}
+
+.simple-phone-container.success:focus-within {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Barre de Progression Mobile vs Desktop</title>
+    <link rel="stylesheet" href="assets/css/booking-form.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8f9fa;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-header {
+            background: #1f2937;
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .test-section {
+            padding: 2rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .test-section:last-child {
+            border-bottom: none;
+        }
+        
+        .test-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+        
+        .test-description {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .viewport-simulator {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .mobile-viewport {
+            width: 375px;
+            margin: 0 auto;
+            background: white;
+        }
+        
+        .desktop-viewport {
+            width: 100%;
+            background: white;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .test-button {
+            padding: 0.5rem 1rem;
+            background: #1f2937;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .test-button:hover {
+            background: #374151;
+            transform: translateY(-1px);
+        }
+        
+        .comparison-note {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #0c4a6e;
+        }
+        
+        /* Forcer l'affichage mobile pour le test */
+        .force-mobile .planity-progress-bar {
+            /* Styles mobiles appliqués */
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>Test Barre de Progression - Mobile vs Desktop</h1>
+            <p>Comparaison des styles de la barre de progression</p>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">🖥️ Version Desktop (Référence)</div>
+            <div class="test-description">
+                Voici comment la barre de progression apparaît sur desktop avec le style unifié.
+            </div>
+            
+            <div class="viewport-simulator">
+                <div class="desktop-viewport">
+                    <div class="planity-progress-bar">
+                        <div class="ib-stepper-main">
+                            <div class="ib-step completed">
+                                <div class="ib-step-circle">✓</div>
+                                <div class="ib-step-label">Prestation</div>
+                            </div>
+                            <div class="ib-step completed">
+                                <div class="ib-step-circle">✓</div>
+                                <div class="ib-step-label">Praticienne</div>
+                            </div>
+                            <div class="ib-step completed">
+                                <div class="ib-step-circle">✓</div>
+                                <div class="ib-step-label">Date & Heure</div>
+                            </div>
+                            <div class="ib-step active">
+                                <div class="ib-step-circle">4</div>
+                                <div class="ib-step-label">Informations</div>
+                            </div>
+                            <div class="ib-step">
+                                <div class="ib-step-circle">5</div>
+                                <div class="ib-step-label">Confirmation</div>
+                            </div>
+                            <div class="ib-stepper-progress" style="width: 75%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">📱 Version Mobile (Améliorée)</div>
+            <div class="test-description">
+                Voici comment la barre de progression apparaît maintenant sur mobile avec le style unifié.
+            </div>
+            
+            <div class="viewport-simulator">
+                <div class="mobile-viewport">
+                    <div class="planity-progress-bar">
+                        <div class="ib-stepper-main">
+                            <div class="ib-step completed">
+                                <div class="ib-step-circle">✓</div>
+                                <div class="ib-step-label">Prestation</div>
+                            </div>
+                            <div class="ib-step completed">
+                                <div class="ib-step-circle">✓</div>
+                                <div class="ib-step-label">Praticienne</div>
+                            </div>
+                            <div class="ib-step completed">
+                                <div class="ib-step-circle">✓</div>
+                                <div class="ib-step-label">Date & Heure</div>
+                            </div>
+                            <div class="ib-step active">
+                                <div class="ib-step-circle">4</div>
+                                <div class="ib-step-label">Informations</div>
+                            </div>
+                            <div class="ib-step">
+                                <div class="ib-step-circle">5</div>
+                                <div class="ib-step-label">Confirmation</div>
+                            </div>
+                            <div class="ib-stepper-progress" style="width: 75%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="comparison-note">
+                <strong>✅ Améliorations apportées :</strong><br>
+                • Cercles identiques au desktop (48px au lieu de 32px)<br>
+                • Labels parfaitement lisibles (0.85rem au lieu de 10px)<br>
+                • Espacement identique au desktop (justify-content: space-between)<br>
+                • Style 100% unifié avec la version desktop<br>
+                • Ligne de progression identique (3px de hauteur)<br>
+                • Labels complets sans troncature<br>
+                • Animations et transitions identiques
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">🎮 Test Interactif</div>
+            <div class="test-description">
+                Testez les différentes étapes pour voir les animations et transitions.
+            </div>
+            
+            <div class="test-buttons">
+                <button class="test-button" onclick="setStep(1)">Étape 1 - Prestation</button>
+                <button class="test-button" onclick="setStep(2)">Étape 2 - Praticienne</button>
+                <button class="test-button" onclick="setStep(3)">Étape 3 - Date & Heure</button>
+                <button class="test-button" onclick="setStep(4)">Étape 4 - Informations</button>
+                <button class="test-button" onclick="setStep(5)">Étape 5 - Confirmation</button>
+            </div>
+            
+            <div class="viewport-simulator">
+                <div class="mobile-viewport">
+                    <div class="planity-progress-bar" id="interactive-progress">
+                        <div class="ib-stepper-main">
+                            <div class="ib-step" data-step="1">
+                                <div class="ib-step-circle">1</div>
+                                <div class="ib-step-label">Prestation</div>
+                            </div>
+                            <div class="ib-step" data-step="2">
+                                <div class="ib-step-circle">2</div>
+                                <div class="ib-step-label">Praticienne</div>
+                            </div>
+                            <div class="ib-step" data-step="3">
+                                <div class="ib-step-circle">3</div>
+                                <div class="ib-step-label">Date & Heure</div>
+                            </div>
+                            <div class="ib-step" data-step="4">
+                                <div class="ib-step-circle">4</div>
+                                <div class="ib-step-label">Informations</div>
+                            </div>
+                            <div class="ib-step" data-step="5">
+                                <div class="ib-step-circle">5</div>
+                                <div class="ib-step-label">Confirmation</div>
+                            </div>
+                            <div class="ib-stepper-progress" id="progress-bar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setStep(step) {
+            const steps = document.querySelectorAll('#interactive-progress .ib-step');
+            const progressBar = document.getElementById('progress-bar');
+            
+            steps.forEach((stepEl, index) => {
+                const stepNumber = index + 1;
+                const circle = stepEl.querySelector('.ib-step-circle');
+                
+                stepEl.classList.remove('active', 'completed');
+                
+                if (stepNumber < step) {
+                    stepEl.classList.add('completed');
+                    circle.textContent = '✓';
+                } else if (stepNumber === step) {
+                    stepEl.classList.add('active');
+                    circle.textContent = stepNumber;
+                } else {
+                    circle.textContent = stepNumber;
+                }
+            });
+            
+            // Mettre à jour la barre de progression
+            const progressWidth = ((step - 1) / (steps.length - 1)) * 100;
+            progressBar.style.width = progressWidth + '%';
+            
+            console.log(`Étape ${step} activée - Progression: ${progressWidth}%`);
+        }
+        
+        // Initialiser à l'étape 1
+        setStep(1);
+    </script>
+</body>
+</html>

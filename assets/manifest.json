@@ -1,0 +1,21 @@
+{
+  "name": "Institut Booking",
+  "short_name": "Booking",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#2b7cff",
+  "theme_color": "#2b7cff",
+  "description": "Réservation avancée Institut By KM",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

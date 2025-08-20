@@ -1,5 +1,13 @@
 <?php
-if (!defined('ABSPATH')) exit;
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+// Vérifier si la classe n'existe pas déjà de manière plus stricte
+if (!class_exists('IB_Notifications', false)) {
+    // Définir une constante pour éviter les inclusions multiples
+    define('IB_NOTIFICATIONS_LOADED', true);
+}
 
 /**
  * Gestion des notifications
@@ -387,70 +395,13 @@ class IB_Notifications {
     }
 
     /**
-     * Envoie une notification WhatsApp
+     * Envoie une notification WhatsApp (désactivé pour le moment)
+     * 
+     * @param string $to Numéro de téléphone
+     * @param string $message Message à envoyer
+     * @return bool Toujours false car désactivé
      */
-    public static function send_whatsapp($to, $message) {
-        // À implémenter avec l'API WhatsApp
-        return false;
-    }
-
-    /**
-     * Envoie une notification de rappel
-     */
-    public static function send_reminder($booking_id) {
-        $booking = IB_Bookings::get_by_id($booking_id);
-        if (!$booking) return false;
-
-        $client = IB_Clients::get_by_id($booking->client_id);
-        $service = IB_Services::get_by_id($booking->service_id);
-        $employee = IB_Employees::get_by_id($booking->employee_id);
-
-        // Email au client (si email présent)
-        if (!empty($client->email) && is_email($client->email)) {
-            $subject = sprintf(__('Rappel : Rendez-vous %s', 'institut-booking'), $service->name);
-            $template = "Bonjour {client_name},<br><br>Ceci est un rappel pour votre rendez-vous :<br><br>Service : {service_name}<br>Date : {date}<br>Heure : {time}<br>Praticienne : {employee_name}<br><br>Cordialement,<br>{company}";
-            $vars = [
-                'client_name' => $client->name,
-                'service_name' => $service->name,
-                'date' => date_i18n(get_option('date_format'), strtotime($booking->start_time)),
-                'time' => date_i18n(get_option('time_format'), strtotime($booking->start_time)),
-                'employee_name' => $employee->name,
-                'company' => get_bloginfo('name')
-            ];
-            $message = self::replace_vars($template, $vars);
-            self::send_email($client->email, $subject, $message);
-        } else {
-            // Fallback : prévenir l'admin si pas d'email client
-            $admin_email = get_option('admin_email');
-            $subject = __('Erreur : Pas d\'email client pour le rappel', 'institut-booking');
-            $message = 'Impossible d\'envoyer le rappel au client (ID réservation : ' . intval($booking_id) . ').';
-            self::send_email($admin_email, $subject, $message);
-        }
-
-        // SMS
-        if ($client->phone) {
-            $sms_message = sprintf(
-                __('Rappel RDV : %s le %s à %s avec %s', 'institut-booking'),
-                $service->name,
-                date_i18n(get_option('date_format'), strtotime($booking->start_time)),
-                date_i18n(get_option('time_format'), strtotime($booking->start_time)),
-                $employee->name
-            );
-            self::send_sms($client->phone, $sms_message);
-        }
-
-        // Push
-        if ($client->push_token) {
-            self::send_push($client->id, $subject, $message);
-        }
-
-        // WhatsApp
-        if ($client->whatsapp) {
-            self::send_whatsapp($client->whatsapp, $message);
-        }
-
-        return true;
-    }
+    
 
     /**
      * Envoie une notification de confirmation
@@ -519,10 +470,10 @@ class IB_Notifications {
             self::send_push($client->id, $subject, $message);
         }
 
-        // WhatsApp
-        if ($client->whatsapp) {
-            self::send_whatsapp($client->whatsapp, $message);
-        }
+        // WhatsApp désactivé pour le moment
+        // if ($client->whatsapp) {
+        //     self::send_whatsapp($client->whatsapp, $message);
+        // }
 
         return true;
     }
@@ -576,10 +527,10 @@ class IB_Notifications {
             self::send_push($client->id, $subject, $message);
         }
 
-        // WhatsApp
-        if ($client->whatsapp) {
-            self::send_whatsapp($client->whatsapp, $message);
-        }
+        // WhatsApp désactivé pour le moment
+        // if ($client->whatsapp) {
+        //     self::send_whatsapp($client->whatsapp, $message);
+        // }
 
         return true;
     }
@@ -651,21 +602,182 @@ class IB_Notifications {
         
         if (empty($results)) {
             // Si aucun résultat, vérifier s'il y a des notifications dans la table
+            
             $total_notifications = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}ib_notifications");
             error_log("[IB Booking] get_recent - Aucun résultat. Total des notifications dans la table : " . $total_notifications);
             
             if ($total_notifications > 0) {
-                // Afficher les 5 dernières notifications pour le débogage
-                $sample_notifications = $wpdb->get_results("SELECT id, type, message, created_at FROM {$wpdb->prefix}ib_notifications ORDER BY created_at DESC LIMIT 5");
-                error_log('[IB Booking] get_recent - Exemple de notifications dans la table : ' . print_r($sample_notifications, true));
+                // Tâche planifiée pour envoyer les rappels
+                add_action('ib_daily_reminder_check', 'ib_send_booking_reminders');
+                
+                if (!function_exists('ib_send_booking_reminders')) {
+                    function ib_send_booking_reminders() {
+                        global $wpdb;
+                        
+                        // Date de demain
+                        $tomorrow = date('Y-m-d', strtotime('+1 day'));
+                        
+                        // Récupérer toutes les réservations confirmées pour demain qui n'ont pas encore reçu de rappel
+                        $bookings = $wpdb->get_results($wpdb->prepare(
+                            "SELECT id FROM {$wpdb->prefix}ib_bookings 
+                            WHERE date = %s 
+                            AND status = 'confirmee' 
+                            AND (reminder_sent = 0 OR reminder_sent IS NULL)",
+                            $tomorrow
+                        ));
+                        
+                        if (!empty($bookings)) {
+                            foreach ($bookings as $booking) {
+                                IB_Notifications::send_reminder($booking->id);
+                            }
+                        }
+                    }
+                }
+
+                // Planifier l'exécution quotidienne de la vérification
+                if (!wp_next_scheduled('ib_daily_reminder_check')) {
+                    wp_schedule_event(time(), 'daily', 'ib_daily_reminder_check');
+                }
+
             }
-        } else {
+            
+            // Fonction de nettoyage à la désactivation du plugin
+            if (!function_exists('ib_reminder_deactivation')) {
+                function ib_reminder_deactivation() {
+                    wp_clear_scheduled_hook('ib_daily_reminder_check');
+                }
+                register_deactivation_hook(__FILE__, 'ib_reminder_deactivation');
+            }
+            
             // Log des premiers caractères du message de la première notification pour vérification
             $first_msg = isset($results[0]->message) ? substr($results[0]->message, 0, 100) . '...' : 'Aucun message';
             error_log('[IB Booking] get_recent - Premier message : ' . $first_msg);
         }
         
         return $results;
+    }
+
+    /**
+     * Retourne le template HTML pour l'email de rappel
+     * 
+     * @param array $placeholders Tableau des variables à remplacer
+     * @return string Le contenu HTML de l'email
+     */
+    private static function get_reminder_template($placeholders) {
+        $template = "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Rappel de rendez-vous</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #A8977B; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+                .content { padding: 20px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 5px 5px; }
+                .button { background-color: #A8977B; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 15px 0; }
+                .footer { margin-top: 20px; font-size: 12px; color: #777; text-align: center; }
+            </style>
+        </head>
+        <body>
+            <div class='header'>
+                <h1>Rappel de votre rendez-vous</h1>
+            </div>
+            <div class='content'>
+                <p>Bonjour {client_name},</p>
+                <p>Ceci est un rappel pour votre rendez-vous chez {company} :</p>
+                
+                <div style='background: #f9f9f9; padding: 15px; border-left: 4px solid #A8977B; margin: 15px 0;'>
+                    <p><strong>Service :</strong> {service_name}</p>
+                    <p><strong>Date :</strong> {date} à {time}</p>
+                    <p><strong>Avec :</strong> {employee}</p>
+                    <p><strong>Adresse :</strong><br>{address}</p>
+                </div>
+                
+                <p>Nous sommes impatients de vous accueillir !</p>
+                
+                <p>Si vous avez des questions ou souhaitez modifier votre rendez-vous, n'hésitez pas à nous contacter.</p>
+                
+                <p>Cordialement,<br>L'équipe {company}</p>
+            </div>
+            <div class='footer'>
+                <p>Cet email vous a été envoyé automatiquement, merci de ne pas y répondre.</p>
+            </div>
+        </body>
+        </html>";
+        
+        // Remplacer les placeholders
+        foreach ($placeholders as $key => $value) {
+            $template = str_replace('{' . $key . '}', $value, $template);
+        }
+        
+        return $template;
+    }
+    
+    /**
+     * Envoie un email de rappel 24h avant la réservation
+     * 
+     * @param int $booking_id ID de la réservation
+     * @return bool Succès de l'envoi
+     */
+    public static function send_reminder($booking_id) {
+        global $wpdb;
+        
+        // Récupérer la réservation
+        $booking = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}ib_bookings WHERE id = %d AND status = 'confirmee'",
+            $booking_id
+        ));
+        
+        if (!$booking) return false;
+
+        // Récupérer les informations nécessaires
+        $service = IB_Services::get_by_id($booking->service_id);
+        $employee = IB_Employees::get_by_id($booking->employee_id);
+        $company = get_bloginfo('name');
+        $client_name = $booking->client_name ?: 'Client';
+        $client_email = $booking->client_email;
+        
+        if (!is_email($client_email)) {
+            error_log('[IB Booking] Email client invalide pour l\'envoi du rappel (ID: ' . $booking_id . ')' );
+            return false;
+        }
+
+        // Préparer les données pour le template (sans les accolades)
+        $placeholders = [
+            'client_name' => $client_name,
+            'client' => $client_name,
+            'service_name' => $service ? $service->name : 'Service',
+            'service' => $service ? $service->name : 'Service',
+            'company' => $company,
+            'date' => date_i18n('l d F Y', strtotime($booking->date)),
+            'time' => date('H:i', strtotime($booking->start_time)),
+            'employee' => $employee ? $employee->name : 'Notre équipe',
+            'address' => get_option('ib_business_address', '')
+        ];
+
+        // Obtenir le contenu de l'email
+        $subject = 'Rappel : Votre réservation demain chez ' . $company;
+        $message = self::get_reminder_template($placeholders);
+
+        // Envoyer l'email
+        $sent = self::send_email($client_email, $subject, $message);
+
+        if ($sent) {
+            // Marquer comme envoyé dans la base de données
+            $wpdb->update(
+                $wpdb->prefix . 'ib_bookings',
+                ['reminder_sent' => 1],
+                ['id' => $booking_id],
+                ['%d'],
+                ['%d']
+            );
+            error_log('[IB Booking] Email de rappel envoyé pour la réservation ' . $booking_id);
+            return true;
+        }
+
+        error_log('[IB Booking] Échec de l\'envoi du rappel pour la réservation ' . $booking_id);
+        return false;
     }
 
     // Marquer une notification comme lue
@@ -677,6 +789,13 @@ class IB_Notifications {
     // Marquer toutes les notifications comme lues pour un utilisateur
     public static function mark_all_as_read($target = 'admin') {
         global $wpdb;
-        $wpdb->update($wpdb->prefix . 'ib_notifications', ['status' => 'read'], ['target' => $target, 'status' => 'unread']);
+        $wpdb->update(
+            $wpdb->prefix . 'ib_notifications', 
+            ['status' => 'read'], 
+            [
+                'target' => $target, 
+                'status' => 'unread'
+            ]
+        );
     }
-} 
+} // Fin de la classe IB_Notifications

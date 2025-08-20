@@ -1,6 +1,9 @@
 <?php
 // admin/page-notifications-advanced.php
 if (!defined('ABSPATH')) exit;
+
+// Inclure les notifications
+require_once plugin_dir_path(dirname(__FILE__)) . 'includes/notifications.php';
 ?>
 <div class="ib-notifications-advanced-admin">
     <h1>Notifications avancées</h1>
@@ -20,7 +23,31 @@ if (!defined('ABSPATH')) exit;
         <label><input type="checkbox" name="ib_reminder_enable" value="1" <?php checked(get_option('ib_reminder_enable'), 1); ?>> Activer les rappels automatiques (email, SMS, push, WhatsApp)</label>
         <br><label>Heure d'envoi du rappel (ex: 09:00) :</label>
         <input type="time" name="ib_reminder_time" value="<?php echo esc_attr(get_option('ib_reminder_time', '09:00')); ?>">
+        
+        <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-left: 4px solid #2271b1;">
+            <h3>Test des rappels</h3>
+            <p>Envoyer un email de test de rappel pour une réservation existante :</p>
+            <label>ID de la réservation :</label>
+            <input type="number" name="test_booking_id" min="1" style="width: 100px; margin: 0 10px;">
+            <button type="submit" name="test_reminder" class="button button-secondary">Tester le rappel</button>
+            
+            <?php 
+            if (isset($_POST['test_reminder']) && !empty($_POST['test_booking_id'])) {
+                $booking_id = intval($_POST['test_booking_id']);
+                if (IB_Notifications::send_reminder($booking_id)) {
+                    echo '<div class="notice notice-success" style="margin-top:10px;">
+                        <p>✅ Email de rappel envoyé avec succès pour la réservation #' . $booking_id . '</p>
+                    </div>';
+                } else {
+                    echo '<div class="notice notice-error" style="margin-top:10px;">
+                        <p>❌ Erreur lors de l\'envoi du rappel pour la réservation #' . $booking_id . '</p>
+                    </div>';
+                }
+            }
+            ?>
+        </div>
+        
         <br><br>
-        <button class="button button-primary" type="submit" name="ib_save_notifications_advanced">Enregistrer</button>
+        <button class="button button-primary" type="submit" name="ib_save_notifications_advanced">Enregistrer les paramètres</button>
     </form>
 </div>

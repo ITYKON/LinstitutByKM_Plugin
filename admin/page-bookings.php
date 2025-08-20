@@ -5,6 +5,16 @@ add_action('admin_head', function () {
   echo '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.1.1/css/intlTelInput.min.css" />';
 }, 1);
 ?>
+<?php global $wpdb;
+$table_category = $wpdb->prefix . "ib_categories";
+$categories = $wpdb->get_results("SELECT id, name FROM $table_category");
+
+// Récupérer les services avec leur catégorie
+$table_services = $wpdb->prefix . "ib_services";
+$services = $wpdb->get_results("SELECT id, name, category_id FROM $table_services ORDER BY name ASC");
+
+?>
+
 
 <?php
 if (!defined('ABSPATH')) exit;
@@ -67,7 +77,7 @@ if (isset($_POST['update_booking'])) {
   $start_time = $date && $time ? $date . ' ' . $time . ':00' : '';
   $data = [
     'client_name' => sanitize_text_field($_POST['client_name']),
-  
+
     'client_email' => sanitize_email($_POST['client_email']),
     'client_phone' => sanitize_text_field($_POST['client_phone']),
     'service_id' => intval($_POST['service_id']),
@@ -123,6 +133,7 @@ if (isset($_POST['change_status_booking_id']) && isset($_POST['new_status'])) {
   }
 }
 $bookings = IB_Bookings::get_all();
+$categories = IB_Categories::get_all();
 $services = IB_Services::get_all();
 $employees = IB_Employees::get_all();
 $extras = IB_Extras::get_all();
@@ -216,30 +227,51 @@ $employees = array_map(function ($e) {
         </div>
       <?php endif; ?>
 
+      <!-- ----------recuperer category------------ -->
+
       <!-- MODAL AJOUT RESERVATION -->
       <div id="ib-add-booking-modal-bg" class="ib-modal-bg" style="display:none;"></div>
       <div id="ib-add-booking-modal" class="ib-modal" style="display:none;max-width:600px;">
         <div class="ib-form-title" style="color:#e9aebc;"><i class="dashicons dashicons-calendar-alt"></i> <span>Ajouter une réservation</span></div>
         <form method="post" class="ib-booking-form-admin">
+
+          <div style="width:260px;max-width:100%;margin-bottom:1.2em;">
+            <label for="add-booking-client-phone">Téléphone</label>
+            <div style="display:flex;align-items:center;">
+              <!-- Champ téléphone pour la recherche client -->
+              <input id="add-booking-client-phone" name="client_phone" type="tel" required placeholder="Ex: 555123456" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;">
+              <!-- Boîte d'information pour afficher le nom/prénom ou un message d'erreur -->
+              <div id="client-info-box" style="display:none;padding:8px 12px;background:#fbeff3;color:#b95c8a;border-radius:6px;margin-top:6px;font-size:0.98em;"></div>
+            </div>
+
+          </div>
           <label for="add-booking-client-firstname">Nom</label>
           <input id="add-booking-client-firstname" name="client_firstname" required>
           <label for="add-booking-client-lastname">Prénom</label>
           <input id="add-booking-client-lastname" name="client_lastname" required>
           <label for="add-booking-client-email">Email</label>
           <input id="add-booking-client-email" name="client_email" type="email">
-          <div style="width:260px;max-width:100%;margin-bottom:1.2em;">
-            <label for="add-booking-client-phone">Téléphone</label>
-            <div style="display:flex;align-items:center;">
-              <input id="add-booking-client-phone" name="client_phone" type="tel" required placeholder="Ex: 555123456" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;">
-            </div>
-          </div>
-          <label for="add-booking-service">Service</label>
-          <select id="add-booking-service" name="service_id" required>
+
+          <label for="add-booking-category">Catégorie</label>
+          <select id="add-booking-category" name="category_id" required>
             <option value="">Choisir</option>
-            <?php foreach ($services as $s): ?>
-              <option value="<?php echo $s->id; ?>"><?php echo esc_html($s->name); ?></option>
+            <?php foreach ($categories as $cat): ?>
+              <option value="<?php echo $cat->id; ?>"><?php echo esc_html($cat->name); ?></option>
             <?php endforeach; ?>
           </select>
+
+          <label for="add-booking-service">Service</label>
+          <select id="add-booking-service" name="service_id" required>
+            <option value="">Choisir une catégorie d'abord</option>
+            <?php foreach ($services as $s): ?>
+              <option value="<?php echo $s->id; ?>"
+                data-category="<?php echo $s->category_id; ?>"
+                style="display:none;">
+                <?php echo esc_html($s->name); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+
           <label for="add-booking-price">Prix (optionnel)</label>
           <input id="add-booking-price" name="price" type="number" min="0" step="0.01" placeholder="Prix (optionnel)">
           <label for="add-booking-employee">Praticienne</label>
@@ -276,6 +308,116 @@ $employees = array_map(function ($e) {
         </form>
       </div>
       <!-- FIN MODAL -->
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const categorySelect = document.getElementById('add-booking-category');
+          const serviceSelect = document.getElementById('add-booking-service');
+
+          if (!categorySelect || !serviceSelect) {
+            console.error('Elements select non trouvés');
+            return;
+          }
+
+          function filterServices() {
+            const selectedCategory = categorySelect.value;
+            const serviceOptions = serviceSelect.querySelectorAll('option[data-category]');
+            const defaultOption = serviceSelect.querySelector('option[value=""]');
+
+            // Réinitialiser
+            serviceSelect.value = '';
+
+            // Compter les services disponibles
+            let availableServices = 0;
+
+            serviceOptions.forEach(option => {
+              if (selectedCategory && option.getAttribute('data-category') === selectedCategory) {
+                option.style.display = 'block';
+                option.disabled = false;
+                availableServices++;
+              } else {
+                option.style.display = 'none';
+                option.disabled = true;
+              }
+            });
+
+            // Mettre à jour le texte de l'option par défaut
+            if (selectedCategory) {
+              if (availableServices > 0) {
+                defaultOption.textContent = 'Choisir un service';
+              } else {
+                defaultOption.textContent = 'Aucun service disponible';
+              }
+            } else {
+              defaultOption.textContent = 'Choisir une catégorie d\'abord';
+            }
+          }
+
+          // Event listener
+          categorySelect.addEventListener('change', filterServices);
+
+          // Initialisation
+          filterServices();
+        });
+      </script>
+      
+      <script>
+        // Définit l'URL AJAX WordPress si elle n'est pas déjà définie
+        if (typeof ajaxurl === 'undefined') {
+          var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
+        }
+        // Utilise jQuery pour garantir la compatibilité avec $
+        jQuery(function($) {
+          var phoneInput = $('#add-booking-client-phone');
+          var infoBox = $('#client-info-box');
+
+          // Fonction pour lancer la recherche AJAX
+          function lookupClientByPhone(phone) {
+            // Ajoute automatiquement le préfixe +213 si l'utilisateur ne le met pas
+            if (!phone.startsWith('+')) {
+              if (phone.startsWith('0')) {
+                phone = phone.substring(1);
+              }
+              phone = '+213' + phone;
+            }
+            // Vérifie si le numéro semble complet (ex: 9 chiffres ou plus)
+            if (phone.length >= 9) {
+              $.post(ajaxurl, {
+                action: 'ib_lookup_client_by_phone',
+                phone: phone
+              }, function(res) {
+                if (res && res.success && res.data) {
+                  infoBox.show().text('Nom: ' + res.data.firstname + ' | Prénom: ' + res.data.lastname);
+                } else if (res && res.success === false) {
+                  infoBox.show().text('Numéro inexistant.');
+                } else {
+                  infoBox.show().text('Erreur AJAX.');
+                }
+              }).fail(function() {
+                infoBox.show().text('Erreur AJAX.');
+              });
+            } else {
+              infoBox.hide();
+            }
+          }
+
+          // Déclenche la recherche dès que l'utilisateur a saisi 9 chiffres ou plus
+          phoneInput.on('input', function() {
+            var phone = phoneInput.val().trim();
+            if (phone.replace(/\D/g, '').length >= 9) {
+              lookupClientByPhone(phone);
+            } else {
+              infoBox.hide();
+            }
+          });
+
+          // Cache la boîte d'info si on vide le champ
+          phoneInput.on('blur', function() {
+            if (phoneInput.val().trim() === '') {
+              infoBox.hide();
+            }
+          });
+        });
+      </script>
       <?php if ($edit_booking): ?>
         <!-- Modal édition réservation modernisée -->
         <div id="ib-modal-bg-booking" class="ib-modal-bg ib-invisible" style="display:block;"></div>

@@ -12,6 +12,7 @@ window.bookingState = window.bookingState || {
     email: "",
     phone: "",
   },
+  cart: []                 // liste des prestations
 };
 
 // Fonction pour gérer le scroll et la navigation entre les étapes
@@ -581,16 +582,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
 
               <!-- Sélecteur d'employé -->
               <p class="mt-2">
-                <strong>Praticienne :</strong>
-                <select data-index="${index}" class="employee-select border p-1 rounded w-full mt-1">
-                  ${bookingState.employees
-                  .filter(emp => emp.serviceId === item.service.id) // n'afficher que les employés de la prestation
-                  .map(emp => `
-                      <option value="${emp.id}" ${emp.id === item.employee.id ? "selected" : ""}>
-                        ${emp.name}
-                      </option>
-                    `).join("")}
-                </select>
+                <strong>Praticienne :</strong> ${item.employee && item.employee.name ? item.employee.name : ''}
               </p>
 
               <!-- Date et créneau -->
@@ -653,22 +645,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           }
           break;
 
-        //     inner = `<div class='booking-main-content'>
-        //   <div class="booking-step-date-modern">
-        //     <div class="calendar-col">
-        //       <div class="calendar-inner-card">
-        //         <h2 class="text-2xl font-bold text-pink-400 mb-4 text-center">mon panier de prestation</h2>
-        //         <div id="calendar-header" class="mb-2"></div>
-        //         <div id="calendar-days"></div>
-        //       </div>
-        //     </div>
 
-        //   </div>
-        // </div>`;
-        //     content.innerHTML = inner;
-        //     // renderModernCalendar();
-        //     // renderModernSlotsList();
-        // break;
         case 5:
           inner = `<div class='booking-main-content'>
         <div class="booking-step-infos-modern bg-white rounded-2xl shadow-xl p-8 max-w-lg mx-auto">
@@ -816,7 +793,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                 const showPrivacyBtn = document.getElementById("show-privacy");
                 if (showPrivacyBtn) {
                   showPrivacyBtn.onclick = function (e) {
-                    
+
                     e.preventDefault();
                     modal.style.display = "flex";
                   };
@@ -833,10 +810,115 @@ window.scrollToProgressBar = function (callback, delay = 300) {
               // Le sélecteur Planity se charge automatiquement via planity-phone-selector.js
               // Appliquer la validation moderne
               setupModernValidation(form);
+              // Ajouter l'événement de soumission du formulaire pour plusieurs prestation : nes
+              form.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                // Récupérer les infos du client
+                bookingState.client = {
+                  firstname: document.getElementById("client-firstname").value,
+                  lastname: document.getElementById("client-lastname").value,
+                  email: document.getElementById("client-email").value,
+                  phone: document.getElementById("client-phone").value,
+                };
+
+                // Construire la réservation complète
+                const reservationData = {
+                  client: bookingState.client,
+                  prestations: bookingState.cart // ✅ toutes les prestations
+                };
+
+                console.log("🚀 Envoi réservation", reservationData);
+
+                // 👉 Ici, tu envoies reservationData en AJAX/fetch à ton serveur PHP
+                // Exemple :
+                fetch("/wp-json/booking/v1/create", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(reservationData)
+                })
+                  .then(res => res.json())
+                  .then(data => {
+                    console.log("Réservation OK", data);
+                    bookingState.step = 6; // passer à l’étape confirmation
+                    renderStepContent();
+                  })
+                  .catch(err => {
+                    console.error("Erreur réservation", err);
+                    alert("Erreur lors de la réservation !");
+                  });
+              });
+
             }
           }, 100);
+
           break;
-        case 5:
+        case 6:
+          // ------------------------------------
+          let prestationsHtml = "";
+          if (bookingState.cart && bookingState.cart.length > 0) {
+            prestationsHtml = bookingState.cart.map(item => `
+      <div class="ticket-service border rounded-lg p-3 bg-white shadow-md mb-4">
+        <p><span class="ticket-label font-semibold">Prestation :</span> ${item.service?.name || "-"}</p>
+        <p><span class="ticket-label font-semibold">Praticienne :</span> ${item.employee?.name || "-"}</p>
+        <p><span class="ticket-label font-semibold">Date :</span> ${item.date || "-"}</p>
+        <p><span class="ticket-label font-semibold">Créneau :</span> ${item.slot || "-"}</p>
+      </div>
+    `).join("");
+          } else {
+            prestationsHtml = "<p>Aucune prestation réservée.</p>";
+          }
+          inner = `
+    <div class="confirmation-container bg-gray-50 p-6 rounded-xl shadow-lg">
+      <h2 class="text-2xl font-bold text-green-600 mb-4">✅ Réservation Confirmée !</h2>
+      <p class="mb-6 text-gray-700">Merci pour votre réservation. Voici votre ticket de confirmation :</p>
+
+      <div class="ticket bg-white p-4 rounded-lg shadow-md border border-gray-200">
+        <h3 class="text-xl font-semibold mb-3">Détails Client</h3>
+        <p><span class="ticket-label font-semibold">Nom :</span> ${bookingState.client?.lastname || "-"}</p>
+        <p><span class="ticket-label font-semibold">Prénom :</span> ${bookingState.client?.firstname || "-"}</p>
+        <p><span class="ticket-label font-semibold">Email :</span> ${bookingState.client?.email || "-"}</p>
+        <p><span class="ticket-label font-semibold">Téléphone :</span> ${bookingState.client?.phone || "-"}</p>
+
+        <hr class="my-4">
+
+        <h3 class="text-xl font-semibold mb-3">Prestations Réservées</h3>
+        ${prestationsHtml}
+      </div>
+
+      <div class="mt-6 flex gap-4">
+        <button id="new-booking" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition">
+          🔄 Nouvelle réservation
+        </button>
+        <button id="download-ticket" class="px-4 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition">
+          ⬇️ Télécharger Ticket
+        </button>
+      </div>
+    </div>
+  `;
+
+          // Bouton pour nouvelle réservation
+          setTimeout(() => {
+            document.getElementById("new-booking").addEventListener("click", () => {
+              bookingState = {
+                step: 1,
+                selectedService: null,
+                selectedEmployee: null,
+                selectedDate: null,
+                selectedSlot: null,
+                client: null,
+                cart: []
+              };
+              renderStepContent();
+            });
+
+            // Bouton pour télécharger le ticket (optionnel)
+            document.getElementById("download-ticket").addEventListener("click", () => {
+              window.print(); // 👉 pour le moment juste impression PDF
+            });
+          }, 50);
+          content.innerHTML = inner;
+          // ------------------------------------
           let prixHtml = "-";
           if (bookingState.selectedService) {
             if (bookingState.selectedService.variable_price == 1) {
@@ -1307,8 +1389,9 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         const buttonTexts = {
           1: "Choisir la praticienne →",
           2: "Choisir la date →",
-          3: "Mes informations →",
-          4: "Confirmer la réservation",
+          3: "Mon panier →",
+          4: "Mes informations →",
+          5: "Confirmer la réservation",
         };
 
         next.innerHTML = buttonTexts[bookingState.step] || "Suivant →";
@@ -1329,8 +1412,12 @@ window.scrollToProgressBar = function (callback, delay = 300) {
             showBookingNotification("Sélectionnez une date et un créneau.");
             return;
           }
+          if (bookingState.step === 4 && !bookingState.selectedCategory) {
+            showBookingNotification("Sélectionnez un nouveau service.");
+            return;
+          }
           if (
-            bookingState.step === 4 &&
+            bookingState.step === 5 &&
             (!bookingState.client.firstname ||
               !bookingState.client.lastname ||
               !bookingState.client.phone)

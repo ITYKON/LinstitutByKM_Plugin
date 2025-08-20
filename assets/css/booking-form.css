@@ -3910,6 +3910,26 @@ body,
   }
 }
 
+
+
+
+
+
+@media (max-width: 768px) {
+  /* Hide only the buttons row, keep parent visible for the accordion */
+  .booking-categories,
+  .categories .booking-categories {
+    display: none !important;
+  }
+  /* Ensure the shared container remains visible so the accordion can render */
+  #category-buttons {
+    display: block !important;
+  }
+  .category-title-planity {
+    display: none !important;
+  }
+}
+
 .booking-category-btn {
   flex: 0 0 auto;
   min-width: 80px;

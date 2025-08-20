@@ -218,11 +218,7 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
           <label for="add-booking-client-name">Client</label>
           <input id="add-booking-client-name" name="client_name" required>
           <label for="add-booking-client-email">Email</label>
-<<<<<<< HEAD
-          <input id="add-booking-client-email" name="client_email" type="email">
-=======
           <input id="add-booking-client-email" name="client_email" type="email" >
->>>>>>> Ahlem
           <div style="width:260px;max-width:100%;margin-bottom:1.2em;">
             <label for="add-booking-client-phone">Téléphone</label>
             <div style="display:flex;align-items:center;">

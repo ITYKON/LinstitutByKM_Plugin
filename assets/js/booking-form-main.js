@@ -508,15 +508,12 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           renderCategoryButtons();
           renderServicesGrid();
           break;
-        case 2:
-<<<<<<< HEAD
-          inner = `<div class='booking-main-content'><h2 class='text-center mb-6'>Choisissez votre praticienne</h2> <div class="grid" id="employees-grid"></div></div>`;
-=======
-          inner = `<div class='booking-main-content'><h2 class='text-center mb-6'>Choisissez votre praticienne</h2><div class="grid" id="employees-grid"></div></div>`;
->>>>>>> Ahlem
-          content.innerHTML = inner;
-          renderEmployeesGrid();
-          break;
+case 2:
+
+  inner = `<div class='booking-main-content'><h2 class='text-center mb-6'>Choisissez votre praticienne</h2><div class="grid" id="employees-grid"></div></div>`;
+  content.innerHTML = inner;
+  renderEmployeesGrid();
+  break;
         case 3:
           inner = `<div class='booking-main-content'>
         <div class="booking-step-date-modern">

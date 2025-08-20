@@ -210,13 +210,10 @@ jQuery(document).ready(function ($) {
         }, 10);
       }
     }
-    // Email
+    // Email (optionnel mais doit être valide si fourni)
     var email = $form.find('[name="client_email"]');
-    if (email.length && (email.hasClass("touched") || isSubmit)) {
-      if (
-        !email.val().trim() ||
-        !/^[^@\s]+@[^@\s]+\.(com|fr)$/.test(email.val().trim())
-      ) {
+    if (email.length && email.val().trim() !== '' && (email.hasClass("touched") || isSubmit)) {
+      if (!/^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$/.test(email.val().trim())) {
         valid = false;
         var msg = createErrorMsg("Format email attendu : nom@domaine.com");
         email.addClass("ib-error");

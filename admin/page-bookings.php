@@ -28,7 +28,7 @@ if (isset($_POST['add_booking'])) {
     // Récupérer le prix du service
     $service = IB_Services::get_by_id($service_id);
     $service_price = $service ? $service->price : 0;
-    if (!$client_name || !$client_email || !$service_id || !$employee_id || !$date || !$time || !$status) {
+    if (!$client_name || !$service_id || !$employee_id || !$date || !$time || !$status) {
         echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Veuillez remplir tous les champs obligatoires.</p></div>';
     } else {
         $result = IB_Bookings::add([
@@ -1358,9 +1358,18 @@ jQuery(function($){
     // Formater lors de la soumission
     var formSelector = phoneFieldId.includes('add') ? '.ib-booking-form-admin' : '#ib-modal-edit-booking form';
     $(formSelector).on('submit', function() {
-      var phone = $('#' + phoneFieldId).val().replace(/\D/g, '');
+      var phoneInput = $('#' + phoneFieldId);
+      var phone = phoneInput.val().replace(/\D/g, '');
       var country = $('#' + dropdownId + '-value').val();
-      $('#' + phoneFieldId).val(country + phone);
+      // Vérifier si le numéro commence déjà par le code pays (avec ou sans +)
+      var countryDigits = country.replace(/\D/g, '');
+      if (!phone.startsWith(countryDigits)) {
+        // Ajouter le code pays avec le signe +
+        phoneInput.val(country + ' ' + phone);
+      } else {
+        // Le code pays est déjà présent, on le conserve avec le signe +
+        phoneInput.val(country + ' ' + phone.substring(countryDigits.length));
+      }
     });
 
     console.log('Dropdown créé avec succès pour:', phoneFieldId);

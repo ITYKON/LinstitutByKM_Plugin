@@ -509,7 +509,11 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           renderServicesGrid();
           break;
         case 2:
+<<<<<<< HEAD
           inner = `<div class='booking-main-content'><h2 class='text-center mb-6'>Choisissez votre praticienne</h2> <div class="grid" id="employees-grid"></div></div>`;
+=======
+          inner = `<div class='booking-main-content'><h2 class='text-center mb-6'>Choisissez votre praticienne</h2><div class="grid" id="employees-grid"></div></div>`;
+>>>>>>> Ahlem
           content.innerHTML = inner;
           renderEmployeesGrid();
           break;
@@ -1166,7 +1170,6 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         back.textContent = "← Précédent";
         back.setAttribute("data-action", "back");
         back.onclick = () => {
-          // Utiliser la fonction utilitaire pour le scroll automatique
           window.scrollToProgressBar(() => {
             goToStep(bookingState.step - 1);
           }, 200);
@@ -1174,63 +1177,17 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         actions.appendChild(back);
       }
 
-      if (bookingState.step < 5) {
-        const next = document.createElement("button");
-        next.className = "next btn-next";
-        next.setAttribute("data-action", "next");
+      // SUPPRESSION DES BOUTONS NEXT : on ne crée plus de bouton "next" pour passer à l'étape suivante
+      // L'utilisateur passe à l'étape suivante uniquement en cliquant sur une prestation, praticienne, créneau, etc.
 
-        // Texte du bouton selon l'étape
-        const buttonTexts = {
-          1: "Choisir la praticienne →",
-          2: "Choisir la date →",
-          3: "Mes informations →",
-          4: "Confirmer la réservation",
-        };
-
-        next.innerHTML = buttonTexts[bookingState.step] || "Suivant →";
-        actions.appendChild(next);
-        next.onclick = () => {
-          if (bookingState.step === 1 && !bookingState.selectedService) {
-            showBookingNotification("Sélectionnez un service.");
-            return;
-          }
-          if (bookingState.step === 2 && !bookingState.selectedEmployee) {
-            showBookingNotification("Sélectionnez une praticienne.");
-            return;
-          }
-          if (
-            bookingState.step === 3 &&
-            (!bookingState.selectedDate || !bookingState.selectedSlot)
-          ) {
-            showBookingNotification("Sélectionnez une date et un créneau.");
-            return;
-          }
-          if (
-            bookingState.step === 4 &&
-            (!bookingState.client.firstname ||
-              !bookingState.client.lastname ||
-              !bookingState.client.phone)
-          ) {
-            showBookingNotification("Merci de remplir tous les champs.");
-            return;
-          }
-
-          // Utiliser la fonction utilitaire pour le scroll automatique
-          window.scrollToProgressBar(() => {
-            goToStep(bookingState.step + 1);
-          }, 200);
-        };
-        actions.appendChild(next);
-      } else if (bookingState.step === 5) {
+      // On garde le bouton "Nouvelle réservation" à la fin (étape 5)
+      if (bookingState.step === 5) {
         const restart = document.createElement("button");
         restart.className = "next btn-next";
         restart.textContent = "Nouvelle réservation";
         restart.setAttribute("data-action", "restart");
         restart.onclick = () => {
-          // Réinitialiser l'état de réservation dans le localStorage
           localStorage.removeItem("bookingState");
-          
-          // Rafraîchir la page pour réinitialiser complètement le formulaire
           window.location.reload();
         };
         actions.appendChild(restart);
@@ -1726,6 +1683,32 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           '<div style="padding:2em;text-align:center;color:#bfa2c7;">Aucune praticienne pour ce service</div>';
         return;
       }
+
+      // Ajouter la carte "Sans préférence"
+      const noPreferenceCard = document.createElement("div");
+      noPreferenceCard.className = "employee-card-modern" +
+        (bookingState.selectedEmployee === null ? " selected" : "");
+      noPreferenceCard.onclick = () => {
+        bookingState.selectedEmployee = null; // null indique qu'aucune préférence n'est choisie
+        renderEmployeesGrid();
+        goToStep(3);
+      };
+      noPreferenceCard.innerHTML = `
+        <div style="width:72px;height:72px;border-radius:50%;background:#f8f0f4;display:flex;align-items:center;justify-content:center;margin:0 auto;">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#7B6F5B" stroke-width="2">
+            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+            <path d="M12 8v4"></path>
+            <path d="M12 16h.01"></path>
+          </svg>
+        </div>
+        <div class="mt-3 text-center">
+          <div class="font-bold text-brown-400 text-base mb-1">Sans préférence</div>
+          <div class="text-xs text-gray-500">Nous choisirons pour vous</div>
+        </div>
+      `;
+      grid.appendChild(noPreferenceCard);
+
+      // Ajouter les cartes des praticiennes
       filtered.forEach((emp) => {
         const card = document.createElement("div");
         card.className =
@@ -1734,21 +1717,21 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           bookingState.selectedEmployee.id === emp.id
             ? " selected"
             : "");
-        card.onclick = () => {
+        card.onclick = (e) => {
+          e.stopPropagation();
           bookingState.selectedEmployee = emp;
           renderEmployeesGrid();
-          goToStep(3); // Passe automatiquement à l'étape suivante après sélection
+          goToStep(3);
         };
         let imgHtml = emp.photo
           ? `<img src="${emp.photo}" alt="${emp.name}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;">`
           : `<span><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4"/></svg></span>`;
         card.innerHTML = `
-      ${imgHtml}
-      <div class="mt-3 text-center">
-        <div class="font-bold text-brown-400 text-base mb-1">${emp.name}</div>
-       
-      </div>
-    `;
+          ${imgHtml}
+          <div class="mt-3 text-center">
+            <div class="font-bold text-brown-400 text-base mb-1">${emp.name}</div>
+          </div>
+        `;
         grid.appendChild(card);
       });
     }

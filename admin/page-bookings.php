@@ -25,36 +25,38 @@ if (isset($_POST['add_booking'])) {
     $start_time = $date && $time ? $date . ' ' . $time . ':00' : '';
     $status = sanitize_text_field($_POST['status'] ?? '');
     $extras = isset($_POST['extras']) ? maybe_serialize($_POST['extras']) : '';
-    // Récupérer le prix du service
-    $service = IB_Services::get_by_id($service_id);
-    $service_price = $service ? $service->price : 0;
+  // Récupérer le prix du service ou le prix saisi manuellement
+  $service = IB_Services::get_by_id($service_id);
+  $service_price = $service ? $service->price : 0;
+  $manual_price = isset($_POST['price']) && $_POST['price'] !== '' ? floatval($_POST['price']) : null;
+  $final_price = ($manual_price !== null) ? $manual_price : $service_price;
     if (!$client_name || !$service_id || !$employee_id || !$date || !$time || !$status) {
         echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Veuillez remplir tous les champs obligatoires.</p></div>';
+  } else {
+    $result = IB_Bookings::add([
+      'client_name' => $client_name,
+      'client_email' => $client_email,
+      'client_phone' => $client_phone,
+      'service_id' => $service_id,
+      'employee_id' => $employee_id,
+      'date' => $date,
+      'start_time' => $start_time,
+      'status' => $status,
+      'extras' => $extras,
+      'price' => $final_price
+    ]);
+    if ($result) {
+      IB_Logs::add(get_current_user_id(), 'ajout_reservation', json_encode(['booking_id' => $result, 'client_name' => $client_name]));
+
+      // Envoyer l'email de remerciement au client
+      require_once plugin_dir_path(__FILE__) . '../includes/notifications.php';
+      IB_Notifications::send_thank_you($result);
+
+      echo '<div class="notice notice-success" style="margin-bottom:1.5em;"><p>Réservation ajoutée avec succès.</p></div>';
     } else {
-        $result = IB_Bookings::add([
-            'client_name' => $client_name,
-            'client_email' => $client_email,
-            'client_phone' => $client_phone,
-            'service_id' => $service_id,
-            'employee_id' => $employee_id,
-            'date' => $date,
-            'start_time' => $start_time,
-            'status' => $status,
-            'extras' => $extras,
-            'price' => $service_price
-        ]);
-        if ($result) {
-            IB_Logs::add(get_current_user_id(), 'ajout_reservation', json_encode(['booking_id' => $result, 'client_name' => $client_name]));
-
-            // Envoyer l'email de remerciement au client
-            require_once plugin_dir_path(__FILE__) . '../includes/notifications.php';
-            IB_Notifications::send_thank_you($result);
-
-            echo '<div class="notice notice-success" style="margin-bottom:1.5em;"><p>Réservation ajoutée avec succès.</p></div>';
-        } else {
-            echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Erreur lors de l\'ajout de la réservation.</p></div>';
-        }
+      echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Erreur lors de l\'ajout de la réservation.</p></div>';
     }
+  }
 }
 // Traitement édition réservation
 if (isset($_POST['update_booking'])) {
@@ -209,13 +211,18 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
 
       <!-- MODAL AJOUT RESERVATION -->
       <div id="ib-add-booking-modal-bg" class="ib-modal-bg" style="display:none;"></div>
-      <div id="ib-add-booking-modal" class="ib-modal" style="display:none;max-width:600px;">
+      <div id="ib-add-booking-modal" class="ib-modal" style="display:none;max-width:600px;position:relative;">
+        <button type="button" id="ib-close-add-booking-modal-top" style="position:absolute;top:18px;right:18px;background:none;border:none;font-size:2em;color:#e9aebc;cursor:pointer;z-index:10;" title="Fermer">&times;</button>
         <div class="ib-form-title" style="color:#e9aebc;"><i class="dashicons dashicons-calendar-alt"></i> <span>Ajouter une réservation</span></div>
         <form method="post" class="ib-booking-form-admin">
           <label for="add-booking-client-name">Client</label>
           <input id="add-booking-client-name" name="client_name" required>
           <label for="add-booking-client-email">Email</label>
+<<<<<<< HEAD
           <input id="add-booking-client-email" name="client_email" type="email">
+=======
+          <input id="add-booking-client-email" name="client_email" type="email" >
+>>>>>>> Ahlem
           <div style="width:260px;max-width:100%;margin-bottom:1.2em;">
             <label for="add-booking-client-phone">Téléphone</label>
             <div style="display:flex;align-items:center;">
@@ -268,8 +275,9 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
       <?php if ($edit_booking): ?>
         <!-- Modal édition réservation modernisée -->
         <div id="ib-modal-bg-booking" class="ib-modal-bg ib-invisible" style="display:block;"></div>
-        <div id="ib-modal-edit-booking" class="ib-modal ib-invisible" style="display:block;">
-          <div class="ib-form-title" style="color:#e9aebc;"><i class="dashicons dashicons-calendar-alt"></i> <span>Modifier la réservation</span></div>
+        <div id="ib-modal-edit-booking" class="ib-modal ib-invisible" style="display:block;position:relative;">
+          <button type="button" id="ib-close-edit-booking-modal-top" style="position:absolute;top:18px;right:18px;background:none;border:none;font-size:2em;color:#e9aebc;cursor:pointer;z-index:10;" title="Fermer">&times;</button>
+          <div class="ib-form-title" style="color:#e9aebc; margin: 10px;"><i class="dashicons dashicons-calendar-alt"></i> <span>Modifier la réservation</span></div>
           <form method="post" autocomplete="off">
             <input type="hidden" name="booking_id" value="<?php echo $edit_booking->id; ?>">
             <div class="ib-form-grid">
@@ -410,15 +418,15 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
         <table class="ib-table-bookings ib-invisible" style="width:100%;background:#fff;border-radius:14px;box-shadow:0 2px 16px #e9aebc22;margin-bottom:2em;">
           <thead style="background:#fbeff2;">
             <tr>
-              <th style="color:#e9aebc;cursor:pointer;" data-sort="client">Client <span class="sort-arrow"></span></th>
+              <th style="color:#e9aebc;cursor:pointer;" data-sort="client">Cliente <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="email">Email <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="phone">Téléphone <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="service">Service <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="employee">Praticienne <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="date">Date <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="heure">Heure <span class="sort-arrow"></span></th>
-              <th style="cursor:pointer;" data-sort="statut">Statut <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="price">Prix <span class="sort-arrow"></span></th>
+              <th style="cursor:pointer;" data-sort="statut">Statut <span class="sort-arrow"></span></th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -442,6 +450,12 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
                 }
                 echo esc_html($heure);
               ?></td>
+              <td style="font-weight:700;color:#7ec6b8;text-align:center;">
+                <?php
+                  $prix = isset($booking->price) ? $booking->price : 0;
+                  echo rtrim(rtrim(number_format($prix, 2, ',', ' '), '0'), ',') . ' DA';
+                ?>
+              </td>
               <td>
                 <form method="post" style="display:inline;">
                   <input type="hidden" name="change_status_booking_id" value="<?php echo $booking->id; ?>">
@@ -454,12 +468,6 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
                     <option value="no_show" <?php if($booking->status==='no_show') echo 'selected'; ?> style="background:#fbeee6;color: #bfa600 border:#bfa600;">No show</option>
                   </select>
                 </form>
-              </td>
-              <td style="font-weight:700;color:#7ec6b8;text-align:center;">
-                <?php
-                  $prix = isset($booking->price) ? $booking->price : 0;
-                  echo rtrim(rtrim(number_format($prix, 2, ',', ' '), '0'), ',') . ' DA';
-                ?>
               </td>
               <td class="ib-action-btns" style="white-space:nowrap;display:flex;gap:0.5em;align-items:center;">
                 <a href="admin.php?page=institut-booking-bookings&action=edit&id=<?php echo $booking->id; ?>" class="ib-icon-btn edit" title="Éditer">
@@ -1388,7 +1396,7 @@ jQuery(function($){
   });
 
   // Ferme la modal d'ajout
-  $('#ib-close-add-booking-modal, #ib-add-booking-modal-bg').on('click', function(){
+  $('#ib-close-add-booking-modal, #ib-add-booking-modal-bg, #ib-close-add-booking-modal-top').on('click', function(){
     $('#ib-add-booking-modal-bg, #ib-add-booking-modal').fadeOut(120);
     // Réinitialiser le formulaire et nettoyer les dropdowns
     setTimeout(function() {
@@ -1397,9 +1405,24 @@ jQuery(function($){
       $('#add-booking-client-phone').css('width', '100%');
     }, 150);
   });
+
+  // Bouton fermer pour la modal d'édition
+  $('#ib-close-edit-booking-modal-top, #ib-modal-bg-booking').on('click', function(){
+    $('#ib-modal-bg-booking, #ib-modal-edit-booking').fadeOut(120);
+    setTimeout(function() {
+      $('#ib-modal-edit-booking form')[0].reset();
+    }, 150);
+  });
   // Masquer la modal après ajout réussi
   if ($('.notice-success:contains("Réservation ajoutée")').length) {
-    $('#ib-add-booking-modal-bg, #ib-add-booking-modal').hide();
+    setTimeout(function() {
+      $('#ib-add-booking-modal-bg, #ib-add-booking-modal').fadeOut(200);
+      setTimeout(function() {
+        $('.ib-booking-form-admin')[0].reset();
+        $('.custom-country-dropdown').remove();
+        $('#add-booking-client-phone').css('width', '100%');
+      }, 250);
+    }, 600); // délai pour laisser voir le message de succès
   }
   // Validation simplifiée du formulaire d'ajout
   $('.ib-booking-form-admin').on('submit', function(e) {
@@ -1428,6 +1451,16 @@ jQuery(function($){
       }
     }
   });
+
+  // Fermer la modal d'édition si succès après rechargement
+  if ($('.notice-success:contains("Réservation modifiée")').length && $('#ib-modal-edit-booking').is(':visible')) {
+    setTimeout(function() {
+      $('#ib-modal-bg-booking, #ib-modal-edit-booking').fadeOut(200);
+      setTimeout(function() {
+        $('#ib-modal-edit-booking form')[0].reset();
+      }, 250);
+    }, 600);
+  }
   
   // Vérification de conflit de créneau en temps réel (ajout réservation)
   var service = $('#add-booking-service');

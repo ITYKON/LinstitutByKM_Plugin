@@ -1401,7 +1401,14 @@ jQuery(function($){
   });
   // Masquer la modal après ajout réussi
   if ($('.notice-success:contains("Réservation ajoutée")').length) {
-    $('#ib-add-booking-modal-bg, #ib-add-booking-modal').hide();
+    setTimeout(function() {
+      $('#ib-add-booking-modal-bg, #ib-add-booking-modal').fadeOut(200);
+      setTimeout(function() {
+        $('.ib-booking-form-admin')[0].reset();
+        $('.custom-country-dropdown').remove();
+        $('#add-booking-client-phone').css('width', '100%');
+      }, 250);
+    }, 600); // délai pour laisser voir le message de succès
   }
   // Validation simplifiée du formulaire d'ajout
   $('.ib-booking-form-admin').on('submit', function(e) {
@@ -1430,6 +1437,16 @@ jQuery(function($){
       }
     }
   });
+
+  // Fermer la modal d'édition si succès après rechargement
+  if ($('.notice-success:contains("Réservation modifiée")').length && $('#ib-modal-edit-booking').is(':visible')) {
+    setTimeout(function() {
+      $('#ib-modal-bg-booking, #ib-modal-edit-booking').fadeOut(200);
+      setTimeout(function() {
+        $('#ib-modal-edit-booking form')[0].reset();
+      }, 250);
+    }, 600);
+  }
   
   // Vérification de conflit de créneau en temps réel (ajout réservation)
   var service = $('#add-booking-service');

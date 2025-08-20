@@ -35,7 +35,7 @@ $open_categories = ($current_page === 'institut-booking-categories') ? ' open' :
         </a>
  <a href="<?php echo admin_url('admin.php?page=institut-booking-clients'); ?>" class="ib-sidebar-link custom-sidebar-link <?php echo $current_page === 'institut-booking-clients' ? 'active' : ''; ?>">
             <span class="dashicons dashicons-admin-users"></span>
-            <span>Clients</span>
+            <span>Clientes</span>
         </a>
 
 

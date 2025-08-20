@@ -13,7 +13,7 @@ $services = IB_Services::get_all();
     <h1>Mon Dashboard Employé</h1>
     <h2>Mes rendez-vous</h2>
     <table class="wp-list-table widefat fixed striped">
-        <thead><tr><th>Date</th><th>Heure</th><th>Client</th><th>Service</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Date</th><th>Heure</th><th>Cliente</th><th>Service</th><th>Actions</th></tr></thead>
         <tbody>
         <?php foreach($bookings as $b): ?>
             <tr>

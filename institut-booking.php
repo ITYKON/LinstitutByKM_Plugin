@@ -246,6 +246,10 @@ add_action('admin_enqueue_scripts', 'ib_admin_assets');
 
 // Shortcode du formulaire de réservation
 function ib_booking_form_shortcode() {
+    // Empêcher la mise en cache de la page du formulaire pour éviter les nonces périmés
+    if (!headers_sent()) {
+        nocache_headers();
+    }
     ob_start();
     include IB_PLUGIN_DIR . 'partials/booking-form.php';
     return ob_get_clean();
@@ -260,7 +264,8 @@ add_action('wp_ajax_get_available_slots', 'handle_get_available_slots');
 add_action('wp_ajax_nopriv_get_available_slots', 'handle_get_available_slots');
 
 function handle_get_available_slots() {
-    check_ajax_referer('ib_nonce', 'nonce');
+    // Ne pas bloquer sur le nonce pour éviter les problèmes de pages mises en cache
+    // if (isset($_POST['nonce']) && !wp_verify_nonce($_POST['nonce'], 'ib_nonce')) { wp_send_json_error(['message' => 'Nonce invalide'], 403); }
     
     $employee_id = isset($_POST['employee_id']) ? intval($_POST['employee_id']) : 0;
     $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;

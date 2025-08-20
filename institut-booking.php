@@ -593,12 +593,12 @@ function handle_add_booking() {
         return;
     }
 
-    // Récupérer le prix du service
-    $service = $wpdb->get_row($wpdb->prepare("SELECT price, name FROM {$wpdb->prefix}ib_services WHERE id = %d", $service_id));
-    $service_price = $service ? $service->price : 0;
-    // Chercher ou créer le client
+    // Utiliser la méthode centrale pour garantir les validations et end_time
+    require_once plugin_dir_path(__FILE__) . '/includes/class-bookings.php';
+    // Créer ou récupérer le client d'abord
     $client = $wpdb->get_row($wpdb->prepare("SELECT id FROM {$wpdb->prefix}ib_clients WHERE email = %s", $email));
-    if (!$client) {
+    $client_id = $client ? $client->id : 0;
+    if (!$client_id) {
         $wpdb->insert("{$wpdb->prefix}ib_clients", [
             'name' => $firstname . ' ' . $lastname,
             'email' => $email,
@@ -607,23 +607,20 @@ function handle_add_booking() {
             'updated_at' => current_time('mysql')
         ]);
         $client_id = $wpdb->insert_id;
-    } else {
-        $client_id = $client->id;
     }
-    $wpdb->insert($table, [
+    $add_result = IB_Bookings::add([
         'service_id' => $service_id,
         'employee_id' => $employee_id,
         'client_id' => $client_id,
-        'date' => $date,
-        'start_time' => $start_time,
         'client_name' => $firstname . ' ' . $lastname,
         'client_email' => $email,
         'client_phone' => $phone,
-        'created_at' => current_time('mysql'),
-        'price' => $service_price,
+        'date' => $date,
+        'start_time' => $start_time,
+        'status' => 'en_attente'
     ]);
-    if ($wpdb->last_error) {
-        wp_send_json_error(['message' => 'Erreur lors de l\'enregistrement : ' . $wpdb->last_error]);
+    if (!$add_result) {
+        wp_send_json_error(['message' => "Impossible d'enregistrer la réservation (conflit ou données invalides)"]);
         return;
     }
     // Notification admin et envoi d'email

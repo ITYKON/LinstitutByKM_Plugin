@@ -1302,28 +1302,40 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       const container = document.getElementById("category-buttons");
       container.innerHTML = "";
 
-      // Utilise la bonne propriété pour les catégories
-      const cats = [
-        "ALL",
-        ...Array.from(
-          new Set(
-            bookingState.services.map((s) => s.category_name).filter(Boolean)
-          )
-        ),
-      ];
-      console.log("Catégories générées:", cats);
+      // Extraire les catégories uniques
+      const uniqueCategories = [];
+      const seen = new Set();
+      
+      bookingState.services.forEach(service => {
+        const category = service.category_name?.trim();
+        if (category && !seen.has(category)) {
+          seen.add(category);
+          uniqueCategories.push(category);
+        }
+      });
+      
+      // Trier par ordre alphabétique en ignorant la casse, les accents et la ponctuation
+      uniqueCategories.sort((a, b) => 
+        a.localeCompare(b, 'fr', {
+          sensitivity: 'base',
+          ignorePunctuation: true,
+          numeric: true
+        })
+      );
+      
+      // Ajouter 'ALL' au début et supprimer les doublons
+      const cats = ["ALL", ...uniqueCategories];
+      console.log("Catégories générées (avant affichage):", cats);
 
-      // Créer les boutons pour desktop
+      // Créer le conteneur des boutons de catégorie pour desktop
       const buttonsContainer = document.createElement("div");
-      buttonsContainer.className = "category-buttons-desktop";
+      buttonsContainer.className = "booking-categories";
 
       cats.forEach((cat) => {
         const btn = document.createElement("button");
         btn.textContent = cat;
         btn.title = cat;
-        btn.className =
-          "booking-category-btn" +
-          (cat === bookingState.selectedCategory ? " active" : "");
+        btn.className = "booking-category-btn" + (cat === bookingState.selectedCategory ? " active" : "");
         btn.onclick = () => {
           bookingState.selectedCategory = cat;
           renderServicesGrid();
@@ -1334,7 +1346,12 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           }
         };
         buttonsContainer.appendChild(btn);
+        console.log("Bouton ajouté:", cat);
       });
+      
+      // Vérifier l'ordre des boutons après leur création
+      const buttonTexts = Array.from(buttonsContainer.children).map(btn => btn.textContent);
+      console.log("Catégories triées pour l'affichage:", buttonTexts);
 
       // Créer l'accordéon pour mobile
       const accordionContainer = document.createElement("div");
@@ -1355,9 +1372,21 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         servicesByCategory[category].push(service);
       });
 
+      // Trier les noms de catégories par ordre alphabétique en ignorant la casse et les accents
+      const sortedCategories = Object.keys(servicesByCategory).sort((a, b) => 
+        a.localeCompare(b, 'fr', {sensitivity: 'base'})
+      );
+      
       // Créer un accordéon pour chaque catégorie
-      Object.keys(servicesByCategory).forEach((categoryName) => {
-        const categoryServices = servicesByCategory[categoryName];
+      sortedCategories.forEach((categoryName) => {
+        // Trier les services de cette catégorie par ordre alphabétique
+        const categoryServices = servicesByCategory[categoryName].sort((a, b) => 
+          a.name.localeCompare(b.name, 'fr', {
+            sensitivity: 'base',
+            ignorePunctuation: true,
+            numeric: true
+          })
+        );
 
         const accordionItem = document.createElement("div");
         accordionItem.className = "accordion-item";
@@ -1510,7 +1539,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         return;
       }
 
-      // Grouper les services par catégorie
+      // Grouper les services par catégorie et les trier par ordre alphabétique
       const servicesByCategory = {};
       filtered.forEach((service) => {
         const categoryName = service.category_name || "Sans catégorie";
@@ -1519,14 +1548,27 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         }
         servicesByCategory[categoryName].push(service);
       });
+      
+      // Trier les services dans chaque catégorie par nom
+      Object.keys(servicesByCategory).forEach(category => {
+        servicesByCategory[category].sort((a, b) => 
+          a.name.localeCompare(b.name, 'fr', {sensitivity: 'base'})
+        );
+      });
+
+      // Trier les noms de catégories par ordre alphabétique
+      const sortedCategories = Object.keys(servicesByCategory).sort((a, b) => 
+        a.localeCompare(b, 'fr', {sensitivity: 'base', ignorePunctuation: true})
+      );
 
       // Afficher chaque catégorie avec ses services
-      Object.keys(servicesByCategory).forEach((categoryName) => {
+      sortedCategories.forEach((categoryName) => {
         const services = servicesByCategory[categoryName];
         const maxServicesShown = 5; // Limite d'affichage par catégorie
         const servicesToShow = services.slice(0, maxServicesShown);
         const remainingServices = services.length - maxServicesShown;
 
+// ...
         // Créer l'en-tête de catégorie
         const categoryHeader = document.createElement("div");
         categoryHeader.className = "category-header-planity";
@@ -1602,12 +1644,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
 
     function createServiceItem(srv) {
       const serviceItem = document.createElement("div");
-      serviceItem.className =
-        "service-item-planity" +
-        (bookingState.selectedService &&
-        bookingState.selectedService.id === srv.id
-          ? " selected"
-          : "");
+      serviceItem.className = "service-item-planity";
 
       // Correction affichage prix
       let priceText = "";
@@ -1686,24 +1723,19 @@ window.scrollToProgressBar = function(callback, delay = 300) {
 
       // Ajouter la carte "Sans préférence"
       const noPreferenceCard = document.createElement("div");
-      noPreferenceCard.className = "employee-card-modern" +
-        (bookingState.selectedEmployee === null ? " selected" : "");
+      noPreferenceCard.className = "employee-card-modern";
       noPreferenceCard.onclick = () => {
         bookingState.selectedEmployee = null; // null indique qu'aucune préférence n'est choisie
         renderEmployeesGrid();
         goToStep(3);
       };
       noPreferenceCard.innerHTML = `
-        <div style="width:72px;height:72px;border-radius:50%;background:#f8f0f4;display:flex;align-items:center;justify-content:center;margin:0 auto;">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#7B6F5B" stroke-width="2">
-            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
-            <path d="M12 8v4"></path>
-            <path d="M12 16h.01"></path>
-          </svg>
-        </div>
+        <span><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-4 8-4 8-4s8 0 8 4"/>
+        </svg></span>
         <div class="mt-3 text-center">
-          <div class="font-bold text-brown-400 text-base mb-1">Sans préférence</div>
-          <div class="text-xs text-gray-500">Nous choisirons pour vous</div>
+          <div class="font-bold text-black-400 text-base mb-1">Sans préférence</div>
         </div>
       `;
       grid.appendChild(noPreferenceCard);
@@ -1729,7 +1761,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         card.innerHTML = `
           ${imgHtml}
           <div class="mt-3 text-center">
-            <div class="font-bold text-brown-400 text-base mb-1">${emp.name}</div>
+            <div class="font-bold text-black-400 text-base mb-1">${emp.name}</div>
           </div>
         `;
         grid.appendChild(card);
@@ -1745,11 +1777,29 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         selectedEmployee: bookingState.selectedEmployee,
       });
 
-      if (!bookingState.selectedService || !bookingState.selectedEmployee) {
-        console.log("❌ Préstation ou employé non sélectionné");
+      if (!bookingState.selectedService) {
+        console.log("❌ Aucune prestation sélectionnée");
         window.availableDays = {};
         if (cb) cb();
         return;
+      }
+      
+      // Si pas de préférence de praticienne, on en sélectionne une au hasard
+      let selectedEmployee = bookingState.selectedEmployee;
+      if (!selectedEmployee) {
+        const employeeIds = (bookingState.selectedService.employee_ids || []).map(Number);
+        const availableEmployees = bookingState.employees.filter(e => employeeIds.includes(Number(e.id)));
+        if (availableEmployees.length > 0) {
+          selectedEmployee = availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
+          console.log("🎲 Praticienne sélectionnée aléatoirement:", selectedEmployee);
+          // Mettre à jour le bookingState avec la praticienne sélectionnée
+          bookingState.selectedEmployee = selectedEmployee;
+        } else {
+          console.log("❌ Aucune praticienne disponible pour ce service");
+          window.availableDays = {};
+          if (cb) cb();
+          return;
+        }
       }
 
       // Check if jQuery is available
@@ -1816,18 +1866,18 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       const cal = document.getElementById("calendar-days");
       const header = document.getElementById("calendar-header");
       const monthNames = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
+        "Janvier",
+        "Février",
+        "Mars",
+        "Avril",
+        "Mai",
+        "Juin",
+        "Juillet",
+        "Août",
+        "Septembre",
+        "Octobre",
+        "Novembre",
+        "Décembre",
       ];
       const weekDays = ["L", "M", "M", "J", "V", "S", "D"];
       if (!window.calendarState)
@@ -1951,16 +2001,46 @@ window.scrollToProgressBar = function(callback, delay = 300) {
 
     function renderModernSlotsList() {
       const slotsList = document.getElementById("slots-list");
+      
+      // Ensure bookingState is properly initialized
+      if (!bookingState) {
+        console.error("bookingState is not defined");
+        return;
+      }
+      
+      // Initialize selectedEmployee if not exists
+      if (!bookingState.selectedEmployee) {
+        bookingState.selectedEmployee = null;
+      }
+      
       // Afficher un message si aucune date sélectionnée
       if (!bookingState.selectedDate) {
         slotsList.innerHTML =
           '<div class="no-slots">Sélectionnez une date</div>';
         return;
       }
-      if (!bookingState.selectedEmployee || !bookingState.selectedService) {
+      
+      // Vérifier si un service est sélectionné
+      if (!bookingState.selectedService) {
         slotsList.innerHTML =
-          '<div class="no-slots">Veuillez sélectionner un service et une praticienne</div>';
+          '<div class="no-slots">Veuillez sélectionner un service</div>';
         return;
+      }
+      
+      // Si pas de praticienne sélectionnée, en choisir une au hasard
+      if (!bookingState.selectedEmployee) {
+        const employeeIds = (bookingState.selectedService.employee_ids || []).map(Number);
+        const availableEmployees = bookingState.employees ? 
+          bookingState.employees.filter(e => employeeIds.includes(Number(e.id))) : [];
+          
+        if (availableEmployees.length > 0) {
+          bookingState.selectedEmployee = availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
+          console.log("🎲 Praticienne sélectionnée aléatoirement pour l'affichage des créneaux:", bookingState.selectedEmployee);
+        } else {
+          slotsList.innerHTML =
+            '<div class="no-slots">Aucune praticienne disponible pour ce service</div>';
+          return;
+        }
       }
       console.log("Déclenchement AJAX get_available_slots", bookingState); // DEBUG
       let html = "";

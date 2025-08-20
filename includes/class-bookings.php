@@ -132,9 +132,13 @@ class IB_Bookings {
             $link = admin_url('admin.php?page=institut-booking-bookings');
             // Utiliser 'reservation' comme type pour la compatibilité avec le système de notifications AJAX
             ib_add_notification('reservation', $msg, 'admin', $link, 'unread');
-            // Envoi de l'email de remerciement au client
+        }
+        // Envoi de l'email de remerciement au client
+        if ($result) {
+            require_once plugin_dir_path(__FILE__) . '/notifications.php';
             IB_Notifications::send_thank_you($result);
         }
+        
         // Gestion du client et du bookings_count
         require_once plugin_dir_path(__FILE__) . '/class-clients.php';
         $client = IB_Clients::get_by_email($data['client_email']);

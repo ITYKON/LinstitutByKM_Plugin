@@ -891,14 +891,9 @@ body {
 .booking-ticket-modern,
 #employees-grid {
   max-width: 900px;
-  min-width: 500px;
-  /* min-height: 420px; */
+  min-width: 0;
   margin: 0 auto;
   padding: 0 0.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
 }
 .categories h2,
 .services h2 {
@@ -953,11 +948,29 @@ body {
 }
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
   max-height: 450px;
   overflow-y: auto;
   padding-right: 8px;
+}
+
+@media (max-width: 900px) {
+  #employees-grid {
+    min-width: 0;
+    padding: 0 0.2rem;
+  }
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.7rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 0.7rem;
+  }
 }
 
 /* Grille compacte pour les services */
@@ -1065,16 +1078,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.2rem 1.5rem;
+  padding: 1rem 1.5rem;
   border-bottom: 1px solid #e5e7eb;
-  background: white;
-  transition: background-color 0.2s ease;
   cursor: pointer;
+  transition: all 0.2s ease;
   min-height: 80px;
+  background: #ffffff;
 }
 
 .service-item-planity:hover {
-  background: #f9fafb;
+  background: #ffffff;
 }
 
 .category-services-container .service-item-planity:last-child {
@@ -1082,9 +1095,9 @@ body {
 }
 
 .service-item-planity.selected {
-  background: #1f2937;
-  color: #ffffff;
-  border-left: 4px solid #1f2937;
+  background: #ffffff;
+  color: inherit;
+  border-left: 4px solid #e5e7eb;
 }
 
 .service-info-planity {
@@ -1340,8 +1353,8 @@ body {
 }
 
 .slot-btn:hover {
-  background: #f3f4f6;
-  transform: translateY(-1px);
+  background: none;
+  transform: none;
 }
 
 .slot-btn.booked {
@@ -1610,9 +1623,9 @@ body {
   justify-content: center;
 }
 .slot-btn:hover:not([disabled]) {
-  background: #374151;
-  color: #fff;
-  border: 1.5px solid #374151;
+  background: none;
+  color: inherit;
+  border: 1.5px solid #d1d5db;
   transform: scale(1.07);
 }
 .slot-btn[disabled] {
@@ -1649,8 +1662,6 @@ body {
     margin: 0 auto !important;
   }
   .employee-card-modern {
-    grid-column: 1 / -1 !important;
-    width: 100% !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
@@ -1663,6 +1674,21 @@ body {
     text-align: center !important;
     overflow-x: hidden !important;
     display: flex !important;
+  }
+  @media (max-width: 900px) {
+    #employees-grid {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 0.7em !important;
+      overflow-x: hidden !important;
+      justify-items: stretch !important;
+    }
+    .employee-card-modern {
+      width: 100% !important;
+      min-width: 0 !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+    }
   }
   .employee-card-modern img,
   .employee-card-modern .avatar-placeholder {
@@ -2038,6 +2064,27 @@ body {
   }
 }
 
+/* ===== BOUTONS DE CATÉGORIES ===== */
+.category-buttons-container {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.category-buttons-wrapper {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.category-buttons-wrapper::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
 /* ===== HARMONISATION GLOBALE PALETTE PLANITY ===== */
 /* Forcer la palette noir/gris/blanc sur tous les éléments */
 
@@ -2305,8 +2352,8 @@ body {
 
 .slot-btn:hover,
 .slot-btn:focus {
-  background: #f8fafc;
-  color: #1f2937;
+  background: none;
+  color: inherit;
   border-color: #e5e7eb;
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -2914,16 +2961,72 @@ button[data-action="back"]:hover,
 
 /* CARTES PRATICIENNE PLANITY MODERNE */
 .employee-card-modern {
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
-  padding: 2rem 1.5rem;
-  margin: 0.5rem;
+  padding: 1.5rem 0.75rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin: 0.25rem;
+  min-height: 180px;
+}
+
+.employee-avatar {
+  margin-bottom: 0.75rem;
+}
+
+.employee-avatar .avatar-placeholder {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f0f4;
+  color: #7B6F5B;
+  margin: 0 auto;
+}
+
+.employee-info {
+  width: 100%;
+}
+
+.employee-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.employee-card-modern.selected {
+  background: #111827;
+  color: #ffffff;
+  border-color: #111827;
+}
+
+.employee-card-modern.selected .employee-name {
+  color: #ffffff;
+}
+
+.employee-card-modern.selected .avatar-placeholder {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+
+.employee-card-modern.selected .avatar-placeholder svg {
+  color: #111827 !important;
+  stroke: #111827 !important;
+}
+
+.employee-card-modern {
   min-width: 200px;
   /* max-width: 240px; */
   min-height: 200px;
@@ -2936,18 +3039,16 @@ button[data-action="back"]:hover,
 /* ÉTATS HOVER ET SÉLECTION PLANITY */
 .employee-card-modern:hover,
 .employee-card-modern:focus {
-  background: #f9fafb;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-  border-color: #d1d5db;
+  background: #ffffff;
+  transform: none;
+  border-color: #e5e7eb;
 }
 
 .employee-card-modern.selected {
-  background: #111827;
-  color: #ffffff;
-  border-color: #111827;
-  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.2);
-  transform: translateY(-1px);
+  background: #ffffff;
+  color: inherit;
+  border-color: #e5e7eb;
+  transform: none;
 }
 /* AVATAR PRATICIENNE PLANITY */
 .employee-card-modern img,
@@ -3008,7 +3109,7 @@ button[data-action="back"]:hover,
     -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
     padding: 10px 15px 20px 15px !important;
-    margin: -30px auto 0 auto !important;
+    margin: 0px auto 0 auto !important;
     gap: 10px !important;
     align-items: center !important;
     justify-content: center !important;
@@ -3077,7 +3178,9 @@ button[data-action="back"]:hover,
 
 /* GRILLE PRATICIENNE PLANITY */
 #employees-grid {
-  display: flex !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, 0fr) !important;
+  justify-items: center !important;
   flex-wrap: wrap;
   gap: 1.5rem;
   justify-content: center;
@@ -3243,8 +3346,8 @@ body,
 }
 .slot-btn:hover,
 .slot-btn:focus {
-  background: #f3f4f6;
-  color: #374151;
+  background: none;
+  color: inherit;
   border: 1.5px solid #d1d5db;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   transform: scale(1.03);
@@ -3807,20 +3910,43 @@ body,
   }
 }
 
+
+
+
+
+
+@media (max-width: 768px) {
+  /* Hide only the buttons row, keep parent visible for the accordion */
+  .booking-categories,
+  .categories .booking-categories {
+    display: none !important;
+  }
+  /* Ensure the shared container remains visible so the accordion can render */
+  #category-buttons {
+    display: block !important;
+  }
+  .category-title-planity {
+    display: none !important;
+  }
+}
+
 .booking-category-btn {
   flex: 0 0 auto;
   min-width: 80px;
   padding: 0.75rem 1.5rem;
-  background: #f8f9fa;
+  margin: 0 0.5rem 0.5rem 0;
   border: 1px solid #e5e7eb;
-  color: #6b7280;
-  border-radius: 25px;
-  font-weight: 500;
+  border-radius: 2rem;
+  background: #f9fafb;
+  color: #4b5563;
   font-size: 0.9rem;
-  transition: all 0.2s ease;
-  cursor: pointer;
-  white-space: nowrap;
+  font-weight: 500;
   text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  height: auto;
+  line-height: 1.5;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -5601,10 +5727,10 @@ input[type="checkbox"] {
     opacity: 0.5 !important;
   }
 
-  .slot-btn:hover,
-  .slot-btn-planity:hover,
-  button[class*="slot"]:hover,
-  [class*="slot"] button:hover,
+  .slot-btn,
+  .slot-btn-planity,
+  button[class*="slot"],
+  [class*="slot"] button,
   #slots-list button:hover,
   .slots-grid-planity button:hover {
     background: #f3f4f6 !important;
@@ -5746,11 +5872,11 @@ input[type="checkbox"] {
       background: #ffffff !important;
     }
 
-    .slots-col .slot-btn:hover,
-    #slots-list .slot-btn:hover,
-    .slots-grid .slot-btn:hover,
-    .slots-container .slot-btn:hover,
-    .booking-step-date-modern .slot-btn:hover {
+    .slots-col .slot-btn,
+    #slots-list .slot-btn,
+    .slots-grid .slot-btn,
+    .slots-container .slot-btn,
+    .booking-step-date-modern .slot-btn {
       color: #374151 !important;
       background: #f3f4f6 !important;
       border-color: #d1d5db !important;
@@ -5772,14 +5898,14 @@ input[type="checkbox"] {
     font-weight: 500 !important;
   }
 
-  .slots-col .slot-btn:hover,
-  #slots-list .slot-btn:hover,
-  .slots-grid .slot-btn:hover,
-  .slots-container .slot-btn:hover,
-  .booking-step-date-modern .slot-btn:hover,
-  div[class*="slots"] .slot-btn:hover,
-  div[class*="slots"] button:hover,
-  .booking-main-content .slot-btn:hover {
+  .slots-col .slot-btn,
+  #slots-list .slot-btn,
+  .slots-grid .slot-btn,
+  .slots-container .slot-btn,
+  .booking-step-date-modern .slot-btn,
+  div[class*="slots"] .slot-btn,
+  div[class*="slots"] button,
+  .booking-main-content .slot-btn {
     color: #374151 !important;
     background: #f3f4f6 !important;
     border-color: #d1d5db !important;
@@ -5849,7 +5975,6 @@ input[type="checkbox"] {
 
   /* Animations et micro-interactions */
   .card:hover,
-  .slot-btn:hover,
   .calendly-day:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
@@ -5889,11 +6014,15 @@ input[type="checkbox"] {
   /* Conteneur du ticket de réservation */
   #booking-step-content {
     padding: 1rem !important;
-    margin: 0 auto !important;
+    margin: 20px auto !important;
     display: flex;
     justify-content: center;
     align-items: center;
+<<<<<<< HEAD
     min-height: 30vh;
+=======
+    min-height: 24vh;
+>>>>>>> Melissa
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -7712,3 +7841,72 @@ input[type="checkbox"] {
 }
 
 /* ===== FIN SÉLECTEUR TÉLÉPHONE PLANITY ===== */
+
+/* ===== SUPPRESSION EFFET BLEU CRÉNEAUX ===== */
+.slot-btn,
+.slot-btn-planity,
+#slots-list button,
+.slots-grid-planity button,
+.slots-grid button,
+.slots-container button,
+.booking-step-date-modern button,
+div[class*="slots"] button,
+button[class*="slot"] {
+  background: #f8f8f8 !important;
+  color: #606060 !important;
+  border: 1.5px solid #e5e5e5 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+}
+
+.slot-btn:hover,
+.slot-btn:focus,
+.slot-btn:active,
+.slot-btn-planity:hover,
+.slot-btn-planity:focus,
+.slot-btn-planity:active,
+#slots-list button:hover,
+#slots-list button:focus,
+#slots-list button:active,
+.slots-grid-planity button:hover,
+.slots-grid-planity button:focus,
+.slots-grid-planity button:active,
+.slots-grid button:hover,
+.slots-grid button:focus,
+.slots-grid button:active,
+.slots-container button:hover,
+.slots-container button:focus,
+.slots-container button:active,
+.booking-step-date-modern button:hover,
+.booking-step-date-modern button:focus,
+.booking-step-date-modern button:active,
+div[class*="slots"] button:hover,
+div[class*="slots"] button:focus,
+div[class*="slots"] button:active,
+button[class*="slot"]:hover,
+button[class*="slot"]:focus,
+button[class*="slot"]:active {
+  background: #f0f0f0 !important;
+  color: #404040 !important;
+  border-color: #d1d5db !important;
+  box-shadow: none !important;
+  transform: none !important;
+  outline: none !important;
+}
+
+/* Style pour les boutons sélectionnés */
+.slot-btn[disabled],
+.slot-btn-planity[disabled],
+#slots-list button[disabled],
+.slots-grid-planity button[disabled],
+.slots-grid button[disabled],
+.slots-container button[disabled],
+.booking-step-date-modern button[disabled],
+div[class*="slots"] button[disabled],
+button[class*="slot"][disabled] {
+  background: #1f2937 !important;
+  color: #ffffff !important;
+  border-color: #1f2937 !important;
+  cursor: not-allowed !important;
+}

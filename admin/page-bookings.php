@@ -211,7 +211,8 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
 
       <!-- MODAL AJOUT RESERVATION -->
       <div id="ib-add-booking-modal-bg" class="ib-modal-bg" style="display:none;"></div>
-      <div id="ib-add-booking-modal" class="ib-modal" style="display:none;max-width:600px;">
+      <div id="ib-add-booking-modal" class="ib-modal" style="display:none;max-width:600px;position:relative;">
+        <button type="button" id="ib-close-add-booking-modal-top" style="position:absolute;top:18px;right:18px;background:none;border:none;font-size:2em;color:#e9aebc;cursor:pointer;z-index:10;" title="Fermer">&times;</button>
         <div class="ib-form-title" style="color:#e9aebc;"><i class="dashicons dashicons-calendar-alt"></i> <span>Ajouter une réservation</span></div>
         <form method="post" class="ib-booking-form-admin">
           <label for="add-booking-client-name">Client</label>
@@ -270,8 +271,9 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
       <?php if ($edit_booking): ?>
         <!-- Modal édition réservation modernisée -->
         <div id="ib-modal-bg-booking" class="ib-modal-bg ib-invisible" style="display:block;"></div>
-        <div id="ib-modal-edit-booking" class="ib-modal ib-invisible" style="display:block;">
-          <div class="ib-form-title" style="color:#e9aebc;"><i class="dashicons dashicons-calendar-alt"></i> <span>Modifier la réservation</span></div>
+        <div id="ib-modal-edit-booking" class="ib-modal ib-invisible" style="display:block;position:relative;">
+          <button type="button" id="ib-close-edit-booking-modal-top" style="position:absolute;top:18px;right:18px;background:none;border:none;font-size:2em;color:#e9aebc;cursor:pointer;z-index:10;" title="Fermer">&times;</button>
+          <div class="ib-form-title" style="color:#e9aebc; margin: 10px;"><i class="dashicons dashicons-calendar-alt"></i> <span>Modifier la réservation</span></div>
           <form method="post" autocomplete="off">
             <input type="hidden" name="booking_id" value="<?php echo $edit_booking->id; ?>">
             <div class="ib-form-grid">
@@ -1390,13 +1392,21 @@ jQuery(function($){
   });
 
   // Ferme la modal d'ajout
-  $('#ib-close-add-booking-modal, #ib-add-booking-modal-bg').on('click', function(){
+  $('#ib-close-add-booking-modal, #ib-add-booking-modal-bg, #ib-close-add-booking-modal-top').on('click', function(){
     $('#ib-add-booking-modal-bg, #ib-add-booking-modal').fadeOut(120);
     // Réinitialiser le formulaire et nettoyer les dropdowns
     setTimeout(function() {
       $('.ib-booking-form-admin')[0].reset();
       $('.custom-country-dropdown').remove();
       $('#add-booking-client-phone').css('width', '100%');
+    }, 150);
+  });
+
+  // Bouton fermer pour la modal d'édition
+  $('#ib-close-edit-booking-modal-top, #ib-modal-bg-booking').on('click', function(){
+    $('#ib-modal-bg-booking, #ib-modal-edit-booking').fadeOut(120);
+    setTimeout(function() {
+      $('#ib-modal-edit-booking form')[0].reset();
     }, 150);
   });
   // Masquer la modal après ajout réussi

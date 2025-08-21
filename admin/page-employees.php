@@ -10,10 +10,12 @@ if (isset($_POST['add_employee'])) {
     $specialty = isset($_POST['specialty']) ? sanitize_text_field($_POST['specialty']) : '';
     $role = isset($_POST['role']) ? sanitize_text_field($_POST['role']) : '';
     $created_at = isset($_POST['created_at']) ? sanitize_text_field($_POST['created_at']) : date('Y-m-d');
+    $working_days = isset($_POST['working_days']) && is_array($_POST['working_days']) ? $_POST['working_days'] : [];
+    
     if (!$name || !$email) {
         echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Veuillez remplir tous les champs obligatoires.</p></div>';
     } else {
-        $result = IB_Employees::add($name, $email, $phone, $specialty, $role, $created_at);
+        $result = IB_Employees::add($name, $email, $phone, $specialty, $role, $working_days, $created_at);
         if ($result === false) {
             echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Erreur : cet employé existe déjà ou problème d\'insertion.</p></div>';
         } else {
@@ -31,7 +33,20 @@ if (isset($_POST['update_employee'])) {
     $specialty = sanitize_text_field($_POST['specialty']);
     $role = sanitize_text_field($_POST['role']);
     $created_at = sanitize_text_field($_POST['created_at']);
-    IB_Employees::update($id, $name, $email, $phone, $specialty, $role, $created_at);
+    $working_days = isset($_POST['working_days']) && is_array($_POST['working_days']) ? $_POST['working_days'] : [];
+    
+    // Log pour débogage
+    error_log('Jours de travail reçus dans le formulaire: ' . print_r($working_days, true));
+    
+    $result = IB_Employees::update($id, $name, $email, $phone, $specialty, $role, $working_days, $created_at);
+    
+    // Vérifier le résultat de la mise à jour
+    if ($result === false) {
+        error_log('Erreur lors de la mise à jour de l\'employé ID: ' . $id);
+    } else {
+        $updated_employee = IB_Employees::get_by_id($id);
+        error_log('Jours de travail après mise à jour: ' . print_r($updated_employee->working_days, true));
+    }
     IB_Logs::add(get_current_user_id(), 'modif_employe', json_encode(['employee_id' => $id, 'name' => $name]));
     echo '<div class="notice notice-success" style="margin-bottom:1.5em;"><p>Employé modifié avec succès.</p></div>';
 }
@@ -138,6 +153,29 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
                     <input class="ib-input" name="created_at" id="add_employee_created_at" type="date" placeholder=" " value="<?php echo date('Y-m-d'); ?>" required>
                     <label for="add_employee_created_at">Date d'ajout</label>
                 </div>
+                <div class="working-days-section">
+                    <h4>Jours de travail</h4>
+                    <div class="working-days-grid">
+                        <?php 
+                        $days = [
+                            'monday' => 'Lundi',
+                            'tuesday' => 'Mardi',
+                            'wednesday' => 'Mercredi',
+                            'thursday' => 'Jeudi',
+                            'friday' => 'Vendredi',
+                            'saturday' => 'Samedi',
+                            'sunday' => 'Dimanche'
+                        ];
+                        foreach ($days as $key => $label): 
+                            $is_checked = in_array($key, ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']) ? 'checked' : '';
+                        ?>
+                        <label class="working-day-checkbox">
+                            <input type="checkbox" name="working_days[]" value="<?php echo $key; ?>" <?php echo $is_checked; ?>>
+                            <span><?php echo $label; ?></span>
+                        </label>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
                 <div class="ib-form-group" style="margin-top:1.2em;display:flex;gap:1em;">
                     <button class="ib-btn accent" type="submit" name="add_employee">Ajouter</button>
                     <button type="button" class="ib-btn cancel" onclick="closeAddEmployeeModal()">Annuler</button>
@@ -179,6 +217,64 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
                 <div class="ib-form-group">
                     <input class="ib-input" name="created_at" id="edit_employee_created_at" type="date" placeholder=" " value="<?php echo isset($edit_employee->created_at) ? date('Y-m-d', strtotime($edit_employee->created_at)) : date('Y-m-d'); ?>" required>
                     <label for="edit_employee_created_at">Date d'ajout</label>
+                </div>
+                <div class="working-days-section">
+                    <h4>Jours de travail</h4>
+                    <div class="working-days-grid">
+                        <?php 
+                        // Log les données brutes de l'employé
+                        error_log('Données brutes de l\'employé: ' . print_r($edit_employee, true));
+                        
+                        // Récupérer les jours de travail depuis la base de données
+                        $working_days = [];
+                        if (!empty($edit_employee->working_days)) {
+                            error_log('Données brutes des jours de travail: ' . $edit_employee->working_days);
+                            $working_days = json_decode($edit_employee->working_days, true);
+                            if (json_last_error() !== JSON_ERROR_NONE) {
+                                error_log('Erreur de décodage des jours de travail: ' . json_last_error_msg());
+                                $working_days = [];
+                            }
+                        } else {
+                            error_log('Aucun jour de travail défini pour cet employé');
+                        }
+                        
+                        // Si aucun jour n'est défini, définir tous les jours par défaut
+                        if (empty($working_days)) {
+                            $working_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+                            error_log('Utilisation des jours par défaut: ' . print_r($working_days, true));
+                        }
+                        
+                        $days = [
+                            'monday' => 'Lundi',
+                            'tuesday' => 'Mardi',
+                            'wednesday' => 'Mercredi',
+                            'thursday' => 'Jeudi',
+                            'friday' => 'Vendredi',
+                            'saturday' => 'Samedi',
+                            'sunday' => 'Dimanche'
+                        ];
+                        
+                        // Log pour débogage
+                        error_log('Jours de travail pour l\'affichage: ' . print_r($working_days, true));
+                        
+                        foreach ($days as $key => $label): 
+                            $is_checked = in_array($key, (array)$working_days);
+                            error_log(sprintf(
+                                'Jour: %s, Clé: %s, Est coché: %s', 
+                                $label, 
+                                $key, 
+                                $is_checked ? 'Oui' : 'Non'
+                            ));
+                        ?>
+                        <label class="working-day-checkbox">
+                            <input type="checkbox" 
+                                   name="working_days[]" 
+                                   value="<?php echo esc_attr($key); ?>" 
+                                   <?php echo $is_checked ? 'checked="checked"' : ''; ?>>
+                            <span><?php echo esc_html($label); ?></span>
+                        </label>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
                 <div class="ib-form-group" style="margin-top:1.2em;display:flex;gap:1em;">
                     <button class="ib-btn accent" type="submit" name="update_employee">Enregistrer</button>

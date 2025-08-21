@@ -17,6 +17,7 @@ define('IB_PLUGIN_URL', plugin_dir_url(__FILE__));
 require_once IB_PLUGIN_DIR . 'includes/helpers.php';
 
 // Chargement des classes principales
+require_once IB_PLUGIN_DIR . 'includes/class-migrations.php';
 require_once IB_PLUGIN_DIR . 'includes/class-services.php';
 require_once IB_PLUGIN_DIR . 'includes/class-employees.php';
 require_once IB_PLUGIN_DIR . 'includes/class-bookings.php';
@@ -254,6 +255,19 @@ add_shortcode('institut_booking_form', 'ib_booking_form_shortcode');
 
 // Activation du plugin
 register_activation_hook(__FILE__, 'ib_install_plugin');
+
+// Run migrations on plugin activation
+register_activation_hook(__FILE__, function() {
+    require_once IB_PLUGIN_DIR . 'includes/class-migrations.php';
+    IB_Migrations::run();
+});
+
+// Run migrations on admin init to catch updates
+add_action('admin_init', function() {
+    if (!is_admin()) return;
+    require_once IB_PLUGIN_DIR . 'includes/class-migrations.php';
+    IB_Migrations::run();
+});
 
 // Action AJAX pour les créneaux disponibles
 add_action('wp_ajax_get_available_slots', 'handle_get_available_slots');

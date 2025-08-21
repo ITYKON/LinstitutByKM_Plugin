@@ -20,6 +20,15 @@ class IB_Availability {
         $day = strtolower(date('l', strtotime($date)));
         error_log("🔍 Jour de la semaine: $day");
 
+        // Vérifier si l'employé travaille ce jour-là
+        require_once plugin_dir_path(__FILE__) . '/class-employees.php';
+        
+        if (!IB_Employees::works_on_day($employee_id, $day)) {
+            error_log("❌ L'employé $employee_id ne travaille pas le $day");
+            return [];
+        }
+        error_log("✅ L'employé $employee_id travaille le $day");
+
         // Récupérer les horaires d'ouverture dynamiques
         $opening = get_option('ib_opening_time', '09:00');
         $closing = get_option('ib_closing_time', '17:00');
@@ -30,7 +39,6 @@ class IB_Availability {
         error_log("🔍 Horaires d'ouverture: " . print_r($opening_hours, true));
 
         // Vérifier si le jour est ouvert (optionnel : ajouter gestion jours off/specials ici)
-        // Si tu as une logique de jours off, ajoute-la ici !
         if (!$opening_hours['start'] || !$opening_hours['end']) {
             error_log("❌ Horaires d'ouverture manquants");
             return [];

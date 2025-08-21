@@ -482,6 +482,70 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
+/* Styles pour la section des jours de travail */
+.working-days-section {
+  background: #f9f9fb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.working-days-section h4 {
+  color: #4b5563;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 0.95em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.working-days-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.working-day-checkbox {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.working-day-checkbox:hover {
+  border-color: #e9aebc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.working-day-checkbox input[type="checkbox"] {
+  margin-right: 0.75rem;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.working-day-checkbox input[type="checkbox"]:checked {
+  background-color: #e9aebc;
+  border-color: #e9aebc;
+}
+
+.working-day-checkbox label {
+  cursor: pointer;
+  color: #4b5563;
+  font-weight: 500;
+  margin: 0;
+  font-size: 0.95em;
+}
+
 .ib-service-card-compact {
   background: #ffffff;
   border: none;

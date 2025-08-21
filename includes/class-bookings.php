@@ -96,8 +96,8 @@ class IB_Bookings {
         ]);
         $employee = IB_Employees::get_by_id($data['employee_id']);
         $admin_id = 1;
-        $result = $wpdb->insert_id; // Récupérer l'ID de la réservation insérée
-        $message = 'Nouvelle réservation #' . $result . ' : ' . esc_html($service ? $service->name : 'Service') . ' pour ' . esc_html($data['client_name']) . ' le ' . esc_html($data['date']) . ' (' . esc_html($employee ? $employee->name : 'Employé') . ')';
+        $booking_id = $wpdb->insert_id; // Récupérer et conserver l'ID de la réservation insérée
+        $message = 'Nouvelle réservation #' . $booking_id . ' : ' . esc_html($service ? $service->name : 'Service') . ' pour ' . esc_html($data['client_name']) . ' le ' . esc_html($data['date']) . ' (' . esc_html($employee ? $employee->name : 'Employé') . ')';
         $link = admin_url('admin.php?page=institut-booking-bookings');
         ib_add_notification('reservation', $message, 'admin', $link, 'unread');
         // Envoi uniquement du mail de remerciement à la création
@@ -114,9 +114,8 @@ class IB_Bookings {
         // Synchronisation calendrier
         require_once plugin_dir_path(__FILE__) . '/calendar-sync.php';
         IB_CalendarSync::add_event($data);
-        $result = $wpdb->insert_id;
         // Générer une notification interne si succès
-        if ($result) {
+        if ($booking_id) {
             require_once __DIR__ . '/notifications.php';
             $client = isset($data['client_name']) ? $data['client_name'] : 'Client';
             $service = isset($data['service_id']) ? $data['service_id'] : '';
@@ -134,9 +133,9 @@ class IB_Bookings {
             ib_add_notification('reservation', $msg, 'admin', $link, 'unread');
         }
         // Envoi de l'email de remerciement au client
-        if ($result) {
+        if ($booking_id) {
             require_once plugin_dir_path(__FILE__) . '/notifications.php';
-            IB_Notifications::send_thank_you($result);
+            IB_Notifications::send_thank_you($booking_id);
         }
         
         // Gestion du client et du bookings_count
@@ -167,7 +166,7 @@ class IB_Bookings {
                 'bookings_count' => $count
             ]);
         }
-        return $result;
+        return $booking_id;
     }
 
     public static function update($id, $data) {

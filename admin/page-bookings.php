@@ -46,10 +46,7 @@ if (isset($_POST['add_booking'])) {
         if ($result) {
             IB_Logs::add(get_current_user_id(), 'ajout_reservation', json_encode(['booking_id' => $result, 'client_name' => $client_name]));
 
-            // Envoyer l'email de remerciement au client
-            require_once plugin_dir_path(__FILE__) . '../includes/notifications.php';
-            IB_Notifications::send_thank_you($result);
-
+            // L'email de remerciement est envoyé dans IB_Bookings::add()
             echo '<div class="notice notice-success" style="margin-bottom:1.5em;"><p>Réservation ajoutée avec succès.</p></div>';
         } else {
             echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Erreur lors de l\'ajout de la réservation.</p></div>';

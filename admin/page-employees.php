@@ -43,12 +43,14 @@ if (isset($_POST['update_employee'])) {
     // Vérifier le résultat de la mise à jour
     if ($result === false) {
         error_log('Erreur lors de la mise à jour de l\'employé ID: ' . $id);
+        echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Erreur lors de la mise à jour de l\'employé.</p></div>';
     } else {
         $updated_employee = IB_Employees::get_by_id($id);
         error_log('Jours de travail après mise à jour: ' . print_r($updated_employee->working_days, true));
+        IB_Logs::add(get_current_user_id(), 'modif_employe', json_encode(['employee_id' => $id, 'name' => $name]));
+        echo '<script>window.location.href = "admin.php?page=institut-booking-employees&updated=1";</script>';
+        exit;
     }
-    IB_Logs::add(get_current_user_id(), 'modif_employe', json_encode(['employee_id' => $id, 'name' => $name]));
-    echo '<div class="notice notice-success" style="margin-bottom:1.5em;"><p>Employé modifié avec succès.</p></div>';
 }
 // Traitement suppression employé
 if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {

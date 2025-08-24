@@ -88,6 +88,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
                     <th>Téléphone</th>
                     <th>Spécialité</th>
                     <th>Rôle</th>
+                    <th>Jours de repos</th>
                     <th>Date d'ajout</th>
                     <th>Actions</th>
                 </tr>
@@ -103,6 +104,41 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
                     <td><?php echo esc_html($employee->phone); ?></td>
                     <td><?php echo isset($employee->specialty) ? esc_html($employee->specialty) : '-'; ?></td>
                     <td><?php echo isset($employee->role) ? esc_html($employee->role) : '-'; ?></td>
+                    <td>
+                        <?php 
+                        if (!empty($employee->working_days)) {
+                            $days_map = [
+                                'monday' => 'Lun',
+                                'tuesday' => 'Mar',
+                                'wednesday' => 'Mer',
+                                'thursday' => 'Jeu',
+                                'friday' => 'Ven',
+                                'saturday' => 'Sam',
+                                'sunday' => 'Dim'
+                            ];
+                            
+                            $working_days = json_decode($employee->working_days, true);
+                            $all_days = array_keys($days_map);
+                            $off_days = array_diff($all_days, (array)$working_days);
+                            
+                            if (!empty($off_days)) {
+                                $off_days_labels = array_map(function($day) use ($days_map) {
+                                    return $days_map[$day] ?? $day;
+                                }, $off_days);
+                                
+                                echo '<div style="display: flex; flex-wrap: wrap; gap: 4px;">';
+                                foreach ($off_days as $day) {
+                                    echo '<span style="background: #f8d7da; color: #721c24; font-size: 0.8em; padding: 2px 6px; border-radius: 3px; white-space: nowrap;">' . ($days_map[$day] ?? $day) . '</span>';
+                                }
+                                echo '</div>';
+                            } else {
+                                echo '<span style="color:#888;">Aucun</span>';
+                            }
+                        } else {
+                            echo '<span style="color:#888;">Non défini</span>';
+                        }
+                        ?>
+                    </td>
                     <td><?php echo isset($employee->created_at) ? date('d/m/Y', strtotime($employee->created_at)) : '-'; ?></td>
                     <td>
                         <div class="ib-action-btns" style="display:flex;gap:0.7em;align-items:center;">

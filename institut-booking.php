@@ -109,8 +109,8 @@ function ib_admin_menu() {
 
     add_submenu_page(
         'institut-booking',
-        __('Clients', 'institut-booking'),
-        __('Clients', 'institut-booking'),
+    __('Clientes', 'institut-booking'),
+    __('Clientes', 'institut-booking'),
         'read',
         'institut-booking-clients',
         'institut_booking_fullpage'
@@ -246,6 +246,10 @@ add_action('admin_enqueue_scripts', 'ib_admin_assets');
 
 // Shortcode du formulaire de réservation
 function ib_booking_form_shortcode() {
+    // Empêcher la mise en cache de la page du formulaire pour éviter les nonces périmés
+    if (!headers_sent()) {
+        nocache_headers();
+    }
     ob_start();
     include IB_PLUGIN_DIR . 'partials/booking-form.php';
     return ob_get_clean();
@@ -260,7 +264,8 @@ add_action('wp_ajax_get_available_slots', 'handle_get_available_slots');
 add_action('wp_ajax_nopriv_get_available_slots', 'handle_get_available_slots');
 
 function handle_get_available_slots() {
-    check_ajax_referer('ib_nonce', 'nonce');
+    // Ne pas bloquer sur le nonce pour éviter les problèmes de pages mises en cache
+    // if (isset($_POST['nonce']) && !wp_verify_nonce($_POST['nonce'], 'ib_nonce')) { wp_send_json_error(['message' => 'Nonce invalide'], 403); }
     
     $employee_id = isset($_POST['employee_id']) ? intval($_POST['employee_id']) : 0;
     $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
@@ -593,12 +598,12 @@ function handle_add_booking() {
         return;
     }
 
-    // Récupérer le prix du service
-    $service = $wpdb->get_row($wpdb->prepare("SELECT price, name FROM {$wpdb->prefix}ib_services WHERE id = %d", $service_id));
-    $service_price = $service ? $service->price : 0;
-    // Chercher ou créer le client
+    // Utiliser la méthode centrale pour garantir les validations et end_time
+    require_once plugin_dir_path(__FILE__) . '/includes/class-bookings.php';
+    // Créer ou récupérer le client d'abord
     $client = $wpdb->get_row($wpdb->prepare("SELECT id FROM {$wpdb->prefix}ib_clients WHERE email = %s", $email));
-    if (!$client) {
+    $client_id = $client ? $client->id : 0;
+    if (!$client_id) {
         $wpdb->insert("{$wpdb->prefix}ib_clients", [
             'name' => $firstname . ' ' . $lastname,
             'email' => $email,
@@ -607,23 +612,20 @@ function handle_add_booking() {
             'updated_at' => current_time('mysql')
         ]);
         $client_id = $wpdb->insert_id;
-    } else {
-        $client_id = $client->id;
     }
-    $wpdb->insert($table, [
+    $add_result = IB_Bookings::add([
         'service_id' => $service_id,
         'employee_id' => $employee_id,
         'client_id' => $client_id,
-        'date' => $date,
-        'start_time' => $start_time,
         'client_name' => $firstname . ' ' . $lastname,
         'client_email' => $email,
         'client_phone' => $phone,
-        'created_at' => current_time('mysql'),
-        'price' => $service_price,
+        'date' => $date,
+        'start_time' => $start_time,
+        'status' => 'en_attente'
     ]);
-    if ($wpdb->last_error) {
-        wp_send_json_error(['message' => 'Erreur lors de l\'enregistrement : ' . $wpdb->last_error]);
+    if (!$add_result) {
+        wp_send_json_error(['message' => "Impossible d'enregistrer la réservation (conflit ou données invalides)"]);
         return;
     }
     // Notification admin et envoi d'email

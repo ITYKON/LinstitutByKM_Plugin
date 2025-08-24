@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) exit;
 class IB_Employees {
     public static function get_all() {
         global $wpdb;
-        return $wpdb->get_results("SELECT * FROM {$wpdb->prefix}ib_employees");
+        return $wpdb->get_results("SELECT * FROM {$wpdb->prefix}ib_employees ORDER BY name ASC");
     }
 
     public static function get_by_id($id) {

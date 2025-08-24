@@ -46,12 +46,12 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
 <div class="ib-clients-page" style="background:#f6f7fa;min-height:100vh;padding:0;margin:0;">
   <div class="ib-clients-content">
     <div class="ib-admin-header" style="display:flex;align-items:center;justify-content:space-between;">
-      <h1 style="color:#e9aebc;font-size:2.2rem;font-weight:800;letter-spacing:-1px;">Clients</h1>
-      <button class="ib-btn accent" onclick="document.getElementById('ib-add-client-form').style.display='block';">+ Ajouter un client</button>
+      <h1 style="color:#e9aebc;font-size:2.2rem;font-weight:800;letter-spacing:-1px;">Clientes</h1>
+      <button class="ib-btn accent" onclick="document.getElementById('ib-add-client-form').style.display='block';">+ Ajouter une cliente</button>
     </div>
     <div class="ib-admin-content">
       <div id="ib-add-client-form" style="display:none;max-width:540px;margin-bottom:2em;background:#fff;padding:2em 2em 1em 2em;border-radius:14px;box-shadow:0 2px 16px #e9aebc22;">
-        <h2 style="font-size:1.1rem;color:#e9aebc;font-weight:700;margin-bottom:0.7em;">Ajouter un client</h2>
+        <h2 style="font-size:1.1rem;color:#e9aebc;font-weight:700;margin-bottom:0.7em;">Ajouter une cliente</h2>
         <form method="post" style="display:flex;gap:1.2em;flex-wrap:wrap;align-items:end;">
           <div class="ib-form-group">
             <input class="ib-input" id="add-client-name" name="name" placeholder=" " required>

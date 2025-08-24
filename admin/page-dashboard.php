@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) exit;
     </div>
     <div class="ib-stat-card premium">
       <div class="ib-stat-icon"><span class="dashicons dashicons-admin-users"></span></div>
-      <div class="ib-stat-label">Clients actifs</div>
+      <div class="ib-stat-label">Clientes actives</div>
       <div class="ib-stat-value"><?php global $wpdb; echo (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}ib_clients"); ?></div>
     </div>
     <div class="ib-stat-card premium">
@@ -85,7 +85,7 @@ if (!defined('ABSPATH')) exit;
       <table class="ib-table-modern">
         <thead>
           <tr>
-            <th>Client</th>
+            <th>Cliente</th>
             <th>Service</th>
             <th>Date</th>
             <th>Statut</th>

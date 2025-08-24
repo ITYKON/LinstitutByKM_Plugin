@@ -508,11 +508,12 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           renderCategoryButtons();
           renderServicesGrid();
           break;
-        case 2:
-          inner = `<div class='booking-main-content'><h2 class='text-center mb-6'>Choisissez votre praticienne</h2><div class="grid" id="employees-grid"></div></div>`;
-          content.innerHTML = inner;
-          renderEmployeesGrid();
-          break;
+case 2:
+
+  inner = `<div class='booking-main-content'><h2 class='text-center mb-6'>Choisissez votre praticienne</h2><div class="grid" id="employees-grid"></div></div>`;
+  content.innerHTML = inner;
+  renderEmployeesGrid();
+  break;
         case 3:
           inner = `<div class='booking-main-content'>
         <div class="booking-step-date-modern">
@@ -562,9 +563,9 @@ window.scrollToProgressBar = function(callback, delay = 300) {
               <label for="client-email" class="booking-label-modern" style="display:flex;align-items:center;gap:0.5em;margin-bottom:0.3em;font-size:1em;">
                 <span style="display:inline-block;width:1.2em;height:1.2em;vertical-align:middle;">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#7B6F5B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="10" rx="2"/><path d="M3 5l7 6l7-6"/></svg>
-                </span> Email (optionnel)
+                </span> Email <span style="color:#dc2626">*</span>
               </label>
-              <input id="client-email" class="booking-input-modern" type="email" placeholder="Votre email (optionnel)" value="${
+              <input id="client-email" class="booking-input-modern" type="email" placeholder="Votre email" required value="${
                 bookingState.client.email || ""
               }" />
             </div>
@@ -1166,7 +1167,6 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         back.textContent = "← Précédent";
         back.setAttribute("data-action", "back");
         back.onclick = () => {
-          // Utiliser la fonction utilitaire pour le scroll automatique
           window.scrollToProgressBar(() => {
             goToStep(bookingState.step - 1);
           }, 200);
@@ -1174,63 +1174,17 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         actions.appendChild(back);
       }
 
-      if (bookingState.step < 5) {
-        const next = document.createElement("button");
-        next.className = "next btn-next";
-        next.setAttribute("data-action", "next");
+      // SUPPRESSION DES BOUTONS NEXT : on ne crée plus de bouton "next" pour passer à l'étape suivante
+      // L'utilisateur passe à l'étape suivante uniquement en cliquant sur une prestation, praticienne, créneau, etc.
 
-        // Texte du bouton selon l'étape
-        const buttonTexts = {
-          1: "Choisir la praticienne →",
-          2: "Choisir la date →",
-          3: "Mes informations →",
-          4: "Confirmer la réservation",
-        };
-
-        next.innerHTML = buttonTexts[bookingState.step] || "Suivant →";
-        actions.appendChild(next);
-        next.onclick = () => {
-          if (bookingState.step === 1 && !bookingState.selectedService) {
-            showBookingNotification("Sélectionnez un service.");
-            return;
-          }
-          if (bookingState.step === 2 && !bookingState.selectedEmployee) {
-            showBookingNotification("Sélectionnez une praticienne.");
-            return;
-          }
-          if (
-            bookingState.step === 3 &&
-            (!bookingState.selectedDate || !bookingState.selectedSlot)
-          ) {
-            showBookingNotification("Sélectionnez une date et un créneau.");
-            return;
-          }
-          if (
-            bookingState.step === 4 &&
-            (!bookingState.client.firstname ||
-              !bookingState.client.lastname ||
-              !bookingState.client.phone)
-          ) {
-            showBookingNotification("Merci de remplir tous les champs.");
-            return;
-          }
-
-          // Utiliser la fonction utilitaire pour le scroll automatique
-          window.scrollToProgressBar(() => {
-            goToStep(bookingState.step + 1);
-          }, 200);
-        };
-        actions.appendChild(next);
-      } else if (bookingState.step === 5) {
+      // On garde le bouton "Nouvelle réservation" à la fin (étape 5)
+      if (bookingState.step === 5) {
         const restart = document.createElement("button");
         restart.className = "next btn-next";
         restart.textContent = "Nouvelle réservation";
         restart.setAttribute("data-action", "restart");
         restart.onclick = () => {
-          // Réinitialiser l'état de réservation dans le localStorage
           localStorage.removeItem("bookingState");
-          
-          // Rafraîchir la page pour réinitialiser complètement le formulaire
           window.location.reload();
         };
         actions.appendChild(restart);
@@ -1345,28 +1299,40 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       const container = document.getElementById("category-buttons");
       container.innerHTML = "";
 
-      // Utilise la bonne propriété pour les catégories
-      const cats = [
-        "ALL",
-        ...Array.from(
-          new Set(
-            bookingState.services.map((s) => s.category_name).filter(Boolean)
-          )
-        ),
-      ];
-      console.log("Catégories générées:", cats);
+      // Extraire les catégories uniques
+      const uniqueCategories = [];
+      const seen = new Set();
+      
+      bookingState.services.forEach(service => {
+        const category = service.category_name?.trim();
+        if (category && !seen.has(category)) {
+          seen.add(category);
+          uniqueCategories.push(category);
+        }
+      });
+      
+      // Trier par ordre alphabétique en ignorant la casse, les accents et la ponctuation
+      uniqueCategories.sort((a, b) => 
+        a.localeCompare(b, 'fr', {
+          sensitivity: 'base',
+          ignorePunctuation: true,
+          numeric: true
+        })
+      );
+      
+      // Ajouter 'ALL' au début et supprimer les doublons
+      const cats = ["ALL", ...uniqueCategories];
+      console.log("Catégories générées (avant affichage):", cats);
 
-      // Créer les boutons pour desktop
+      // Créer le conteneur des boutons de catégorie pour desktop
       const buttonsContainer = document.createElement("div");
-      buttonsContainer.className = "category-buttons-desktop";
+      buttonsContainer.className = "booking-categories";
 
       cats.forEach((cat) => {
         const btn = document.createElement("button");
         btn.textContent = cat;
         btn.title = cat;
-        btn.className =
-          "booking-category-btn" +
-          (cat === bookingState.selectedCategory ? " active" : "");
+        btn.className = "booking-category-btn" + (cat === bookingState.selectedCategory ? " active" : "");
         btn.onclick = () => {
           bookingState.selectedCategory = cat;
           renderServicesGrid();
@@ -1377,7 +1343,12 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           }
         };
         buttonsContainer.appendChild(btn);
+        console.log("Bouton ajouté:", cat);
       });
+      
+      // Vérifier l'ordre des boutons après leur création
+      const buttonTexts = Array.from(buttonsContainer.children).map(btn => btn.textContent);
+      console.log("Catégories triées pour l'affichage:", buttonTexts);
 
       // Créer l'accordéon pour mobile
       const accordionContainer = document.createElement("div");
@@ -1398,9 +1369,21 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         servicesByCategory[category].push(service);
       });
 
+      // Trier les noms de catégories par ordre alphabétique en ignorant la casse et les accents
+      const sortedCategories = Object.keys(servicesByCategory).sort((a, b) => 
+        a.localeCompare(b, 'fr', {sensitivity: 'base'})
+      );
+      
       // Créer un accordéon pour chaque catégorie
-      Object.keys(servicesByCategory).forEach((categoryName) => {
-        const categoryServices = servicesByCategory[categoryName];
+      sortedCategories.forEach((categoryName) => {
+        // Trier les services de cette catégorie par ordre alphabétique
+        const categoryServices = servicesByCategory[categoryName].sort((a, b) => 
+          a.name.localeCompare(b.name, 'fr', {
+            sensitivity: 'base',
+            ignorePunctuation: true,
+            numeric: true
+          })
+        );
 
         const accordionItem = document.createElement("div");
         accordionItem.className = "accordion-item";
@@ -1553,7 +1536,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         return;
       }
 
-      // Grouper les services par catégorie
+      // Grouper les services par catégorie et les trier par ordre alphabétique
       const servicesByCategory = {};
       filtered.forEach((service) => {
         const categoryName = service.category_name || "Sans catégorie";
@@ -1562,14 +1545,27 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         }
         servicesByCategory[categoryName].push(service);
       });
+      
+      // Trier les services dans chaque catégorie par nom
+      Object.keys(servicesByCategory).forEach(category => {
+        servicesByCategory[category].sort((a, b) => 
+          a.name.localeCompare(b.name, 'fr', {sensitivity: 'base'})
+        );
+      });
+
+      // Trier les noms de catégories par ordre alphabétique
+      const sortedCategories = Object.keys(servicesByCategory).sort((a, b) => 
+        a.localeCompare(b, 'fr', {sensitivity: 'base', ignorePunctuation: true})
+      );
 
       // Afficher chaque catégorie avec ses services
-      Object.keys(servicesByCategory).forEach((categoryName) => {
+      sortedCategories.forEach((categoryName) => {
         const services = servicesByCategory[categoryName];
         const maxServicesShown = 5; // Limite d'affichage par catégorie
         const servicesToShow = services.slice(0, maxServicesShown);
         const remainingServices = services.length - maxServicesShown;
 
+// ...
         // Créer l'en-tête de catégorie
         const categoryHeader = document.createElement("div");
         categoryHeader.className = "category-header-planity";
@@ -1645,12 +1641,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
 
     function createServiceItem(srv) {
       const serviceItem = document.createElement("div");
-      serviceItem.className =
-        "service-item-planity" +
-        (bookingState.selectedService &&
-        bookingState.selectedService.id === srv.id
-          ? " selected"
-          : "");
+      serviceItem.className = "service-item-planity";
 
       // Correction affichage prix
       let priceText = "";
@@ -1726,6 +1717,27 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           '<div style="padding:2em;text-align:center;color:#bfa2c7;">Aucune praticienne pour ce service</div>';
         return;
       }
+
+      // Ajouter la carte "Sans préférence"
+      const noPreferenceCard = document.createElement("div");
+      noPreferenceCard.className = "employee-card-modern";
+      noPreferenceCard.onclick = () => {
+        bookingState.selectedEmployee = null; // null indique qu'aucune préférence n'est choisie
+        renderEmployeesGrid();
+        goToStep(3);
+      };
+      noPreferenceCard.innerHTML = `
+        <span><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-4 8-4 8-4s8 0 8 4"/>
+        </svg></span>
+        <div class="mt-3 text-center">
+          <div class="font-bold text-black-400 text-base mb-1">Sans préférence</div>
+        </div>
+      `;
+      grid.appendChild(noPreferenceCard);
+
+      // Ajouter les cartes des praticiennes
       filtered.forEach((emp) => {
         const card = document.createElement("div");
         card.className =
@@ -1734,21 +1746,21 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           bookingState.selectedEmployee.id === emp.id
             ? " selected"
             : "");
-        card.onclick = () => {
+        card.onclick = (e) => {
+          e.stopPropagation();
           bookingState.selectedEmployee = emp;
           renderEmployeesGrid();
-          goToStep(3); // Passe automatiquement à l'étape suivante après sélection
+          goToStep(3);
         };
         let imgHtml = emp.photo
           ? `<img src="${emp.photo}" alt="${emp.name}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;">`
           : `<span><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4"/></svg></span>`;
         card.innerHTML = `
-      ${imgHtml}
-      <div class="mt-3 text-center">
-        <div class="font-bold text-brown-400 text-base mb-1">${emp.name}</div>
-       
-      </div>
-    `;
+          ${imgHtml}
+          <div class="mt-3 text-center">
+            <div class="font-bold text-black-400 text-base mb-1">${emp.name}</div>
+          </div>
+        `;
         grid.appendChild(card);
       });
     }
@@ -1762,11 +1774,29 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         selectedEmployee: bookingState.selectedEmployee,
       });
 
-      if (!bookingState.selectedService || !bookingState.selectedEmployee) {
-        console.log("❌ Préstation ou employé non sélectionné");
+      if (!bookingState.selectedService) {
+        console.log("❌ Aucune prestation sélectionnée");
         window.availableDays = {};
         if (cb) cb();
         return;
+      }
+      
+      // Si pas de préférence de praticienne, on en sélectionne une au hasard
+      let selectedEmployee = bookingState.selectedEmployee;
+      if (!selectedEmployee) {
+        const employeeIds = (bookingState.selectedService.employee_ids || []).map(Number);
+        const availableEmployees = bookingState.employees.filter(e => employeeIds.includes(Number(e.id)));
+        if (availableEmployees.length > 0) {
+          selectedEmployee = availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
+          console.log("🎲 Praticienne sélectionnée aléatoirement:", selectedEmployee);
+          // Mettre à jour le bookingState avec la praticienne sélectionnée
+          bookingState.selectedEmployee = selectedEmployee;
+        } else {
+          console.log("❌ Aucune praticienne disponible pour ce service");
+          window.availableDays = {};
+          if (cb) cb();
+          return;
+        }
       }
 
       // Check if jQuery is available
@@ -1833,18 +1863,18 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       const cal = document.getElementById("calendar-days");
       const header = document.getElementById("calendar-header");
       const monthNames = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
+        "Janvier",
+        "Février",
+        "Mars",
+        "Avril",
+        "Mai",
+        "Juin",
+        "Juillet",
+        "Août",
+        "Septembre",
+        "Octobre",
+        "Novembre",
+        "Décembre",
       ];
       const weekDays = ["L", "M", "M", "J", "V", "S", "D"];
       if (!window.calendarState)
@@ -1968,16 +1998,46 @@ window.scrollToProgressBar = function(callback, delay = 300) {
 
     function renderModernSlotsList() {
       const slotsList = document.getElementById("slots-list");
+      
+      // Ensure bookingState is properly initialized
+      if (!bookingState) {
+        console.error("bookingState is not defined");
+        return;
+      }
+      
+      // Initialize selectedEmployee if not exists
+      if (!bookingState.selectedEmployee) {
+        bookingState.selectedEmployee = null;
+      }
+      
       // Afficher un message si aucune date sélectionnée
       if (!bookingState.selectedDate) {
         slotsList.innerHTML =
           '<div class="no-slots">Sélectionnez une date</div>';
         return;
       }
-      if (!bookingState.selectedEmployee || !bookingState.selectedService) {
+      
+      // Vérifier si un service est sélectionné
+      if (!bookingState.selectedService) {
         slotsList.innerHTML =
-          '<div class="no-slots">Veuillez sélectionner un service et une praticienne</div>';
+          '<div class="no-slots">Veuillez sélectionner un service</div>';
         return;
+      }
+      
+      // Si pas de praticienne sélectionnée, en choisir une au hasard
+      if (!bookingState.selectedEmployee) {
+        const employeeIds = (bookingState.selectedService.employee_ids || []).map(Number);
+        const availableEmployees = bookingState.employees ? 
+          bookingState.employees.filter(e => employeeIds.includes(Number(e.id))) : [];
+          
+        if (availableEmployees.length > 0) {
+          bookingState.selectedEmployee = availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
+          console.log("🎲 Praticienne sélectionnée aléatoirement pour l'affichage des créneaux:", bookingState.selectedEmployee);
+        } else {
+          slotsList.innerHTML =
+            '<div class="no-slots">Aucune praticienne disponible pour ce service</div>';
+          return;
+        }
       }
       console.log("Déclenchement AJAX get_available_slots", bookingState); // DEBUG
       let html = "";
@@ -2449,16 +2509,17 @@ window.scrollToProgressBar = function(callback, delay = 300) {
             clearError(input);
           }
         } else if (type === "email") {
-          if (value.trim() === "") {
-            valid = true;
-            clearError(input);
-          } else {
+          if (value.trim() !== "") {
             valid = isValidEmail(value);
-            if (!valid && touched.email) {
-              showError(input, "Email invalide");
+            if (!valid) {
+              showError(input, "Format d'email invalide");
             } else {
               clearError(input);
             }
+          } else {
+            // Champ vide est accepté
+            valid = true;
+            clearError(input);
           }
         } else if (type === "phone") {
           // Récupérer la valeur du champ téléphone
@@ -2681,6 +2742,11 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         // Vérifier la case de politique de confidentialité
         const privacyCheckbox = document.getElementById("client-privacy");
         const privacyValid = privacyCheckbox ? privacyCheckbox.checked : false;
+        
+        // Si la case est cochée et que l'email est vide, on le marque comme touché pour afficher l'erreur
+        if (privacyCheckbox && privacyCheckbox.checked && emailInput && emailInput.value.trim() === '') {
+          touched.email = true;
+        }
 
         console.log("🔍 [VALIDATE ALL]", {
           firstname: firstnameValid,
@@ -2721,9 +2787,21 @@ window.scrollToProgressBar = function(callback, delay = 300) {
             validateAll();
           });
           
-          console.log(`✅ Écouteurs d'événements ajoutés pour le champ ${type}`);
+          console.log(` [Écouteurs d'événements ajoutés pour le champ ${type}`);
         } else {
-          console.error(`❌ Impossible d'ajouter les écouteurs d'événements pour le champ ${type}: input non trouvé`);
+          console.error(` [Impossible d'ajouter les écouteurs d'événements pour le champ ${type}: input non trouvé`);
+        }
+      });
+
+      // Valider l'email avant de passer au champ téléphone
+      phoneInput.addEventListener("focus", function() {
+        if (emailInput) {
+          // Si l'email n'a pas encore été touché, on le marque comme touché
+          if (!touched.email) {
+            touched.email = true;
+            validateField(emailInput, "email");
+          }
+          validateAll();
         }
       });
 
@@ -2735,12 +2813,12 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         if (input) {
           input.addEventListener("keypress", function (e) {
             if (/[0-9]/.test(e.key)) {
-              console.log(`⚠️ Tentative de saisie d'un chiffre dans le champ ${name} bloquée`);
+              console.log(` [Tentative de saisie d'un chiffre dans le champ ${name} bloquée`);
               e.preventDefault();
             }
           });
         } else {
-          console.error(`❌ Impossible d'ajouter la validation pour le champ ${name}: input non trouvé`);
+          console.error(` [Impossible d'ajouter la validation pour le champ ${name}: input non trouvé`);
         }
       });
 
@@ -2750,7 +2828,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         phoneInput.addEventListener("keypress", function (e) {
           // Autorise uniquement les chiffres, espaces, tirets et points
           if (!/[0-9\s\-\.]/.test(e.key)) {
-            console.log("⚠️ Caractère non autorisé dans le champ téléphone:", e.key);
+            console.log(" [Caractère non autorisé dans le champ téléphone:", e.key);
             e.preventDefault();
             return false;
           }
@@ -2758,29 +2836,29 @@ window.scrollToProgressBar = function(callback, delay = 300) {
 
         // Nettoyage supplémentaire sur le collage (paste) et la validation
         phoneInput.addEventListener('paste', function(e) {
-          console.log("📋 Collage détecté dans le champ téléphone");
+          console.log(" [Collage détecté dans le champ téléphone");
           // Récupère les données collées
           const pastedData = (e.clipboardData || window.clipboardData).getData('text');
-          console.log("📋 Données collées:", pastedData);
+          console.log(" [Données collées:", pastedData);
           
           // Vérifie si des caractères non autorisés sont présents
           if (/[^0-9\s\-\.]/.test(pastedData)) {
-            console.log("⚠️ Données collées non autorisées, collage bloqué");
+            console.log(" [Données collées non autorisées, collage bloqué");
             e.preventDefault();
             return false;
           }
-          console.log("✅ Données collées autorisées");
+          console.log(" [Données collées autorisées");
         });
 
         // Nettoyage de la valeur lors de la perte de focus
         phoneInput.addEventListener('blur', function() {
-          console.log("🔍 Perte de focus du champ téléphone, nettoyage en cours...");
+          console.log(" [Perte de focus du champ téléphone, nettoyage en cours...");
           // Supprime tous les caractères non numériques sauf les espaces, tirets et points
           const oldValue = this.value;
           this.value = this.value.replace(/[^0-9\s\-\.]/g, '');
           
           if (oldValue !== this.value) {
-            console.log("🔍 Valeur nettoyée:", this.value);
+            console.log(" [Valeur nettoyée:", this.value);
           }
         });
       } // Fin de if (phoneInput)
@@ -2789,6 +2867,11 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       const privacyCheckbox = document.getElementById("client-privacy");
       if (privacyCheckbox) {
         privacyCheckbox.addEventListener("change", function () {
+          // Si on coche la case et que l'email est vide, on le marque comme touché
+          if (this.checked && emailInput && emailInput.value.trim() === '') {
+            touched.email = true;
+            validateField(emailInput, 'email');
+          }
           validateAll();
         });
       }

@@ -1401,67 +1401,60 @@ body, .ib-calendar-page, .ib-calendar-content {
     
     // Charger les événements depuis les réservations
     function loadEvents() {
-        // Récupérer les réservations depuis PHP
-        const bookings = <?php echo json_encode($bookings); ?>;
-        const employees = <?php echo json_encode($employees); ?>;
-        const services = <?php echo json_encode($services); ?>;
-        const employeeColors = <?php echo json_encode($employee_colors); ?>;
-        
+        // Utiliser les bookings globaux
+        const bookings = window.bookings || [];
+        const employees = window.employees || [];
+        const services = window.services || [];
+        const employeeColors = window.employeeColors || {};
+
         if (!bookings || !Array.isArray(bookings)) return;
-        
-        // Grouper les réservations par jour
+
+        // Appliquer les filtres
+        const filteredBookings = bookings.filter(function(booking) {
+            let matchEmp = !currentEmployee || booking.employee_id == currentEmployee;
+            let matchServ = !currentService || booking.service_id == currentService;
+            // Correction catégorie : comparer en string et gérer null/undefined
+            let bookingCat = (booking.category_id !== undefined && booking.category_id !== null) ? String(booking.category_id) : '';
+            let filterCat = String(currentCategory || '');
+            let matchCat = !currentCategory || bookingCat === filterCat;
+            return matchEmp && matchServ && matchCat;
+        });
+
+        // Grouper les réservations filtrées par jour
         const bookingsByDay = {};
-        
-        // Trier les réservations par date et heure
-        const sortedBookings = [...bookings].sort((a, b) => {
+        const sortedBookings = [...filteredBookings].sort((a, b) => {
             return new Date(a.start_time) - new Date(b.start_time);
         });
-        
-        // Grouper par jour
         sortedBookings.forEach(booking => {
             if (!booking.start_time) return;
-            
             const date = new Date(booking.start_time);
             const dayKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-            
             if (!bookingsByDay[dayKey]) {
                 bookingsByDay[dayKey] = [];
             }
-            
             bookingsByDay[dayKey].push(booking);
         });
-        
-        // Parcourir tous les jours avec des réservations
+
+        // Afficher les événements filtrés
         Object.entries(bookingsByDay).forEach(([dayKey, dayBookings]) => {
             const date = new Date(dayKey);
             const day = date.getDate();
             const month = date.getMonth();
             const year = date.getFullYear();
-            
-            // Vérifier si la date est dans le mois affiché
             if (month === currentDate.getMonth() && year === currentDate.getFullYear()) {
-                // Trouver l'élément du jour correspondant
                 const dayElements = document.querySelectorAll('.calendar-day:not(.other-month) .day-number');
                 dayElements.forEach(dayEl => {
                     if (parseInt(dayEl.textContent) === day) {
                         const dayContainer = dayEl.parentNode;
                         const eventsContainer = dayContainer.querySelector('.day-events');
-                        
                         if (eventsContainer) {
-                            // Vider le conteneur
                             eventsContainer.innerHTML = '';
-                            
-                            // Limiter à 6 événements maximum
                             const maxEvents = 6;
                             const hasMore = dayBookings.length > maxEvents;
                             const eventsToShow = hasMore ? dayBookings.slice(0, maxEvents - 1) : dayBookings;
-                            
-                            // Ajouter les événements
                             eventsToShow.forEach(booking => {
                                 addEventToDay(eventsContainer, booking, employees, services, employeeColors);
                             });
-                            
-                            // Ajouter l'indicateur d'événements supplémentaires si nécessaire
                             if (hasMore) {
                                 const remaining = dayBookings.length - (maxEvents - 1);
                                 const moreElement = document.createElement('div');
@@ -1469,7 +1462,6 @@ body, .ib-calendar-page, .ib-calendar-content {
                                 moreElement.textContent = `+${remaining} plus`;
                                 moreElement.onclick = (e) => {
                                     e.stopPropagation();
-                                    // Afficher une modale avec toutes les réservations du jour
                                     showAllBookingsForDay(dayBookings, employees, services, employeeColors);
                                 };
                                 eventsContainer.appendChild(moreElement);
@@ -2191,7 +2183,6 @@ body, .ib-calendar-page, .ib-calendar-content {
     // Employé (select)
     document.getElementById('ib-calendar-employee').addEventListener('change', function(e) {
         currentEmployee = this.value;
-        // Synchronise la barre chips
         document.querySelectorAll('.ib-employee-chip').forEach(function(chip){
             if (!currentEmployee && chip.classList.contains('ib-employee-chip-all')) {
                 chip.classList.add('active');
@@ -2202,16 +2193,19 @@ body, .ib-calendar-page, .ib-calendar-content {
             }
         });
         updateCalendar();
+        generateCalendar(); // Ajout : met à jour le calendrier personnalisé
     });
     // Service
     document.getElementById('ib-calendar-service').addEventListener('change', function(e) {
-        currentService = this.value;
-        updateCalendar();
+    currentService = this.value;
+    updateCalendar();
+    generateCalendar(); // Ajout : met à jour le calendrier personnalisé
     });
     // Catégorie
     document.getElementById('ib-calendar-category').addEventListener('change', function(e) {
-        currentCategory = this.value;
-        updateCalendar();
+    currentCategory = this.value;
+    updateCalendar();
+    generateCalendar(); // Ajout : met à jour le calendrier personnalisé
     });
     // Barre employés : filtrage + synchronisation select
     document.querySelectorAll('.ib-employee-chip').forEach(function(chip){
@@ -2220,9 +2214,9 @@ body, .ib-calendar-page, .ib-calendar-content {
             chip.classList.add('active');
             var empId = chip.getAttribute('data-employee');
             currentEmployee = empId;
-            // Synchronise le select
             document.getElementById('ib-calendar-employee').value = empId;
             updateCalendar();
+            generateCalendar(); // Ajout : met à jour le calendrier personnalisé
         });
     });
 

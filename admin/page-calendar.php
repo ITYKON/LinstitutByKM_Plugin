@@ -70,19 +70,359 @@ $closing_time = get_option('ib_closing_time', '19:00');
                 <?php endif; ?>
             <?php endforeach; ?>
         </div>
-        <div class="ib-calendar-wrapper">
-            <div id="booking-calendar"></div>
-            <div id="ib-calendar-no-results" style="display:none;text-align:center;color:#888;margin-top:2em;font-size:1.2em;">Aucun résultat pour ces filtres.</div>
+        <div class="calendar-header">
+            <div class="month-year">Août 2023</div>
+            <div class="calendar-nav">
+                <button id="prev-month">&lt;</button>
+                <button id="today">Aujourd'hui</button>
+                <button id="next-month">&gt;</button>
+            </div>
         </div>
-        <div id="ib-calendar-modal" class="ib-modal-bg" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;align-items:center;justify-content:center;z-index:99999;">
-            <div class="ib-modal">
-                <button id="ib-calendar-modal-close" class="ib-modal-close" type="button">&times;</button>
-                <div id="ib-calendar-modal-content"></div>
+
+        <div class="days-header">
+            <div class="day-header">Lun</div>
+            <div class="day-header">Mar</div>
+            <div class="day-header">Mer</div>
+            <div class="day-header">Jeu</div>
+            <div class="day-header">Ven</div>
+            <div class="day-header">Sam</div>
+            <div class="day-header">Dim</div>
+        </div>
+
+        <div class="calendar-grid" id="calendar-grid">
+            <!-- Les jours seront générés par JavaScript -->
+        </div>
+
+        <!-- Le calendrier FullCalendar est toujours là mais masqué -->
+        <div class="ib-calendar-container" style="display:none;">
+            <div id="booking-calendar"></div>
+        </div>
+        <div id="ib-calendar-no-results" style="display:none;text-align:center;color:#888;margin-top:2em;font-size:1.2em;">Aucun résultat pour ces filtres.</div>
+    </div>
+    <div id="ib-calendar-modal" class="ib-modal-bg" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;align-items:center;justify-content:center;z-index:99999;">
+        <div class="ib-modal">
+            <button id="ib-calendar-modal-close" class="ib-modal-close" type="button">&times;</button>
+            <div id="ib-calendar-modal-content"></div>
             </div>
         </div>
     </div>
 </div>
 <style>
+/* Reset et styles de base */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Conteneur principal */
+.ib-calendar-page {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 15px;
+}
+
+/* En-tête avec le mois et la navigation */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.month-year {
+    font-size: 1.5em;
+    font-weight: 500;
+}
+
+.calendar-nav {
+    display: flex;
+    gap: 10px;
+}
+
+.calendar-nav button {
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px 15px;
+    cursor: pointer;
+}
+
+/* Grille des jours */
+.days-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: #eee;
+    margin-bottom: 1px;
+}
+
+.day-header {
+    background: white;
+    padding: 10px;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Grille des dates */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: #eee;
+}
+
+/* Conteneur du jour */
+.calendar-day {
+    background: white;
+    min-height: 100px;
+    padding: 8px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    max-height: 200px;
+    overflow: hidden;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    transition: all 0.1s ease;
+}
+
+.calendar-day:hover {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.day-number {
+    font-weight: 500;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    color: #343a40;
+}
+
+.day-events {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 2px 0;
+}
+
+.calendar-event {
+    background: #f8f9fa;
+    border-left: 2px solid #2196f3;
+    border-radius: 2px;
+    padding: 3px 6px;
+    font-size: 0.75em;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: all 0.1s ease;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.calendar-event:hover {
+    background: #f1f3f5;
+}
+
+.event-time {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+.event-separator {
+    color: #adb5bd;
+    margin: 0 4px;
+    flex-shrink: 0;
+    font-size: 0.9em;
+}
+
+.event-service {
+    color: #495057;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Indicateur d'événements supplémentaires */
+.more-events {
+    color: #4dabf7;
+    font-size: 0.7em;
+    text-align: center;
+    padding: 2px 0;
+    margin-top: 2px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    font-weight: 500;
+}
+
+.more-events:hover {
+    color: #1971c2;
+    text-decoration: underline;
+}
+
+/* Style pour aujourd'hui */
+.today {
+    background-color: #e8f5e9;
+}
+
+/* Style pour les jours du mois précédent/suivant */
+.other-month {
+    color: #999;
+    background-color: #f9f9f9;
+}
+
+/* Styles FullCalendar à désactiver */
+.fc {
+    display: none !important;
+}
+/* Reset des marges et paddings */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Correction de la largeur de la page */
+#wpcontent, #wpbody, #wpbody-content, #wpbody-content > .wrap {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+}
+
+/* Conteneur principal */
+.ib-calendar-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 15px !important;
+    box-sizing: border-box;
+}
+
+/* Conteneur du contenu */
+.ib-calendar-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box;
+}
+
+/* Conteneur du calendrier */
+.ib-calendar-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box;
+}
+
+/* Styles spécifiques pour les vues du calendrier */
+.fc-dayGridMonth-view .fc-daygrid-day-frame,
+.fc-timeGridWeek-view .fc-timegrid-slots,
+.fc-timeGridDay-view .fc-timegrid-slots {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+}
+
+/* Correction de la largeur de la page */
+#wpcontent, #wpbody, #wpbody-content, #wpbody-content > .wrap {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+}
+
+/* Correction du conteneur principal */
+.ib-calendar-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 15px !important;
+    box-sizing: border-box;
+    overflow: visible !important;
+}
+
+/* Correction du conteneur du calendrier */
+.ib-calendar-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box;
+    overflow: visible !important;
+}
+
+/* Correction de la largeur de la table */
+.fc {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.fc-view-harness {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+.fc-scrollgrid {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    table-layout: fixed;
+}
+
+.fc-scroller {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Correction des cellules */
+.fc-col-header, 
+.fc-col-header > tr, 
+.fc-col-header > thead, 
+.fc-col-header > tbody, 
+.fc-col-header-cell {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Correction des jours */
+.fc-daygrid-day {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Correction des événements */
+.fc-event {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 1px 0 !important;
+    padding: 0 2px !important;
+    box-sizing: border-box;
+    overflow: hidden;
+}
 body, .ib-calendar-page, .ib-calendar-content {
     font-family: 'Inter', 'Playfair Display', Arial, sans-serif;
     background: #f8f6fa;
@@ -247,125 +587,549 @@ body, .ib-calendar-page, .ib-calendar-content {
     z-index: 2 !important;
 }
 .fc-timegrid-event-harness + .fc-timegrid-event-harness {
-    z-index: 1 !important;
-}
-.ib-daycell-date {
-    font-weight: 700;
-    color: #e9aebc;
-    font-size: 1.08em;
-    margin-bottom: 0.2em;
-}
-.ib-daycell-events {
+    z-index: 1 !important;}
+
+    @keyframes pop-in {
+        0% { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .ib-modal-close {
+        position: absolute;
+        top: 1.1em;
+        right: 1.3em;
+        font-size: 2em;
+        background: none;
+        border: none;
+        color: #e9aebc;
+        cursor: pointer;
+        font-weight: 700;
+        transition: color 0.18s;
+    }
+    .ib-modal-close:hover { color: #b95c8a; }
+    .ib-modal-header h2 { font-family: 'Playfair Display', Inter, serif; font-size: 1.3em; margin-bottom: 0.5em; }
+    .ib-modal-day-card { transition: box-shadow 0.18s; }
+    .ib-modal-day-card:hover { box-shadow: 0 8px 32px #e9aebc33; }
+    @media (max-width: 600px) {
+        .ib-modal { padding: 1.1em 0.5em 1em 0.5em; max-width: 98vw; }
+    }
+    /* Style de la grille du calendrier */
+    .fc {
+        --fc-border-color: #e0e0e0;
+        --fc-page-bg-color: #fff;
+        --fc-today-bg-color: #f8f9fa;
+        --fc-neutral-bg-color: #f8f9fa;
+        --fc-list-event-hover-bg-color: #f5f5f5;
+        --fc-button-bg-color: #fff;
+        --fc-button-border-color: #e0e0e0;
+        --fc-button-hover-bg-color: #f5f5f5;
+        --fc-button-active-bg-color: #f0f0f0;
+        --fc-button-text-color: #3c4043;
+        --fc-event-bg-color: #1a73e8;
+        --fc-event-border-color: #1a73e8;
+        --fc-highlight-color: rgba(26, 115, 232, 0.1);
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        height: calc(100vh - 100px) !important;
+        min-height: 600px;
+        box-sizing: border-box;
+        table-layout: fixed;
+    }
+
+    /* En-tête du calendrier */
+    .fc .fc-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5em 0.5em 0.25em !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
+        flex-wrap: wrap;
+        gap: 0.5em;
+    }
     display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    min-height: 28px;
+    justify-content: space-between;
     align-items: center;
-    justify-content: flex-start;
-    gap: 4px;
-    padding: 0 2px;
-    max-width: 100%;
+    padding: 0 0.25em !important;
+    margin: 0 0 0.5em 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
 }
-.ib-event-dot {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    box-shadow: 0 2px 8px #e9aebc33;
-    border: 2px solid #fff;
-    margin: 0;
-    cursor: pointer;
-    transition: box-shadow 0.18s, transform 0.13s;
-    background: #e9aebc;
-    flex-shrink: 0;
-}
-.ib-event-dot:hover {
-    box-shadow: 0 8px 32px #e9aebc55, 0 2px 12px #e9aebc33;
-    transform: scale(1.18);
-    z-index: 10;
-}
-.ib-daycell-more {
-    font-size: 0.95em;
-    color: #e9aebc;
-    background: #fbeff3;
-    border-radius: 8px;
-    padding: 0 0.5em;
-    margin-left: 2px;
-    font-weight: 600;
-    cursor: pointer;
-    flex-shrink: 0;
-}
-.ib-event-tooltip {
-    position: absolute;
-    z-index: 9999;
-    background: #fff;
-    color: #b95c8a;
-    border-radius: 1em;
-    box-shadow: 0 8px 32px #e9aebc33;
-    padding: 0.8em 1.2em;
-    font-size: 1.08em;
-    font-family: 'Inter', 'Playfair Display', Arial, sans-serif;
-    font-weight: 600;
-    pointer-events: none;
-    border: 1.5px solid #e9aebc;
-    min-width: 120px;
-    text-align: center;
-    opacity: 0.98;
-    transition: opacity 0.18s;
-}
-.ib-modal-bg {
-    position: fixed;
-    left: 0; top: 0; width: 100vw; height: 100vh;
-    background: rgba(60,30,60,0.13);
-    z-index: 99999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.18s;
-}
-.ib-modal {
-    background: #fff;
-    border-radius: 2em;
-    box-shadow: 0 8px 48px #e9aebc44, 0 1.5px 0 #fbeff3;
-    padding: 2.2em 2em 1.5em 2em;
-    max-width: 420px;
-    width: 90vw;
-    text-align: left;
-    position: relative;
-    animation: pop-in 0.25s cubic-bezier(0.68,-0.55,0.27,1.55);
+.fc .fc-toolbar-title {
+  font-size: 1.5em;
+  font-weight: 500;
+  color: #3c4043;
+  margin: 0;
+  padding: 0 0.5em;
 }
 
-@keyframes pop-in {
-    0% { transform: scale(0.8); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
+.fc .fc-button {
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+  box-shadow: none;
+  border: 1px solid #dadce0;
+  background: #fff;
+  color: #3c4043;
+  transition: all 0.2s;
 }
-.ib-modal-close {
-    position: absolute;
-    top: 1.1em;
-    right: 1.3em;
-    font-size: 2em;
-    background: none;
+
+.fc .fc-button-primary:not(:disabled).fc-button-active, 
+.fc .fc-button-primary:not(:disabled):active {
+  background-color: #f1f3f4;
+  color: #1a73e8;
+  border-color: #dadce0;
+  box-shadow: none;
+}
+
+.fc .fc-button-primary:not(:disabled):hover {
+  background-color: #f1f3f4;
+  border-color: #dadce0;
+}
+
+/* Cellules des jours */
+.fc .fc-daygrid-day {
+    padding: 1px;
+    min-height: 100px;
+    min-width: 0;
+    flex: 1 0 0;
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* Correction de la largeur des colonnes */
+.fc .fc-daygrid-body {
+    width: 100% !important;
+}
+
+.fc .fc-daygrid-day-frame {
+    width: 100%;
+}
+
+.fc .fc-daygrid-day-events {
+    min-height: 0;
+}
+
+.fc .fc-scrollgrid-section > td {
     border: none;
-    color: #e9aebc;
-    cursor: pointer;
-    font-weight: 700;
-    transition: color 0.18s;
 }
-.ib-modal-close:hover { color: #b95c8a; }
-.ib-modal-header h2 { font-family: 'Playfair Display', Inter, serif; font-size: 1.3em; margin-bottom: 0.5em; }
-.ib-modal-day-card { transition: box-shadow 0.18s; }
-.ib-modal-day-card:hover { box-shadow: 0 8px 32px #e9aebc33; }
-@media (max-width: 600px) {
-    .ib-modal { padding: 1.1em 0.5em 1em 0.5em; max-width: 98vw; }
+
+/* Correction de la largeur de la table */
+.fc-scrollgrid {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    table-layout: fixed;
+    border: none !important;
 }
-.fc-daygrid-day-events {
-  min-height: 28px;
-  max-height: 28px;
+
+.fc-scrollgrid-section {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.fc-scrollgrid-section > * {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.fc-scrollgrid-sync-table {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    table-layout: fixed;
+}
+
+.fc-scroller {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+.fc-view-harness {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+.fc-view-harness > .fc-view {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative !important;
+    left: 0 !important;
+    right: 0 !important;
+}
+
+/* Correction de la largeur des cellules */
+.fc-col-header,
+.fc-col-header-cell,
+.fc-timegrid-axis,
+.fc-timegrid-slot,
+.fc-timegrid-slots > table {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Correction de la largeur des colonnes */
+.fc-daygrid-body,
+.fc-timegrid-body {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.fc-daygrid-day-frame,
+.fc-timegrid-col-frame {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Correction des événements */
+.fc-event {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 1px 0 !important;
+    box-sizing: border-box;
+}
+
+/* Correction des cellules du jour */
+.fc-daygrid-day-top {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 2px 4px !important;
+    box-sizing: border-box;
+}
+
+/* Correction des en-têtes de colonne */
+.fc-col-header-cell-cushion {
+    width: 100% !important;
+    display: inline-block;
+    box-sizing: border-box;
+    margin: 0 !important;
+    padding: 4px 2px !important;
+}
+
+/* Correction de la barre d'outils */
+.fc-header-toolbar {
+    width: 100% !important;
+    margin: 0 0 1em 0 !important;
+    padding: 0.5em 0 !important;
+    box-sizing: border-box;
+}
+
+.fc-toolbar-chunk {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 0.5em 0.5em 0 !important;
+}
+
+/* Correction du titre */
+.fc-toolbar-title {
+    margin: 0 0.5em !important;
+    padding: 0 !important;
+    font-size: 1.4em !important;
+    line-height: 1.5 !important;
+}
+
+/* Correction des boutons */
+.fc-button-group {
+    margin: 0 !important;
+}
+
+.fc-scrollgrid-section > * {
+    width: 100% !important;
+}
+
+.fc-col-header {
+    width: 100% !important;
+}
+
+.fc-col-header-cell,
+.fc-timegrid-axis,
+.fc-timegrid-slot,
+.fc-timegrid-slots > table {
+    width: 100% !important;
+}
+
+.fc-timegrid-slots > table,
+.fc-timegrid-slots > table > tbody,
+.fc-timegrid-slots > table > tbody > tr,
+.fc-timegrid-slots > table > tbody > tr > td {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Correction de la largeur des colonnes */
+.fc-daygrid-body,
+.fc-timegrid-body {
+    width: 100% !important;
+}
+
+.fc-daygrid-day-frame,
+.fc-timegrid-col-frame {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Correction du débordement */
+.fc-scroller {
+    overflow: hidden !important;
+    width: 100% !important;
+}
+
+.fc-scroller::-webkit-scrollbar {
+    display: none;
+}
+
+/* Correction de la largeur du conteneur interne */
+.fc-view-harness {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+
+.fc-view-harness > .fc-view {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Correction de la largeur des cellules */
+.fc-col-header-cell {
+    width: auto !important;
+    min-width: 0 !important;
+}
+
+.fc-timegrid-slot {
+    width: auto !important;
+}
+
+/* Correction de la largeur des événements */
+.fc-event {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+/* Correction de la largeur des cellules du jour */
+.fc-daygrid-day-top {
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
+/* Correction de la largeur des en-têtes de colonne */
+.fc-col-header-cell-cushion {
+    width: 100% !important;
+    display: inline-block;
+    box-sizing: border-box;
+}
+
+.fc-scrollgrid-sync-table {
+    width: 100% !important;
+}
+
+/* Correction de la largeur des en-têtes */
+.fc-col-header {
+    width: 100% !important;
+}
+
+.fc-col-header-cell {
+    padding: 4px 2px !important;
+}
+
+/* Ajustement des boutons de navigation */
+.fc .fc-toolbar {
+    padding: 0.5em 0.25em !important;
+    margin: 0 0 0.5em 0 !important;
+}
+
+.fc-toolbar-chunk {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
+/* Ajustement du titre */
+.fc .fc-toolbar-title {
+    margin: 0 0.5em;
+    font-size: 1.4em;
+    white-space: nowrap;
+}
+
+/* Ajustement des boutons de vue */
+.fc .fc-button-group {
+    margin: 0;
+}
+
+/* Correction du débordement horizontal */
+.fc-scroller {
+    overflow-x: visible !important;
+    overflow-y: auto !important;
+}
+
+/* Ajustement des cellules de temps */
+.fc-timegrid-slots {
+    width: 100% !important;
+}
+
+/* Correction de la largeur des colonnes de temps */
+.fc-timegrid-cols {
+    width: 100% !important;
+}
+
+.fc-timegrid-cols > table {
+    width: 100% !important;
+}
+
+/* Ajustement des événements */
+.fc-event {
+    margin: 1px 2px 0;
+}
+
+/* Correction du conteneur principal */
+#wpbody-content {
+    padding-bottom: 0;
+    overflow-x: hidden;
+}
+
+/* Ajustement du conteneur des filtres */
+.ib-calendar-filters {
+    margin: 0 0 1em 0;
+    padding: 0.5em 0;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Ajustement des champs de formulaire */
+.ib-form-group {
+    display: inline-block;
+    margin-right: 0.5em;
+    vertical-align: top;
+}
+
+/* Correction du débordement du calendrier */
+.fc-view-harness {
+    overflow: visible !important;
+}
+
+.fc-view-harness-active > .fc-view {
+    position: relative;
+    right: 0;
+    overflow: visible !important;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background-color: #e8f0fe;
+}
+
+.fc .fc-daygrid-day-top {
+  justify-content: flex-start;
+  padding: 2px 4px;
+  margin-bottom: 1px;
+  min-height: 24px;
+}
+
+.fc .fc-daygrid-day-number {
+  color: #3c4043;
+  font-weight: 500;
+  padding: 4px;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
   display: flex;
-  flex-wrap: nowrap;
   align-items: center;
-  overflow-x: auto;
-  gap: 4px;
-  padding: 0 2px;
+  justify-content: center;
+}
+
+.fc .fc-day-today .fc-daygrid-day-number {
+  background-color: #1a73e8;
+  color: white;
+}
+
+/* Événements */
+.fc-daygrid-day-events {
+  min-height: 0;
+  margin: 0 1px;
+  gap: 1px;
+  max-height: none !important;
+}
+
+.fc-daygrid-event-harness {
+  margin-bottom: 2px;
+}
+
+/* Bouton "plus" pour les événements masqués */
+.fc-daygrid-more-link {
+  color: #1a73e8 !important;
+  background: transparent !important;
+  padding: 2px 0 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+  text-decoration: none;
+}
+
+.fc-daygrid-more-link:hover {
+  text-decoration: underline;
+}
+
+/* En-têtes de colonnes (jours de la semaine) */
+.fc .fc-col-header-cell-cushion {
+  color: #5f6368;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 8px 4px;
+}
+
+/* Ligne de temps actuelle */
+.fc .fc-timegrid-now-indicator-arrow {
+  border-color: #ea4335;
+}
+
+.fc .fc-timegrid-now-indicator-line {
+  border-color: #ea4335;
+  border-width: 2px;
+}
+
+/* Style pour les événements récurrents */
+.fc-event-main {
+  padding: 2px 4px !important;
+  margin: 1px 2px !important;
+  border-radius: 3px !important;
+  font-size: 11px !important;
+  line-height: 1.3 !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  border-left-width: 2px !important;
+  border-left-style: solid !important;
+}
+
+/* Style pour les événements sélectionnés */
+.fc-event-selected {
+  box-shadow: 0 0 0 2px #1a73e8 !important;
 }
 .fc-daygrid-event {
   display: flex;
@@ -447,9 +1211,684 @@ body, .ib-calendar-page, .ib-calendar-content {
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function() {
+    // Gestionnaire de clic sur un jour
+    function handleDayClick(dayElement, date) {
+        const dayBookings = getBookingsForDate(date);
+        if (dayBookings.length > 0) {
+            showAllBookingsForDay(dayBookings, window.employees, window.services, window.employeeColors);
+        }
+    }
+
+    // Fonction utilitaire pour récupérer les réservations d'une date
+    function getBookingsForDate(date) {
+        const dateStr = date.toISOString().split('T')[0];
+        return window.bookings.filter(booking => {
+            if (!booking.start_time) return false;
+            const bookingDate = new Date(booking.start_time).toISOString().split('T')[0];
+            return bookingDate === dateStr;
+        });
+    }
+
+    // Variables globales
+    let currentDate = new Date();
+    let calendarGrid, monthYearElement, prevMonthBtn, nextMonthBtn, todayBtn;
+    
     // Palette de couleurs employé (récupérée du PHP)
     const employeeColors = <?php echo json_encode($employee_colors); ?>;
+    
+    // Initialisation de l'application
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            // Stocker les données globalement
+            window.bookings = <?php echo json_encode($bookings); ?>;
+            window.employees = <?php echo json_encode($employees); ?>;
+            window.services = <?php echo json_encode($services); ?>;
+            window.employeeColors = <?php echo json_encode($employee_colors); ?>;
+            
+            // Initialiser les éléments DOM
+            calendarGrid = document.getElementById('calendar-grid');
+            monthYearElement = document.querySelector('.month-year');
+            prevMonthBtn = document.getElementById('prev-month');
+            nextMonthBtn = document.getElementById('next-month');
+            todayBtn = document.getElementById('today');
+            
+            // Initialiser le calendrier principal
+            initMainCalendar();
+            
+            // Initialiser le calendrier alternatif si nécessaire
+            initAlternativeCalendar();
+            
+            // Initialiser le calendrier personnalisé si les éléments existent
+            if (calendarGrid && monthYearElement) {
+                // Initialiser le calendrier personnalisé
+                generateCalendar();
+                loadEvents();
+                
+                // Gestion des clics pour le calendrier personnalisé
+                document.addEventListener('click', (e) => {
+                    // Clic sur un jour
+                    const dayElement = e.target.closest('.calendar-day:not(.other-month)');
+                    if (dayElement) {
+                        const day = parseInt(dayElement.querySelector('.day-number').textContent);
+                        const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                        handleDayClick(dayElement, date);
+                    }
+                    
+                    // Clic sur "+X plus"
+                    if (e.target.classList.contains('more-events')) {
+                        e.stopPropagation();
+                        const dayElement = e.target.closest('.calendar-day');
+                        const day = parseInt(dayElement.querySelector('.day-number').textContent);
+                        const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                        const dayBookings = getBookingsForDate(date);
+                        if (dayBookings.length > 0) {
+                            showAllBookingsForDay(dayBookings, window.employees, window.services, window.employeeColors);
+                        }
+                    }
+                });
+                
+                // Gestionnaires d'événements pour la navigation
+                if (prevMonthBtn) {
+                    prevMonthBtn.addEventListener('click', () => {
+                        currentDate.setMonth(currentDate.getMonth() - 1);
+                        generateCalendar();
+                    });
+                }
+                
+                if (nextMonthBtn) {
+                    nextMonthBtn.addEventListener('click', () => {
+                        currentDate.setMonth(currentDate.getMonth() + 1);
+                        generateCalendar();
+                    });
+                }
+                
+                if (todayBtn) {
+                    todayBtn.addEventListener('click', () => {
+                        currentDate = new Date();
+                        generateCalendar();
+                    });
+                }
+            }
+            
+            // Activation du chip "Tous les employés" par défaut
+            const allChip = document.querySelector('.ib-employee-chip-all');
+            if (allChip) {
+                allChip.classList.add('active');
+            }
+            
+            // Gérer le redimensionnement de la fenêtre
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    if (window.calendar) {
+                        try {
+                            window.calendar.updateSize();
+                        } catch (e) {
+                            console.error('Erreur lors du redimensionnement du calendrier:', e);
+                        }
+                    }
+                }, 250);
+            });
+            
+        } catch (e) {
+            console.error('Erreur lors de l\'initialisation de l\'application:', e);
+        }
+    }); // Fin de DOMContentLoaded
+    
+    // Fonction pour générer le calendrier
+    function generateCalendar() {
+        if (!calendarGrid || !monthYearElement) return;
+        
+        // Vider le calendrier
+        calendarGrid.innerHTML = '';
+        
+        // Mettre à jour le titre du mois/année
+        const options = { month: 'long', year: 'numeric' };
+        monthYearElement.textContent = currentDate.toLocaleDateString('fr-FR', options);
+        
+        // Obtenir le premier jour du mois et le nombre de jours
+        const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startingDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1; // Ajuster pour commencer par lundi
+        
+        // Ajouter les jours du mois précédent
+        const prevMonthLastDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0).getDate();
+        for (let i = startingDay - 1; i >= 0; i--) {
+            const dayElement = createDayElement(prevMonthLastDay - i, true);
+            calendarGrid.appendChild(dayElement);
+        }
+        
+        // Ajouter les jours du mois actuel
+        const today = new Date();
+        for (let i = 1; i <= daysInMonth; i++) {
+            const dayElement = createDayElement(i, false);
+            if (i === today.getDate() && 
+                currentDate.getMonth() === today.getMonth() && 
+                currentDate.getFullYear() === today.getFullYear()) {
+                dayElement.classList.add('today');
+            }
+            calendarGrid.appendChild(dayElement);
+        }
+        
+        // Ajouter les jours du mois suivant
+        const daysToAdd = 42 - (startingDay + daysInMonth); // 6 lignes de 7 jours
+        for (let i = 1; i <= daysToAdd; i++) {
+            const dayElement = createDayElement(i, true);
+            calendarGrid.appendChild(dayElement);
+        }
+        
+        // Charger les événements
+        loadEvents();
+    }
+    
+    // Créer un élément jour
+    function createDayElement(day, isOtherMonth) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day' + (isOtherMonth ? ' other-month' : '');
+        
+        const dayNumber = document.createElement('div');
+        dayNumber.className = 'day-number';
+        dayNumber.textContent = day;
+        
+        const eventsContainer = document.createElement('div');
+        eventsContainer.className = 'day-events';
+        
+        dayElement.appendChild(dayNumber);
+        dayElement.appendChild(eventsContainer);
+        
+        return dayElement;
+    }
+    
+    // Charger les événements depuis les réservations
+    function loadEvents() {
+        // Récupérer les réservations depuis PHP
+        const bookings = <?php echo json_encode($bookings); ?>;
+        const employees = <?php echo json_encode($employees); ?>;
+        const services = <?php echo json_encode($services); ?>;
+        const employeeColors = <?php echo json_encode($employee_colors); ?>;
+        
+        if (!bookings || !Array.isArray(bookings)) return;
+        
+        // Grouper les réservations par jour
+        const bookingsByDay = {};
+        
+        // Trier les réservations par date et heure
+        const sortedBookings = [...bookings].sort((a, b) => {
+            return new Date(a.start_time) - new Date(b.start_time);
+        });
+        
+        // Grouper par jour
+        sortedBookings.forEach(booking => {
+            if (!booking.start_time) return;
+            
+            const date = new Date(booking.start_time);
+            const dayKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            
+            if (!bookingsByDay[dayKey]) {
+                bookingsByDay[dayKey] = [];
+            }
+            
+            bookingsByDay[dayKey].push(booking);
+        });
+        
+        // Parcourir tous les jours avec des réservations
+        Object.entries(bookingsByDay).forEach(([dayKey, dayBookings]) => {
+            const date = new Date(dayKey);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            
+            // Vérifier si la date est dans le mois affiché
+            if (month === currentDate.getMonth() && year === currentDate.getFullYear()) {
+                // Trouver l'élément du jour correspondant
+                const dayElements = document.querySelectorAll('.calendar-day:not(.other-month) .day-number');
+                dayElements.forEach(dayEl => {
+                    if (parseInt(dayEl.textContent) === day) {
+                        const dayContainer = dayEl.parentNode;
+                        const eventsContainer = dayContainer.querySelector('.day-events');
+                        
+                        if (eventsContainer) {
+                            // Vider le conteneur
+                            eventsContainer.innerHTML = '';
+                            
+                            // Limiter à 6 événements maximum
+                            const maxEvents = 6;
+                            const hasMore = dayBookings.length > maxEvents;
+                            const eventsToShow = hasMore ? dayBookings.slice(0, maxEvents - 1) : dayBookings;
+                            
+                            // Ajouter les événements
+                            eventsToShow.forEach(booking => {
+                                addEventToDay(eventsContainer, booking, employees, services, employeeColors);
+                            });
+                            
+                            // Ajouter l'indicateur d'événements supplémentaires si nécessaire
+                            if (hasMore) {
+                                const remaining = dayBookings.length - (maxEvents - 1);
+                                const moreElement = document.createElement('div');
+                                moreElement.className = 'more-events';
+                                moreElement.textContent = `+${remaining} plus`;
+                                moreElement.onclick = (e) => {
+                                    e.stopPropagation();
+                                    // Afficher une modale avec toutes les réservations du jour
+                                    showAllBookingsForDay(dayBookings, employees, services, employeeColors);
+                                };
+                                eventsContainer.appendChild(moreElement);
+                            }
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Fonction utilitaire pour formater l'heure
+        function formatTime(date) {
+            if (!(date instanceof Date) || isNaN(date)) return '';
+            return date.toLocaleTimeString('fr-FR', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false
+            });
+        }
+        
+        // Fonction utilitaire pour ajouter un événement à un jour
+        function addEventToDay(container, booking, employees, services, employeeColors) {
+            if (!booking.start_time) return;
+            
+            const startDate = new Date(booking.start_time);
+            
+            // Formater l'heure de début et de fin
+            const startTime = formatTime(startDate);
+            let endTime = '';
+            
+            if (booking.end_time) {
+                const endDate = new Date(booking.end_time);
+                endTime = formatTime(endDate);
+            }
+            
+            // Trouver le nom du client et du service
+            const clientName = booking.client_name || 'Client inconnu';
+            let serviceName = 'Service inconnu';
+            
+            if (booking.service_id) {
+                const service = services.find(s => s.id == booking.service_id);
+                if (service) serviceName = service.name;
+            }
+            
+            // Tronquer le nom du service si trop long
+            const maxServiceLength = 15;
+            const truncatedService = serviceName.length > maxServiceLength 
+                ? serviceName.substring(0, maxServiceLength) + '...' 
+                : serviceName;
+            
+            // Trouver le nom de l'employé
+            let employeeName = 'Employé inconnu';
+            let employeeColor = '#e3f2fd';
+            
+            if (booking.employee_id) {
+                const employee = employees.find(e => e.id == booking.employee_id);
+                if (employee) {
+                    employeeName = employee.name;
+                    employeeColor = employeeColors[employee.id] || employeeColor;
+                }
+            }
+            
+            // Créer l'élément d'événement
+            const eventElement = document.createElement('div');
+            eventElement.className = 'calendar-event';
+            eventElement.style.backgroundColor = `${employeeColor}33`;
+            eventElement.style.borderLeft = `3px solid ${employeeColor}`;
+            eventElement.style.cursor = 'pointer';
+            
+            // Stocker les données complètes pour l'affichage dans la modale
+            eventElement.dataset.booking = JSON.stringify({
+                client: clientName,
+                service: serviceName,
+                employee: employeeName,
+                startTime: startTime,
+                endTime: endTime,
+                notes: booking.notes || 'Aucune note',
+                status: booking.status || 'confirmé'
+            });
+            
+            // Format compact pour l'affichage
+            eventElement.innerHTML = `
+                <span class="event-time">${startTime}</span>
+                <span class="event-separator">-</span>
+                <span class="event-service" title="${serviceName}">${truncatedService}</span>
+            `;
+            
+            // Ajouter l'événement de clic pour afficher les détails
+            eventElement.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showBookingDetails(JSON.parse(eventElement.dataset.booking));
+            });
+            
+            container.appendChild(eventElement);
+        }
+    }
+    
+    // Fonction pour afficher les détails d'une réservation
+    function showBookingDetails(booking) {
+        const modal = document.createElement('div');
+        modal.className = 'booking-details-modal';
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100%';
+        modal.style.height = '100%';
+        modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.zIndex = '1000';
+        
+        modal.innerHTML = `
+            <div class="booking-details" style="background: white; padding: 20px; border-radius: 8px; max-width: 500px; width: 90%;">
+                <h3 style="margin-top: 0; color: #333;">Détails de la réservation</h3>
+                <div style="margin-bottom: 10px;"><strong>Client:</strong> ${booking.client}</div>
+                <div style="margin-bottom: 10px;"><strong>Service:</strong> ${booking.service}</div>
+                <div style="margin-bottom: 10px;"><strong>Employé:</strong> ${booking.employee}</div>
+                <div style="margin-bottom: 10px;"><strong>Horaire:</strong> ${booking.startTime} - ${booking.endTime || '?'}</div>
+                <div style="margin-bottom: 10px;"><strong>Statut:</strong> ${booking.status}</div>
+                <div style="margin-bottom: 15px;"><strong>Notes:</strong> ${booking.notes}</div>
+                <button id="close-booking-details" style="padding: 8px 16px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">Fermer</button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Gérer la fermeture de la modale
+        const closeBtn = modal.querySelector('#close-booking-details');
+        closeBtn.addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+        
+        // Fermer en cliquant en dehors de la modale
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                document.body.removeChild(modal);
+            }
+        });
+    }
+    
+    // Fonction pour afficher toutes les réservations d'une journée
+    function showAllBookingsForDay(bookings, employees, services, employeeColors) {
+        // Fermer toute modale existante
+        const existingModal = document.querySelector('.all-bookings-modal');
+        if (existingModal) {
+            document.body.removeChild(existingModal);
+        }
+
+        const modal = document.createElement('div');
+        modal.className = 'all-bookings-modal';
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100%';
+        modal.style.height = '100%';
+        modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.zIndex = '10000';
+        
+        // Trier les réservations par heure
+        const sortedBookings = [...bookings].sort((a, b) => {
+            return new Date(a.start_time) - new Date(b.start_time);
+        });
+        
+        let bookingsHtml = '';
+        sortedBookings.forEach(booking => {
+            const startDate = new Date(booking.start_time);
+            const endDate = new Date(booking.end_time);
+            const startTime = startDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            const endTime = endDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            
+            // Calculer la durée
+            const durationMs = endDate - startDate;
+            const durationMins = Math.round(durationMs / 60000);
+            const duration = durationMins < 60 ? 
+                `${durationMins} min` : 
+                `${Math.floor(durationMins/60)}h${(durationMins%60).toString().padStart(2, '0')}`;
+            
+            // Trouver l'employé
+            const employee = employees.find(emp => emp.id === booking.employee_id) || {};
+            const employeeName = employee.display_name || 'Employé inconnu';
+            const employeeColor = employeeColors[employee.id] || '#6c757d';
+            
+            // Trouver le service
+            const service = services.find(s => s.id === booking.service_id) || {};
+            const serviceName = service.name || 'Service inconnu';
+            
+            // Informations client
+            const clientName = booking.client_name || 'Client inconnu';
+            
+            // Déterminer la couleur et le texte du statut
+            let statusInfo = {
+                text: 'Confirmé',
+                bgColor: '#e6f7ee',
+                textColor: '#0d6832'
+            };
+            
+            if (booking.status === 'completed') {
+                statusInfo = {
+                    text: 'Terminé',
+                    bgColor: '#e9ecef',
+                    textColor: '#343a40'
+                };
+            } else if (booking.status === 'cancelled') {
+                statusInfo = {
+                    text: 'Annulé',
+                    bgColor: '#fce8e8',
+                    textColor: '#c92a2a'
+                };
+            } else if (booking.status === 'pending') {
+                statusInfo = {
+                    text: 'En attente',
+                    bgColor: '#fff8e6',
+                    textColor: '#e67700'
+                };
+            }
+            
+            // Construction du HTML
+            bookingsHtml += `
+                <div class="booking-item" style="margin-bottom: 16px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee;">
+                    <div style="display: flex; border-left: 4px solid ${employeeColor};">
+                        <div style="padding: 16px; flex-grow: 1;">
+                            <!-- En-tête avec horaires et statut -->
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; align-items: flex-start;">
+                                <div>
+                                    <div style="font-weight: 600; color: #2c3e50; font-size: 1.1em; margin-bottom: 2px;">
+                                        ${startTime} - ${endTime}
+                                        <span style="font-weight: normal; color: #6c757d; font-size: 0.9em; margin-left: 8px;">
+                                            (${duration})
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px;">
+                                        <i class="dashicons dashicons-admin-users" style="font-size: 13px; margin-right: 4px;"></i>
+                                        ${employeeName}
+                                    </div>
+                                </div>
+                                <span style="font-size: 0.75em; padding: 3px 10px; border-radius: 12px; background: ${statusInfo.bgColor}; color: ${statusInfo.textColor}; font-weight: 500; white-space: nowrap;">
+                                    ${statusInfo.text}
+                                </span>
+                            </div>
+                            
+                            <!-- Nom du service -->
+                            <div style="font-weight: 500; margin: 12px 0; color: #495057; font-size: 1em;">
+                                <i class="dashicons dashicons-nametag" style="font-size: 15px; margin-right: 6px; color: #4dabf7;"></i>
+                                ${serviceName}
+                            </div>
+                            
+                            <!-- Informations client -->
+                            <div style="font-size: 0.9em; color: #343a40; background: #f8f9fa; padding: 12px; border-radius: 6px;">
+                                <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                    <i class="dashicons dashicons-businessperson" style="font-size: 15px; width: 16px; height: 16px; margin-right: 8px; color: #6c757d;"></i>
+                                    <span style="font-weight: 500;">${clientName}</span>
+                                </div>
+                                ${booking.client_phone ? `
+                                <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                    <i class="dashicons dashicons-phone" style="font-size: 15px; width: 16px; height: 16px; margin-right: 8px; color: #6c757d;"></i>
+                                    <a href="tel:${booking.client_phone}" style="color: #1971c2; text-decoration: none;">${booking.client_phone}</a>
+                                </div>` : ''}
+                                ${booking.client_email ? `
+                                <div style="display: flex; align-items: center;">
+                                    <i class="dashicons dashicons-email" style="font-size: 15px; width: 16px; height: 16px; margin-right: 8px; color: #6c757d;"></i>
+                                    <a href="mailto:${booking.client_email}" style="color: #1971c2; text-decoration: none;">${booking.client_email}</a>
+                                </div>` : ''}
+                            </div>
+                            
+                            <!-- Notes -->
+                            ${booking.notes ? `
+                            <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #eee;">
+                                <div style="font-size: 0.8em; color: #6c757d; margin-bottom: 6px; display: flex; align-items: center;">
+                                    <i class="dashicons dashicons-edit" style="font-size: 13px; margin-right: 6px;"></i>
+                                    Notes :
+                                </div>
+                                <div style="font-size: 0.9em; color: #495057; background: #f8f9fa; padding: 10px; border-radius: 4px; line-height: 1.5;">
+                                    ${booking.notes}
+                                </div>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        // Ajouter des styles d'animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes modalFadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            .modal-enter {
+                animation: modalFadeIn 0.3s ease-out forwards;
+            }
+            
+            .fade-enter {
+                animation: fadeIn 0.3s ease-out forwards;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Date au format lisible
+        const dateStr = new Date(bookings[0]?.start_time || new Date()).toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+        
+        // Création de la modale
+        modal.innerHTML = `
+            <div class="modal-enter" style="background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); width: 95%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
+                <!-- En-tête de la modale -->
+                <div style="padding: 16px 20px; background: #f8f9fa; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="margin: 0 0 4px 0; font-size: 1.3em; color: #2c3e50; font-weight: 600; display: flex; align-items: center;">
+                            <i class="dashicons dashicons-calendar-alt" style="margin-right: 10px; color: #4dabf7;"></i>
+                            ${dateStr}
+                        </h3>
+                        <div style="font-size: 0.85em; color: #6c757d;">
+                            ${bookings.length} réservation${bookings.length > 1 ? 's' : ''} 
+                        </div>
+                    </div>
+                    <button id="close-all-bookings" 
+                            style="background: none; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #6c757d; transition: all 0.2s;"
+                            onmouseover="this.style.backgroundColor='#f1f3f5'" 
+                            onmouseout="this.style.backgroundColor='transparent'">
+                        <span style="font-size: 1.8em; line-height: 1;">&times;</span>
+                    </button>
+                </div>
+                
+                <!-- Contenu de la modale -->
+                <div id="all-bookings-list" style="padding: 20px; overflow-y: auto; flex-grow: 1;">
+                    ${bookingsHtml || `
+                    <div style="text-align: center; padding: 40px 20px; color: #6c757d;">
+                        <i class="dashicons dashicons-calendar" style="font-size: 3em; color: #dee2e6; margin-bottom: 15px; display: block;"></i>
+                        <p style="margin: 0; font-size: 1.1em;">Aucune réservation pour ce jour</p>
+                    </div>`}
+                </div>
+                
+                <!-- Pied de page -->
+                <div style="padding: 12px 20px; background: #f8f9fa; border-top: 1px solid #e9ecef; text-align: right;">
+                    <button id="close-all-bookings-bottom" 
+                            style="background: #f1f3f5; border: 1px solid #dee2e6; border-radius: 4px; padding: 8px 16px; color: #495057; cursor: pointer; font-size: 0.9em; transition: all 0.2s;"
+                            onmouseover="this.style.backgroundColor='#e9ecef'" 
+                            onmouseout="this.style.backgroundColor='#f1f3f5'">
+                        Fermer
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Fonction pour fermer la modale avec animation
+        const closeModal = () => {
+            const modalContent = modal.querySelector('> div');
+            if (modalContent) {
+                modalContent.style.animation = 'none';
+                modalContent.offsetHeight; // Trigger reflow
+                modalContent.style.animation = 'modalFadeIn 0.2s ease-in-out reverse';
+                
+                setTimeout(() => {
+                    if (document.body.contains(modal)) {
+                        document.body.removeChild(modal);
+                    }
+                }, 200);
+            } else {
+                document.body.removeChild(modal);
+            }
+        };
+        
+        // Gestion des événements de fermeture
+        const closeButtons = [
+            modal.querySelector('#close-all-bookings'),
+            modal.querySelector('#close-all-bookings-bottom')
+        ];
+        
+        closeButtons.forEach(btn => {
+            if (btn) {
+                btn.addEventListener('click', closeModal);
+            }
+        });
+        
+        // Fermer en appuyant sur Échap
+        document.addEventListener('keydown', function handleEsc(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', handleEsc);
+            }
+        });
+        
+        // Fermer en cliquant en dehors de la modale
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+        
+        // Ajouter la modale au DOM
+        document.body.appendChild(modal);
+        
+        // Donner le focus au premier élément interactif pour l'accessibilité
+        const firstInteractive = modal.querySelector('button, [href], [tabindex]:not([tabindex="-1"])');
+        if (firstInteractive) {
+            firstInteractive.focus();
+        }
+    }
+    
+    
     // Contraste automatique (noir ou blanc selon la couleur de fond)
     function getContrastYIQ(hexcolor){
         hexcolor = hexcolor.replace('#','');
@@ -513,40 +1952,122 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Initialisation du calendrier
-    var calendarEl = document.getElementById("booking-calendar");
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: "timeGridWeek",
-        slotMinTime: '<?php echo $opening_time; ?>',
-        slotMaxTime: '<?php echo $closing_time; ?>',
-        allDaySlot: false,
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-        slotDuration: '00:30:00',
-        slotLabelFormat: { hour: 'numeric', minute: '2-digit', omitZeroMinute: false },
-        slotLabelInterval: '01:00',
-        eventTimeFormat: { hour: '2-digit', minute: '2-digit', meridiem: false },
-        locale: 'fr',
-        firstDay: 1,
-        editable: false,
-        selectable: true,
-        selectMirror: true,
-        dayMaxEventRows: 1,
-        dayMaxEvents: 5,
+    // Initialisation du calendrier FullCalendar
+    function initMainCalendar() {
+        var calendarEl = document.getElementById("booking-calendar");
+        if (!calendarEl) return;
+        
+        // Détruire le calendrier existant s'il y en a un
+        if (window.calendar) {
+            window.calendar.destroy();
+        }
+        
+        window.calendar = new FullCalendar.Calendar(calendarEl, {
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            initialView: 'dayGridMonth',
+            slotMinTime: '<?php echo $opening_time; ?>',
+            slotMaxTime: '<?php echo $closing_time; ?>',
+            allDaySlot: false,
+            dayMaxEventRows: 6,
+            dayMaxEvents: 6,
+            contentHeight: 'auto',
+            aspectRatio: 1.8,
+            expandRows: true,
+            views: {
+                dayGridMonth: {
+                    dayMaxEventRows: 6,
+                    dayMaxEvents: 6,
+                    displayEventEnd: true,
+                    eventDisplay: 'block',
+                    dayHeaderFormat: { weekday: 'short', day: 'numeric' },
+                    eventTimeFormat: { 
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    }
+                },
+                timeGridWeek: {
+                    dayMaxEventRows: 6,
+                    dayMaxEvents: 6,
+                    dayHeaderFormat: { weekday: 'short', day: 'numeric' },
+                    allDaySlot: false
+                },
+                timeGridDay: {
+                    dayMaxEventRows: 6,
+                    dayMaxEvents: 6,
+                    dayHeaderFormat: { weekday: 'long', day: 'numeric' },
+                    allDaySlot: false
+                }
+            },
+            dayHeaderClassNames: 'fc-day-header-custom',
+            slotDuration: '00:30:00',
+            slotLabelFormat: { 
+                hour: 'numeric', 
+                minute: '2-digit', 
+                omitZeroMinute: false,
+                hour12: false
+            },
+            slotLabelInterval: '01:00',
+            eventTimeFormat: { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                meridiem: false 
+            },
+            locale: 'fr',
+            firstDay: 1,
+            editable: false,
+            selectable: true,
+            selectMirror: true,
         moreLinkContent: function(args) {
             return { html: `<span class='fc-daygrid-more-link'>+${args.num}</span>` };
         },
         eventContent: function(arg) {
-            // Toutes les vues : pastille simple
-            const color = arg.event.extendedProps.employee_color || arg.event.backgroundColor || '#e9aebc';
-            const dot = document.createElement('span');
-            dot.className = 'ib-event-dot';
-            dot.style.background = color;
-            dot.title = `${arg.event.title} | ${arg.event.extendedProps.client} | ${arg.event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
-            return { domNodes: [dot] };
+            const event = arg.event;
+            const color = event.extendedProps.employee_color || event.backgroundColor || '#e9aebc';
+            const timeStr = event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            
+            // Création du conteneur de l'événement plus compact
+            const eventEl = document.createElement('div');
+            eventEl.className = 'fc-event-main';
+            eventEl.style.cssText = `
+                padding: 1px 4px;
+                margin: 1px 0;
+                border-radius: 3px;
+                font-size: 11px;
+                line-height: 1.2;
+                background: ${color}15;
+                border-left: 2px solid ${color};
+                color: #333;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            `;
+            
+            // Ajout du contenu de l'événement (heure + service)
+            eventEl.innerHTML = `
+                <span style="color: ${color}; font-weight: 600; font-size: 10px;">${timeStr}</span>
+                <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${event.title}</span>
+            `;
+            
+            // Gestion du survol
+            eventEl.onmouseenter = function() {
+                this.style.boxShadow = `0 2px 8px ${color}66`;
+                this.style.transform = 'translateX(2px)';
+            };
+            eventEl.onmouseleave = function() {
+                this.style.boxShadow = 'none';
+                this.style.transform = 'none';
+            };
+            
+            return { domNodes: [eventEl] };
         },
         eventDidMount: function(info) {
             const event = info.event;
@@ -572,18 +2093,101 @@ document.addEventListener("DOMContentLoaded", function() {
         },
         select: function(selectionInfo) {}
     });
-    calendar.render();
+    }
+    // Fonction d'initialisation alternative pour FullCalendar (si un autre élément avec id='calendar' existe)
+    function initAlternativeCalendar() {
+        // Si le calendrier principal est déjà initialisé, on ne fait rien
+        if (window.calendar) return;
+        
+        var calendarEl = document.getElementById('calendar');
+        if (!calendarEl) return;
+        
+        try {
+            // Configuration de FullCalendar
+            const altCalendar = new FullCalendar.Calendar(calendarEl, {
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                initialView: 'dayGridMonth',
+                locale: 'fr',
+                firstDay: 1, // Lundi comme premier jour de la semaine
+                height: 'auto',
+                contentHeight: 'auto',
+                dayMaxEventRows: 6,
+                dayMaxEvents: 6,
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                },
+                events: getFilteredEvents(),
+                eventDidMount: function(info) {
+                    try {
+                        const event = info.event;
+                        const eventEl = info.el;
+                        eventEl.setAttribute('tabindex', '0');
+                        eventEl.setAttribute('aria-label', `${event.title} avec ${event.extendedProps.employee} pour ${event.extendedProps.client}`);
+                        
+                        // Ajouter un tooltip avec plus d'informations
+                        eventEl.title = `${event.title}\nAvec: ${event.extendedProps.employee}\nPour: ${event.extendedProps.client}\nStatut: ${event.extendedProps.status}`;
+                    } catch (e) {
+                        console.error('Erreur dans eventDidMount:', e);
+                    }
+                },
+                eventClick: function(info) {
+                    try {
+                        showEventModal(info.event);
+                    } catch (e) {
+                        console.error('Erreur lors du clic sur l\'événement:', e);
+                    }
+                    info.jsEvent.preventDefault();
+                }
+            });
+            
+            // Rendre le calendrier
+            altCalendar.render();
+            window.calendar = altCalendar; // Rendre le calendrier accessible globalement
+            
+        } catch (e) {
+            console.error('Erreur lors de l\'initialisation du calendrier alternatif:', e);
+        }
+    }
 
-    // Initialiser le calendrier avec tous les événements par défaut
-    calendar.addEventSource(getFilteredEvents());
-
-    // Activer le chip "Tous les employés" par défaut
-    document.querySelector('.ib-employee-chip-all').classList.add('active');
+    // Activation du chip "Tous les employés" par défaut
+    const allChip = document.querySelector('.ib-employee-chip-all');
+    if (allChip) {
+        allChip.classList.add('active');
+    }
+    
+    
+    
+    // Gérer le redimensionnement de la fenêtre
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            if (window.calendar) {
+                try {
+                    window.calendar.updateSize();
+                } catch (e) {
+                    console.error('Erreur lors du redimensionnement du calendrier:', e);
+                }
+            }
+        }, 250);
+    });
 
     // Fonction pour recharger le calendrier avec les filtres
     function updateCalendar() {
-        calendar.removeAllEvents();
-        calendar.addEventSource(getFilteredEvents());
+        if (window.calendar) {
+            try {
+                window.calendar.removeAllEvents();
+                window.calendar.addEventSource(getFilteredEvents());
+            } catch (error) {
+                console.error('Erreur lors de la mise à jour du calendrier:', error);
+            }
+        }
     }
 
     // --- Filtres dynamiques ---
@@ -673,46 +2277,73 @@ document.addEventListener("DOMContentLoaded", function() {
     function closeModal() {
         document.getElementById('ib-calendar-modal').style.display = 'none';
     }
-    document.getElementById('ib-calendar-modal-close').onclick = closeModal;
-    document.getElementById('ib-calendar-modal').onclick = function(e) {
-        if (e.target === this) closeModal();
+    // Initialize modal handlers
+    const initModalHandlers = () => {
+        const modal = document.getElementById('ib-calendar-modal');
+        const closeBtn = document.getElementById('ib-calendar-modal-close');
+        
+        if (!modal || !closeBtn) return;
+        
+        closeBtn.onclick = closeModal;
+        modal.onclick = (e) => {
+            if (e.target === modal) closeModal();
+        };
     };
-    calendar.setOption('eventClick', function(info) {
-        showEventModal(info.event);
-    });
-    document.addEventListener('click', function(e) {
-        const dayCell = e.target.closest('.fc-daygrid-day-frame');
-        if (dayCell && !e.target.classList.contains('ib-event-dot')) {
+
+    // Initialize calendar event handlers
+    const initCalendarHandlers = () => {
+        if (!window.calendar) return;
+        
+        window.calendar.setOption('eventClick', (info) => {
+            showEventModal(info.event);
+        });
+        
+        // Handle day cell clicks
+        document.addEventListener('click', (e) => {
+            const dayCell = e.target.closest('.fc-daygrid-day-frame');
+            if (!dayCell || e.target.classList.contains('ib-event-dot')) return;
+            
             const dateStr = dayCell.parentElement.getAttribute('data-date');
             if (dateStr) showDayModal(dateStr);
+        });
+    };
+
+    // Initialize everything
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            // Initialisation des gestionnaires de modales
+            const modal = document.getElementById('ib-calendar-modal');
+            const closeBtn = document.getElementById('ib-calendar-modal-close');
+            
+            if (modal && closeBtn) {
+                closeBtn.onclick = closeModal;
+                modal.onclick = (e) => {
+                    if (e.target === modal) closeModal();
+                };
+            }
+
+            // Initialisation des gestionnaires
+            initCalendarHandlers();
+            
+            // Initialisation du calendrier principal
+            if (typeof initMainCalendar === 'function') {
+                initMainCalendar();
+            }
+            
+            // Initialisation alternative si nécessaire
+            if (!window.calendar && typeof initAlternativeCalendar === 'function') {
+                initAlternativeCalendar();
+            }
+        } catch (e) {
+            console.error('Erreur lors de l\'initialisation du calendrier:', e);
         }
     });
-    document.getElementById('ib-calendar-export').addEventListener('click', function() {
-        exportToCSV();
-    });
-    function exportToCSV() {
-        var data = getFilteredEvents().map(event => [
-            event.title,
-            event.extendedProps.employee,
-            event.extendedProps.client,
-            event.start,
-            event.end,
-            event.extendedProps.service,
-            event.extendedProps.notes
-        ]);
-        var csvContent = "data:text/csv;charset=utf-8,";
-       var headers = ["Service", "Employé", "Client", "Début", "Fin", "Service", "Notes"];
-        csvContent += headers.join(",") + "\n";
-        data.forEach(function(rowArray) {
-            var row = rowArray.join(",");
-            csvContent += row + "\n";
-        });
-        var encodedUri = encodeURI(csvContent);
-        var link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "planning.csv");
-        document.body.appendChild(link);
-        link.click();
-    }
-});
-</script> 
+</script>
+
+<!-- Fermeture des balises div restantes -->
+</div>
+</div>
+
+<?php
+// Fermeture de la balise PHP si nécessaire
+?>

@@ -1266,14 +1266,14 @@ body, .ib-calendar-page, .ib-calendar-content {
                 
                 // Gestion des clics pour le calendrier personnalisé
                 document.addEventListener('click', (e) => {
-                    // Clic sur un jour
+                    // Clic sur une case du calendrier (hors jours du mois précédent/suivant)
                     const dayElement = e.target.closest('.calendar-day:not(.other-month)');
-                    if (dayElement) {
+                    if (dayElement && !e.target.classList.contains('more-events')) {
                         const day = parseInt(dayElement.querySelector('.day-number').textContent);
                         const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-                        handleDayClick(dayElement, date);
+                        const dayBookings = getBookingsForDate(date);
+                        showAllBookingsForDay(dayBookings, window.employees, window.services, window.employeeColors);
                     }
-                    
                     // Clic sur "+X plus"
                     if (e.target.classList.contains('more-events')) {
                         e.stopPropagation();
@@ -1281,9 +1281,7 @@ body, .ib-calendar-page, .ib-calendar-content {
                         const day = parseInt(dayElement.querySelector('.day-number').textContent);
                         const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
                         const dayBookings = getBookingsForDate(date);
-                        if (dayBookings.length > 0) {
-                            showAllBookingsForDay(dayBookings, window.employees, window.services, window.employeeColors);
-                        }
+                        showAllBookingsForDay(dayBookings, window.employees, window.services, window.employeeColors);
                     }
                 });
                 
@@ -1641,37 +1639,38 @@ body, .ib-calendar-page, .ib-calendar-content {
         
         let bookingsHtml = '';
         sortedBookings.forEach(booking => {
-            const startDate = new Date(booking.start_time);
-            const endDate = new Date(booking.end_time);
-            const startTime = startDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-            const endTime = endDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-            
+            const startDate = booking.start_time ? new Date(booking.start_time) : null;
+            const endDate = booking.end_time ? new Date(booking.end_time) : null;
+            const startTime = startDate && !isNaN(startDate) ? startDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '?';
+            const endTime = endDate && !isNaN(endDate) ? endDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '?';
+
             // Calculer la durée
-            const durationMs = endDate - startDate;
-            const durationMins = Math.round(durationMs / 60000);
-            const duration = durationMins < 60 ? 
-                `${durationMins} min` : 
-                `${Math.floor(durationMins/60)}h${(durationMins%60).toString().padStart(2, '0')}`;
-            
+            let duration = '?';
+            if (startDate && endDate && !isNaN(startDate) && !isNaN(endDate)) {
+                const durationMs = endDate - startDate;
+                const durationMins = Math.round(durationMs / 60000);
+                duration = durationMins < 60 ? `${durationMins} min` : `${Math.floor(durationMins/60)}h${(durationMins%60).toString().padStart(2, '0')}`;
+            }
+
             // Trouver l'employé
             const employee = employees.find(emp => emp.id === booking.employee_id) || {};
-            const employeeName = employee.display_name || 'Employé inconnu';
+            const employeeName = employee.name || employee.display_name || 'Employé inconnu';
             const employeeColor = employeeColors[employee.id] || '#6c757d';
-            
+
             // Trouver le service
             const service = services.find(s => s.id === booking.service_id) || {};
             const serviceName = service.name || 'Service inconnu';
-            
+
             // Informations client
             const clientName = booking.client_name || 'Client inconnu';
-            
+
             // Déterminer la couleur et le texte du statut
             let statusInfo = {
                 text: 'Confirmé',
                 bgColor: '#e6f7ee',
                 textColor: '#0d6832'
             };
-            
+
             if (booking.status === 'completed') {
                 statusInfo = {
                     text: 'Terminé',
@@ -1691,7 +1690,7 @@ body, .ib-calendar-page, .ib-calendar-content {
                     textColor: '#e67700'
                 };
             }
-            
+
             // Construction du HTML
             bookingsHtml += `
                 <div class="booking-item" style="margin-bottom: 16px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee;">
@@ -1715,13 +1714,11 @@ body, .ib-calendar-page, .ib-calendar-content {
                                     ${statusInfo.text}
                                 </span>
                             </div>
-                            
                             <!-- Nom du service -->
                             <div style="font-weight: 500; margin: 12px 0; color: #495057; font-size: 1em;">
                                 <i class="dashicons dashicons-nametag" style="font-size: 15px; margin-right: 6px; color: #4dabf7;"></i>
                                 ${serviceName}
                             </div>
-                            
                             <!-- Informations client -->
                             <div style="font-size: 0.9em; color: #343a40; background: #f8f9fa; padding: 12px; border-radius: 6px;">
                                 <div style="display: flex; align-items: center; margin-bottom: 8px;">
@@ -1739,7 +1736,6 @@ body, .ib-calendar-page, .ib-calendar-content {
                                     <a href="mailto:${booking.client_email}" style="color: #1971c2; text-decoration: none;">${booking.client_email}</a>
                                 </div>` : ''}
                             </div>
-                            
                             <!-- Notes -->
                             ${booking.notes ? `
                             <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #eee;">
@@ -1856,31 +1852,32 @@ body, .ib-calendar-page, .ib-calendar-content {
             modal.querySelector('#close-all-bookings'),
             modal.querySelector('#close-all-bookings-bottom')
         ];
-        
         closeButtons.forEach(btn => {
             if (btn) {
-                btn.addEventListener('click', closeModal);
+                btn.addEventListener('click', () => {
+                    if (document.body.contains(modal)) {
+                        document.body.removeChild(modal);
+                    }
+                });
             }
         });
-        
         // Fermer en appuyant sur Échap
         document.addEventListener('keydown', function handleEsc(e) {
             if (e.key === 'Escape') {
-                closeModal();
+                if (document.body.contains(modal)) {
+                    document.body.removeChild(modal);
+                }
                 document.removeEventListener('keydown', handleEsc);
             }
         });
-        
         // Fermer en cliquant en dehors de la modale
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
-                closeModal();
+                if (document.body.contains(modal)) {
+                    document.body.removeChild(modal);
+                }
             }
         });
-        
-        // Ajouter la modale au DOM
-        document.body.appendChild(modal);
-        
         // Donner le focus au premier élément interactif pour l'accessibilité
         const firstInteractive = modal.querySelector('button, [href], [tabindex]:not([tabindex="-1"])');
         if (firstInteractive) {

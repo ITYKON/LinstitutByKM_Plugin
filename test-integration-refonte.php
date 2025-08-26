@@ -23,14 +23,12 @@ if (!current_user_can('manage_options')) {
 function check_integration_status() {
     $checks = [];
     
-    // 1. Vérifier que les fichiers CSS/JS existent
+    // 1. Vérifier que les fichiers CSS existent
     $css_path = plugin_dir_path(__FILE__) . 'assets/css/ib-notif-refonte.css';
-    $js_path = plugin_dir_path(__FILE__) . 'assets/js/ib-notif-refonte.js';
     $integration_path = plugin_dir_path(__FILE__) . 'includes/notifications-refonte-integration.php';
     
     $checks['files'] = [
         'css' => file_exists($css_path),
-        'js' => file_exists($js_path),
         'integration' => file_exists($integration_path)
     ];
     
@@ -347,8 +345,8 @@ if (!$integration_status['database']) $all_good = false;
     <script>
     // Test de la fonction de toggle
     function toggleNotificationPanel() {
-        if (typeof NotificationRefonte !== 'undefined') {
-            NotificationRefonte.togglePanel();
+        if (typeof testNotifications === 'function') {
+            testNotifications();
             alert('✅ Le panneau de notifications moderne fonctionne !');
         } else {
             alert('❌ Le système de notifications moderne n\'est pas encore chargé.\n\nVérifiez que :\n- Les fichiers CSS/JS sont présents\n- L\'intégration est activée\n- Vous êtes sur une page admin du plugin');

@@ -222,11 +222,8 @@ function ib_admin_assets($hook) {
         wp_enqueue_script('ib-pdf-ticket-fix', IB_PLUGIN_URL . 'assets/js/pdf-ticket-fix.js', [], '1.0-' . time(), true);
     }
     
-    // Charger le script de notifications sur TOUTES les pages d'administration
-    wp_enqueue_script('ib-ultra-simple-notification', IB_PLUGIN_URL . 'assets/js/ultra-simple-notification.js', ['jquery'], '1.0-' . time(), true);
-    
     // Localisation des variables AJAX pour le script de notification
-    wp_localize_script('ib-ultra-simple-notification', 'ib_notif_vars', array(
+    wp_localize_script('ib-ultra-notifications', 'ib_notif_vars', array(
         'ajaxurl' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('ib_notifications_nonce'),
         'admin_nonce' => wp_create_nonce('ib_admin_nonce')

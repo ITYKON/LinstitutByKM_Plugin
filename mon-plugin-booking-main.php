@@ -52,28 +52,35 @@ function ib_enqueue_admin_scripts($hook) {
         'ajaxurl' => admin_url('admin-ajax.php')
     ));
     
-    // Enqueue le script de notifications ultra-simple
-    wp_enqueue_script(
-        'ib-ultra-notifications',
-        plugins_url('assets/js/ultra-simple-notification.js', __FILE__),
-        array('jquery'),
-        '1.0.0',
-        true
-    );
-    
-    // Variables globales pour le script de notifications
-    wp_localize_script('ib-ultra-notifications', 'ib_notif_vars', array(
-        'ajaxurl' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('ib_notifications_nonce'),
-        'strings' => array(
-            'confirm_delete' => 'Êtes-vous sûr de vouloir supprimer cette notification ?',
-            'error_occurred' => 'Une erreur est survenue. Veuillez réessayer.',
-            'notification_deleted' => 'Notification supprimée',
-            'all_marked_read' => 'Toutes les notifications ont été marquées comme lues',
-            'no_notifications' => 'Aucune notification',
-            'loading' => 'Chargement...'
-        )
-    ));
+    // Enqueue le script de notifications ultra-simple uniquement si c'est une page d'administration du plugin
+    if (strpos($hook, 'institut-booking') !== false) {
+        if (!wp_script_is('ib-ultra-notifications', 'enqueued')) {
+            wp_enqueue_script(
+                'ib-ultra-notifications',
+                plugins_url('assets/js/ultra-simple-notification.js', __FILE__),
+                array('jquery'),
+                '3.0.0',
+                true
+            );
+            
+            // Variables globales pour le script de notifications
+            wp_localize_script('ib-ultra-notifications', 'ib_notif_vars', array(
+                'ajaxurl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('ib_notifications_nonce'),
+                'strings' => array(
+                    'confirm_delete' => 'Êtes-vous sûr de vouloir supprimer cette notification ?',
+                    'error_occurred' => 'Une erreur est survenue. Veuillez réessayer.',
+                    'notification_deleted' => 'Notification supprimée',
+                    'all_marked_read' => 'Toutes les notifications ont été marquées comme lues',
+                    'no_notifications' => 'Aucune notification',
+                    'loading' => 'Chargement...',
+                    'mark_read' => 'Marquer comme lu',
+                    'delete' => 'Supprimer',
+                    'archive' => 'Archiver'
+                )
+            ));
+        }
+    }
 }
 
 // Add AJAX handlers for notifications

@@ -287,36 +287,41 @@ class IB_Ajax_Notifications_Enhanced {
      * Enregistrer les assets modernes (CSS et JS)
      */
     public static function enqueue_modern_assets($hook) {
-        // Charger sur toutes les pages admin pour les notifications
-        if (!is_admin()) {
+        // Charger uniquement sur les pages d'administration du plugin
+        if (!is_admin() || !isset($_GET['page']) || strpos($_GET['page'], 'institut-booking') === false) {
             return;
         }
         
         $plugin_url = plugin_dir_url(__FILE__) . '../assets/';
-        $version = '2024.1.2-enhanced-' . time(); // Force cache refresh
+        $version = '3.0.0';
         
-        // Enregistrer le script ultra-moderne
-        wp_enqueue_script(
-            'ib-ultra-notifications',
-            $plugin_url . 'js/ultra-simple-notification.js',
-            ['jquery'],
-            $version,
-            true
-        );
+        // Enregistrer le script uniquement s'il n'est pas déjà chargé
+        if (!wp_script_is('ib-ultra-notifications', 'enqueued')) {
+            wp_enqueue_script(
+                'ib-ultra-notifications',
+                $plugin_url . 'js/ultra-simple-notification.js',
+                ['jquery'],
+                $version,
+                true
+            );
 
-        // Passer les variables nécessaires au JavaScript
-        wp_localize_script('ib-ultra-notifications', 'ib_notif_vars', [
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('ib_notifications_nonce'),
-            'strings' => [
-                'confirm_delete' => 'Êtes-vous sûr de vouloir supprimer cette notification ?',
-                'error_occurred' => 'Une erreur est survenue. Veuillez réessayer.',
-                'notification_deleted' => 'Notification supprimée',
-                'all_marked_read' => 'Toutes les notifications ont été marquées comme lues',
-                'no_notifications' => 'Aucune notification',
-                'loading' => 'Chargement...'
-            ]
-        ]);
+            // Passer les variables nécessaires au JavaScript
+            wp_localize_script('ib-ultra-notifications', 'ib_notif_vars', [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('ib_notifications_nonce'),
+                'strings' => [
+                    'confirm_delete' => 'Êtes-vous sûr de vouloir supprimer cette notification ?',
+                    'error_occurred' => 'Une erreur est survenue. Veuillez réessayer.',
+                    'notification_deleted' => 'Notification supprimée',
+                    'all_marked_read' => 'Toutes les notifications ont été marquées comme lues',
+                    'no_notifications' => 'Aucune notification',
+                    'loading' => 'Chargement...',
+                    'mark_read' => 'Marquer comme lu',
+                    'delete' => 'Supprimer',
+                    'archive' => 'Archiver'
+                ]
+            ]);
+        }
     }
 }
 

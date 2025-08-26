@@ -24,7 +24,6 @@ function quick_check() {
     
     $required_files = [
         'assets/css/ib-notif-refonte.css',
-        'assets/js/ib-notif-refonte.js',
         'includes/notifications-refonte-integration.php',
         'templates/notification-panel-refonte.php'
     ];

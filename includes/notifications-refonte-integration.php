@@ -80,26 +80,17 @@ class IB_Notifications_Refonte_Integration {
             $version
         );
         
-        // JavaScript moderne
-        wp_enqueue_script(
-            'ib-notif-refonte',
-            $plugin_url . 'js/ib-notif-refonte.js',
-            ['jquery'],
-            $version,
-            true
-        );
-        
         // JavaScript de sélection moderne
         wp_enqueue_script(
             'ib-notif-selection',
             $plugin_url . 'js/notifications-selection.js',
-            ['jquery', 'ib-notif-refonte'], // Dépend de jQuery et du script principal
+            ['jquery'], // Dépend uniquement de jQuery
             $version,
             true
         );
         
         // Variables JavaScript
-        wp_localize_script('ib-notif-refonte', 'ib_notif_vars', [
+        wp_localize_script('ib-notif-selection', 'ib_notif_vars', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('ib_notifications_nonce'),
             'settings' => [

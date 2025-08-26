@@ -115,11 +115,9 @@ function execute_quick_migration() {
         
         // 4. Vérifier que les fichiers existent
         $css_path = plugin_dir_path(__FILE__) . 'assets/css/ib-notif-refonte.css';
-        $js_path = plugin_dir_path(__FILE__) . 'assets/js/ib-notif-refonte.js';
         
         $results['files_check'] = [
             'css' => file_exists($css_path),
-            'js' => file_exists($js_path)
         ];
         
         return [

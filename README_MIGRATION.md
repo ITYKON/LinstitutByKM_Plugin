@@ -57,7 +57,6 @@ Testez la cloche 🔔 dans le header admin
 
 ### **Assets Modernes**
 - `assets/css/ib-notif-refonte.css` - Styles modernes
-- `assets/js/ib-notif-refonte.js` - JavaScript interactif
 
 ### **Backend**
 - `includes/notifications-refonte-integration.php` - Intégration AJAX

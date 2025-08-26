@@ -11,16 +11,7 @@ $company_name = get_option('ib_company_name', 'Institut Booking');
             <h1 class="ib-page-title"><?php echo esc_html($company_name); ?></h1>
         </div>
         <div class="ib-header-right">
-            <!-- Nouvelle cloche de notifications moderne -->
-            <div id="ib-notif-bell" class="ib-notif-bell ib-notif-bell-refonte">
-                <button class="ib-notif-bell-btn" aria-label="Notifications" onclick="toggleNotificationPanel()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20">
-                        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-                        <path d="m13.73 21a2 2 0 0 1-3.46 0"/>
-                    </svg>
-                    <span id="ib-notif-badge" class="ib-notif-badge ib-notif-badge-refonte" style="display:none;">0</span>
-                </button>
-            </div>
+            <!-- Espace réservé pour d'éventuels futurs éléments -->
         </div>
     </div>
     
@@ -135,48 +126,7 @@ $company_name = get_option('ib_company_name', 'Institut Booking');
     overflow-y: auto;
 }
 
-.ib-notif-bell {
-    margin-right: 4rem;
-    margin-left: 0;
-    align-items: center;
-    display: flex;
-}
-
-/* Styles pour la nouvelle cloche moderne */
-.ib-notif-bell-refonte .ib-notif-bell-btn {
-    position: relative;
-    background: none;
-    border: none;
-    color: #e9aebc;
-    cursor: pointer;
-    padding: 0.75rem;
-    border-radius: 12px;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.ib-notif-bell-refonte .ib-notif-bell-btn:hover {
-    background: #fbeff3;
-    color: #b95c8a;
-    transform: scale(1.05);
-}
-
-.ib-notif-badge-refonte {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    background: #ef4444;
-    color: white;
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 10px;
-    min-width: 18px;
-    text-align: center;
-    line-height: 1.2;
-}
+/* Espace réservé pour les styles futurs */
 
 /* Responsive */
 @media (max-width: 1024px) {
@@ -342,36 +292,52 @@ window.addEventListener('resize', function() {
     }
 });
 
-// Fonction pour ouvrir/fermer le panneau de notifications moderne
+// Fonction pour ouvrir/fermer le panneau de notifications
 function toggleNotificationPanel() {
-    if (typeof NotificationRefonte !== 'undefined') {
-        NotificationRefonte.togglePanel();
+    if (typeof testNotifications === 'function') {
+        testNotifications();
     } else {
-        console.warn('NotificationRefonte non chargé');
+        console.warn('Système de notifications non chargé');
     }
 }
 </script>
 
-<!-- Assets du nouveau système de notifications -->
-<link rel="stylesheet" href="<?php echo plugin_dir_url(dirname(__FILE__)) . 'assets/css/ib-notif-refonte.css'; ?>?v=3.0.0">
-<script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'assets/js/ib-notif-refonte.js'; ?>?v=3.0.0"></script>
+<!-- Assets du système de notifications -->
+<?php
+// Enqueue the notification script and styles
+wp_enqueue_style(
+    'ib-notif-refonte',
+    plugin_dir_url(dirname(__FILE__)) . 'assets/css/ib-notif-refonte.css',
+    [],
+    '3.0.0'
+);
 
-<script>
-// Initialisation du nouveau système de notifications
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof NotificationRefonte !== 'undefined') {
-        NotificationRefonte.init({
-            ajaxUrl: '<?php echo admin_url('admin-ajax.php'); ?>',
-            nonce: '<?php echo wp_create_nonce('ib_notifications_nonce'); ?>',
-            autoRefresh: <?php echo get_option('ib_notif_auto_refresh', true) ? 'true' : 'false'; ?>,
-            refreshInterval: <?php echo get_option('ib_notif_refresh_interval', 30000); ?>
-        });
+// Enqueue the notification script with proper dependencies
+wp_enqueue_script(
+    'ib-ultra-notifications',
+    plugin_dir_url(dirname(__FILE__)) . 'assets/js/ultra-simple-notification.js',
+    ['jquery'],
+    '3.0.0',
+    true
+);
 
-        // Charger le compteur initial
-        NotificationRefonte.updateBadge();
-    }
-});
-</script>
+// Localize script if not already done
+if (!wp_script_is('ib-ultra-notifications', 'done')) {
+    wp_localize_script('ib-ultra-notifications', 'ib_notif_vars', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('ib_notifications_nonce'),
+        'strings' => [
+            'loading' => __('Chargement...', 'institut-booking'),
+            'error' => __('Erreur de chargement', 'institut-booking'),
+            'no_notifications' => __('Aucune notification', 'institut-booking'),
+            'mark_read' => __('Marquer comme lu', 'institut-booking'),
+            'delete' => __('Supprimer', 'institut-booking'),
+            'archive' => __('Archiver', 'institut-booking'),
+            'confirm_delete' => __('Êtes-vous sûr de vouloir supprimer cette notification ?', 'institut-booking'),
+        ]
+    ]);
+}
+?>
 
 <?php
 // Inclure le nouveau panneau de notifications moderne

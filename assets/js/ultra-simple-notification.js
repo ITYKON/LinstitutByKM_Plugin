@@ -2304,9 +2304,10 @@ window.deleteGroupedEmails = function(dateGroup) {
   }
 };
 
-// Variables globales pour le mode batch
+// Variable globale pour stocker les notifications sélectionnées
+const selectedNotifications = new Set();
+// Variable pour suivre l'état du mode batch
 let isBatchMode = false;
-let selectedNotifications = new Set();
 
 // Gestionnaire de clic sur une notification
 function setupNotificationClickHandler() {
@@ -2347,7 +2348,7 @@ function setupBatchMode() {
     if ($item.data('grouped')) return; // Ignorer les emails groupés
     
     pressTimer = setTimeout(() => {
-      isBatchMode = true;
+      window.isBatchMode = true;
       const id = $item.data('notification-id');
       if (id) {
         selectedNotifications.add(id);
@@ -2368,7 +2369,7 @@ function setupBatchMode() {
     if ($item.data('grouped')) return;
     
     pressTimer = setTimeout(() => {
-      isBatchMode = true;
+      window.isBatchMode = true;
       const id = $item.data('notification-id');
       if (id) {
         selectedNotifications.add(id);
@@ -2385,7 +2386,7 @@ function setupBatchMode() {
 
   // Clic simple pour sélectionner/désélectionner en mode batch
   $(document).on('click', '.notification-item', function(e) {
-    if (!isBatchMode || $(this).data('grouped')) return;
+    if (!window.isBatchMode || $(this).data('grouped')) return;
     
     e.preventDefault();
     e.stopPropagation();
@@ -2633,7 +2634,7 @@ function updateBatchCount() {
     $('#batch-count').text(count);
   }
   
-  if (count === 0 && isBatchMode) {
+  if (count === 0 && window.isBatchMode) {
     console.log('🔄 Aucune sélection, sortie du mode batch');
     exitBatchMode();
   }
@@ -2642,7 +2643,7 @@ function updateBatchCount() {
 // Fonction pour sortir du mode batch
 window.exitBatchMode = function() {
   const $ = jQuery;
-  isBatchMode = false;
+  window.isBatchMode = false;
   selectedNotifications.clear();
   $('.notification-item').removeClass('selected');
   $('#batch-bar').css({
@@ -3109,11 +3110,52 @@ window.testNewConfirmed = () => addNewNotification("confirmed");
 window.testNewCancelled = () => addNewNotification("cancelled");
 window.testNewReminder = () => addNewNotification("reminder");
 
-// Démarrer l'initialisation
+// Vérifier si nous sommes sur une page d'administration
+function isAdminPage() {
+  return window.location.pathname.includes('wp-admin') || 
+         document.body.classList.contains('wp-admin') ||
+         document.body.classList.contains('admin-bar') ||
+         window.location.search.includes('page=institut-booking');
+}
+
+// Vérifier si l'élément de notification existe
+function notificationElementExists() {
+  return document.querySelector('.notification-bell, #notification-bell, [data-notification-bell]') !== null;
+}
+
+// Fonction pour initialiser les notifications de manière sécurisée
+function safeInitNotifications() {
+  // Vérifier si nous sommes sur une page d'administration
+  if (!isAdminPage()) {
+    console.log("ℹ️ Page non-administrative, initialisation des notifications ignorée");
+    return;
+  }
+
+  console.log("🔍 Vérification de l'environnement...");
+  
+  // Créer directement la cloche au lieu d'attendre qu'elle existe
+  if (!notificationElementExists()) {
+    console.log("🔔 Création de la cloche de notification...");
+    createBell();
+  }
+  
+  // Vérifier si jQuery est disponible
+  if (typeof jQuery === 'undefined') {
+    console.log("⏳ En attente de jQuery...");
+    setTimeout(safeInitNotifications, 100);
+    return;
+  }
+
+  console.log("✅ Initialisation du système de notifications...");
+  initNotifications();
+}
+
+// Démarrer l'initialisation de manière sécurisée
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", waitForJQuery);
+  document.addEventListener("DOMContentLoaded", safeInitNotifications);
 } else {
-  waitForJQuery();
+  // Si le DOM est déjà chargé, attendre un peu pour s'assurer que tout est prêt
+  setTimeout(safeInitNotifications, 100);
 }
 
 console.log("🎯 Script ultra-moderne chargé avec base de données !");

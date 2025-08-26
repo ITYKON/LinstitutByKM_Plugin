@@ -13,7 +13,6 @@ echo "<div style='font-family: monospace; background: #f0f0f0; padding: 20px; bo
 echo "<h3>🔍 Étape 1 : Vérification des fichiers</h3>";
 $files_check = [
     'assets/css/ib-notif-refonte.css' => file_exists('assets/css/ib-notif-refonte.css'),
-    'assets/js/ib-notif-refonte.js' => file_exists('assets/js/ib-notif-refonte.js'),
     'includes/notifications-refonte-integration.php' => file_exists('includes/notifications-refonte-integration.php'),
     'templates/notification-panel-refonte.php' => file_exists('templates/notification-panel-refonte.php'),
     'admin/layout.php' => file_exists('admin/layout.php')

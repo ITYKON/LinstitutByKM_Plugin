@@ -53,7 +53,6 @@ Refonte complète du système de notifications pour le plugin Institut Booking, 
 
 ```
 assets/css/ib-notif-refonte.css          # Styles modernes
-assets/js/ib-notif-refonte.js            # JavaScript interactif
 templates/notification-panel-refonte.php  # Template PHP
 includes/notifications-refonte-integration.php # Intégration backend
 ```
@@ -81,16 +80,16 @@ includes/notifications-refonte-integration.php # Intégration backend
 
 ```javascript
 // Initialisation
-NotificationRefonte.init();
+// Le système de notifications s'initialise automatiquement au chargement de la page
 
 // Actions programmatiques
-NotificationRefonte.openPanel();
-NotificationRefonte.loadNotifications();
-NotificationRefonte.markAsRead(id);
-NotificationRefonte.deleteNotification(id);
+testNotifications(); // Ouvre/ferme le panneau de notifications
+refreshNotifications(); // Recharge les notifications
+markAsRead(notificationId); // Marque une notification comme lue
 
-// Événements
-$(document).on('notificationRefonte:ready', handler);
+// Fonctions de débogage (disponibles dans la console)
+debugNotifications(); // Affiche les informations de débogage complètes
+testAjaxVars(); // Vérifie les variables AJAX
 $(document).on('notification:added', handler);
 $(document).on('notification:deleted', handler);
 ```

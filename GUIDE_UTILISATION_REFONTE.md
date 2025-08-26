@@ -14,7 +14,6 @@ Après avoir modifié le fichier `admin/layout.php`, suivez ces étapes :
 
 ✅ **Fichiers requis :**
 - `assets/css/ib-notif-refonte.css`
-- `assets/js/ib-notif-refonte.js`
 - `includes/notifications-refonte-integration.php`
 - `templates/notification-panel-refonte.php`
 
@@ -187,7 +186,7 @@ error_log("IB Notifications: {$counts['unread']} non lues");
 #### 1. Panneau ne s'ouvre pas
 ```javascript
 // Vérifier dans la console
-console.log(typeof NotificationRefonte); // Doit retourner 'object'
+console.log(typeof testNotifications); // Doit retourner 'function'
 
 // Solutions :
 // - Vider le cache du navigateur

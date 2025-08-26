@@ -10,7 +10,6 @@ Votre système de notifications a été **entièrement migré** vers la version 
 
 ### ✅ **Fichiers créés et configurés :**
 - `assets/css/ib-notif-refonte.css` - Styles modernes
-- `assets/js/ib-notif-refonte.js` - JavaScript interactif
 - `includes/notifications-refonte-integration.php` - Backend AJAX
 - `templates/notification-panel-refonte.php` - Template moderne
 

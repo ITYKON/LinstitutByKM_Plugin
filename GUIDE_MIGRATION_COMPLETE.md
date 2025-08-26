@@ -52,7 +52,6 @@ Pour les utilisateurs expérimentés qui veulent contrôler chaque étape :
 ```bash
 # Vérifiez que ces fichiers existent :
 assets/css/ib-notif-refonte.css
-assets/js/ib-notif-refonte.js
 includes/notifications-refonte-integration.php
 templates/notification-panel-refonte.php
 ```
@@ -140,7 +139,6 @@ SELECT COUNT(*) FROM wp_ib_notifications WHERE status = 'unread';
 ```bash
 # Vérifier que les assets sont chargés
 curl -I https://votre-site.com/wp-content/plugins/institut-booking/assets/css/ib-notif-refonte.css
-curl -I https://votre-site.com/wp-content/plugins/institut-booking/assets/js/ib-notif-refonte.js
 ```
 
 #### Options WordPress
@@ -162,10 +160,10 @@ var_dump(get_option('ib_notif_refonte_version'));
 **Solutions :**
 ```javascript
 // Vérifier dans la console du navigateur
-console.log(typeof NotificationRefonte); // Doit retourner 'object'
+console.log(typeof testNotifications); // Doit retourner 'function'
 
 // Si undefined, vérifier :
-// 1. Que le fichier JS est bien chargé
+// 1. Que le fichier ultra-simple-notification.js est bien chargé
 // 2. Qu'il n'y a pas d'erreurs JS
 // 3. Que l'initialisation s'est bien faite
 ```

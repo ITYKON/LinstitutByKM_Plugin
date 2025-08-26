@@ -30,24 +30,36 @@ foreach ($notifications_all as $notif) {
     }
 }
 
-// Enregistrer les assets modernes
+// Enregistrer le style moderne
 wp_enqueue_style('ib-notif-refonte', plugin_dir_url(__FILE__) . '../assets/css/ib-notif-refonte.css', [], '3.0.0');
-wp_enqueue_script('ib-notif-refonte', plugin_dir_url(__FILE__) . '../assets/js/ib-notif-refonte.js', ['jquery'], '3.0.0', true);
 
-// Variables JavaScript
-wp_localize_script('ib-notif-refonte', 'ib_notif_vars', [
-    'ajax_url' => admin_url('admin-ajax.php'),
-    'nonce' => wp_create_nonce('ib_notifications_nonce'),
-    'strings' => [
-        'loading' => __('Chargement...', 'institut-booking'),
-        'error' => __('Erreur de chargement', 'institut-booking'),
-        'no_notifications' => __('Aucune notification', 'institut-booking'),
-        'mark_read' => __('Marquer comme lu', 'institut-booking'),
-        'delete' => __('Supprimer', 'institut-booking'),
-        'archive' => __('Archiver', 'institut-booking'),
-        'confirm_delete' => __('Êtes-vous sûr de vouloir supprimer cette notification ?', 'institut-booking'),
-    ]
-]);
+// Ensure the script is only enqueued once and properly initialized
+if (!wp_script_is('ib-ultra-notifications', 'enqueued')) {
+    wp_enqueue_script(
+        'ib-ultra-notifications',
+        plugin_dir_url(__FILE__) . '../assets/js/ultra-simple-notification.js',
+        ['jquery'],
+        '3.0.0',
+        true
+    );
+}
+
+// Localize script if not already done
+if (!wp_script_is('ib-ultra-notifications', 'done')) {
+    wp_localize_script('ib-ultra-notifications', 'ib_notif_vars', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('ib_notifications_nonce'),
+        'strings' => [
+            'loading' => __('Chargement...', 'institut-booking'),
+            'error' => __('Erreur de chargement', 'institut-booking'),
+            'no_notifications' => __('Aucune notification', 'institut-booking'),
+            'mark_read' => __('Marquer comme lu', 'institut-booking'),
+            'delete' => __('Supprimer', 'institut-booking'),
+            'archive' => __('Archiver', 'institut-booking'),
+            'confirm_delete' => __('Êtes-vous sûr de vouloir supprimer cette notification ?', 'institut-booking'),
+        ]
+    ]);
+}
 ?>
 
 

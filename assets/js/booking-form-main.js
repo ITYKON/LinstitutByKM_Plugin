@@ -731,7 +731,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
             </svg>
           </div>
           <div class="ticket-success-badge">Réservation confirmée</div>
-          <div class="ticket-success-message">Merci pour votre réservation !<br>Un email de confirmation vous a été envoyé.</div>
+          <div class="ticket-success-message">Réservation enregistrée<br>Merci pour votre réservation !<br>Nous vous contacterons prochainement<br>pour confirmer votre rendez-vous.</div>
           <div class="ticket-details">
             <div>
               <span class="ticket-label">Service</span>
@@ -925,7 +925,7 @@ window.scrollToProgressBar = function(callback, delay = 300) {
                     }px; font-weight: bold;">✓</div>
                         </div>
                         <div style="background: #374151; color: #ffffff; padding: 8px 15px; border-radius: 6px; font-weight: 600; text-align: center; margin: 10px 0; font-size: ${titleFontSize}px;">Réservation confirmée</div>
-                        <div style="text-align: center; color: #374151; margin: 10px 0; font-size: ${fontSize}px; line-height: 1.3;">Merci pour votre réservation !<br>Un email de confirmation vous a été envoyé.</div>
+                        <div style="text-align: center; color: #374151; margin: 10px 0; font-size: ${fontSize}px; line-height: 1.5;">Réservation enregistrée<br>Merci pour votre réservation !<br>Nous vous contacterons prochainement<br>pour confirmer votre rendez-vous.</div>
                         <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px; margin: 15px 0;">
                           <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e5e7eb;"><span style="font-weight: 600; color: #374151; font-size: ${fontSize}px;">Service</span><span style="color: #111827; font-size: ${fontSize}px;">${getServiceName()}</span></div>
                           <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e5e7eb;"><span style="font-weight: 600; color: #374151; font-size: ${fontSize}px;">Praticienne</span><span style="color: #111827; font-size: ${fontSize}px;">${getEmployeeName()}</span></div>

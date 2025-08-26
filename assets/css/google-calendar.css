@@ -1,0 +1,526 @@
+/* Google Calendar Style - Clean Version */
+:root {
+  /* Couleurs principales */
+  --primary: #1a73e8;
+  --primary-light: #e8f0fe;
+  --text: #3c4043;
+  --text-light: #5f6368;
+  --border: #dadce0;
+  --background: #fff;
+  --hover: #f1f3f4;
+  --today: #e8f0fe;
+  --border-radius: 4px;
+}
+
+/* Conteneur principal */
+.google-calendar-container {
+  font-family: 'Google Sans', Roboto, Arial, sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  height: calc(100vh - 100px);
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
+  margin: 16px;
+  overflow: hidden;
+}
+
+/* En-tête */
+.google-calendar-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.google-calendar-title h1 {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+}
+
+/* Barre d'outils */
+.toolbar-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.toolbar-actions.right {
+  margin-left: auto;
+}
+
+/* Boutons */
+.google-button {
+  background: var(--background);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--border-radius);
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.google-button.primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+}
+
+.google-button:hover {
+  background: var(--hover);
+}
+
+.google-button.primary:hover {
+  background: #1557b0;
+}
+
+/* Calendrier FullCalendar */
+.fc {
+  flex: 1;
+  background: var(--background);
+}
+
+/* En-tête */
+.fc-header-toolbar {
+  margin: 0;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.fc-toolbar-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* Boutons de navigation */
+.fc-button {
+  background: var(--background);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 8px;
+  height: 32px;
+  min-width: 32px;
+}
+
+.fc-button-primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+}
+
+/* En-têtes de colonnes */
+.fc-col-header {
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
+}
+
+.fc-col-header-cell {
+  padding: 8px 0;
+  border-right: 1px solid var(--border);
+}
+
+.fc-col-header-cell:last-child {
+  border-right: none;
+}
+
+.fc-col-header-cell-cushion {
+  color: var(--text-light);
+  font-size: 12px;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+/* Cellules du calendrier */
+.fc-daygrid-day {
+  border: 1px solid var(--border);
+}
+
+.fc-day-today {
+  background: var(--today) !important;
+}
+
+.fc-daygrid-day-number {
+  color: var(--text);
+  padding: 4px;
+  font-size: 13px;
+}
+
+.fc-day-today .fc-daygrid-day-number {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* Événements */
+.fc-event {
+  border: none;
+  border-left: 4px solid var(--primary);
+  background: var(--primary-light);
+  color: var(--text);
+  margin: 1px 4px;
+  padding: 4px 6px;
+  font-size: 12px;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  line-height: 1.3;
+}
+
+.fc-event-time {
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+/* Couleurs des employés */
+.fc-event[data-employee-color="1"] { border-left-color: #4f8cff; }
+.fc-event[data-employee-color="2"] { border-left-color: #00c48c; }
+.fc-event[data-employee-color="3"] { border-left-color: #ffb300; }
+.fc-event[data-employee-color="4"] { border-left-color: #ff4f64; }
+.fc-event[data-employee-color="5"] { border-left-color: #7c3aed; }
+.fc-event[data-employee-color="6"] { border-left-color: #ff6f00; }
+.fc-event[data-employee-color="7"] { border-left-color: #00bcd4; }
+.fc-event[data-employee-color="8"] { border-left-color: #8bc34a; }
+.fc-event[data-employee-color="9"] { border-left-color: #e67e22; }
+.fc-event[data-employee-color="10"] { border-left-color: #e84393; }
+
+/* Responsive */
+@media (max-width: 992px) {
+  .google-calendar-container {
+    height: 80vh;
+    margin: 8px;
+  }
+  
+  .fc-toolbar {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .fc-toolbar-chunk {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .toolbar-actions {
+    flex-wrap: wrap;
+  }
+}
+
+.google-button.primary:hover {
+  background: #1557b0;
+}
+
+/* Mode sombre */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #e0e0e0;
+    --text-light: #a0a0a0;
+    --border: #444;
+    --background: #2d2d2d;
+    --hover: #3d3d3d;
+    --today: #1a3a6a;
+  }
+  
+  .fc-button {
+    background-color: #444;
+    color: #e0e0e0;
+    border-color: #555;
+  }
+  
+  .fc-button-primary {
+    background-color: var(--primary);
+    color: white;
+  }
+}
+
+/* Icônes des boutons */
+.icon-button {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--background);
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: var(--hover);
+}
+
+/* Sélecteur de vue */
+.view-selector {
+  display: flex;
+  background: #f1f3f4;
+  border-radius: 18px;
+  padding: 4px;
+  margin: 0 16px;
+}
+
+.view-button {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 16px;
+  transition: var(--transition);
+}
+
+.view-button:hover {
+  background: rgba(32, 33, 36, 0.06);
+}
+
+.view-button.active {
+  background: #fff;
+  color: var(--primary-color);
+  box-shadow: var(--shadow-sm);
+  font-weight: 500;
+}
+
+/* Filtres */
+.filter-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.filter-group label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.google-select {
+  height: 36px;
+  padding: 0 32px 0 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--text-primary);
+  background-color: #fff;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2212%22%20height%3D%2212%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M11%205H1l5%205z%22%20fill%3D%22%235f6368%22/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  transition: var(--transition);
+}
+
+.google-select:hover {
+  border-color: #c4c7c5;
+}
+
+.google-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+  outline: none;
+}
+
+/* Conteneur du calendrier */
+#calendar {
+  flex: 1;
+  padding: 0 16px 16px;
+  overflow: hidden;
+}
+
+/* Styles FullCalendar */
+.fc {
+  --fc-border-color: var(--border-color);
+  --fc-page-bg-color: #fff;
+  --fc-today-bg-color: var(--today-bg);
+  --fc-now-indicator-color: #ea4335;
+  --fc-list-event-hover-bg-color: var(--hover-bg);
+  --fc-neutral-bg-color: #f8f9fa;
+  --fc-highlight-color: rgba(26, 115, 232, 0.1);
+  --fc-bg-event-opacity: 0.3;
+  --fc-event-border-color: var(--primary-color);
+  --fc-event-bg-color: var(--primary-color);
+  --fc-event-text-color: #fff;
+  --fc-neutral-text-color: var(--text-hint);
+  --fc-small-font-size: 0.85em;
+}
+
+/* En-têtes de colonnes */
+.fc-col-header {
+  background: #fff;
+}
+
+.fc-col-header-cell {
+  padding: 8px 0;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border: none;
+}
+
+.fc-col-header-cell-cushion {
+  color: inherit;
+  text-decoration: none;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Cellules du calendrier */
+.fc-daygrid-day {
+  padding: 4px;
+  transition: background-color 0.2s;
+}
+
+.fc-daygrid-day.fc-day-today {
+  background-color: var(--today-bg);
+}
+
+.fc-daygrid-day-number {
+  color: var(--text-primary);
+  font-weight: 500;
+  padding: 4px 8px;
+  margin: 4px;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fc-day-today .fc-daygrid-day-number {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Événements */
+.fc-event {
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 6px;
+  margin: 1px 4px;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.fc-event:hover {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.fc-event-time {
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.fc-event-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Vue semaine/jour */
+.fc-timegrid-slot {
+  height: 40px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.fc-timegrid-axis {
+  background: #fff;
+  border-right: 1px solid var(--border-color);
+}
+
+.fc-timegrid-axis-cushion {
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+/* Barre de défilement personnalisée */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  .google-calendar-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .toolbar-actions.right {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .view-selector {
+    margin: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .view-button {
+    flex: 1;
+    text-align: center;
+    padding: 6px 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .google-calendar-header {
+    padding: 0 12px;
+  }
+  
+  .google-calendar-title h1 {
+    font-size: 18px;
+  }
+  
+  .google-button span:not(.material-icons) {
+    display: none;
+  }
+  
+  .google-button {
+    padding: 8px;
+  }
+  
+  .filter-group label {
+    display: none;
+  }
+  
+  .google-select {
+    width: 100%;
+  }
+}

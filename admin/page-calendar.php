@@ -1274,19 +1274,36 @@ body, .ib-calendar-page, .ib-calendar-content {
         });
 
         function updateCalendarView() {
+            // Masquer le calendrier FullCalendar pour toutes les vues personnalisées
+            const fcContainer = document.querySelector('.ib-calendar-container');
+            if (fcContainer) fcContainer.style.display = 'none';
+
+            // Réinitialiser la classe du calendrier
+            if (calendarGrid) {
+                calendarGrid.className = 'calendar-grid';
+            }
+
             // Affiche la bonne vue selon currentView
             if (currentView === 'month') {
                 document.querySelector('.days-header').style.display = '';
-                calendarGrid.style.display = '';
-                // On affiche le calendrier mensuel
+                if (calendarGrid) {
+                    calendarGrid.style.display = '';
+                    calendarGrid.className = 'calendar-grid';
+                }
                 generateCalendar();
             } else if (currentView === 'week') {
-                document.querySelector('.days-header').style.display = '';
-                calendarGrid.style.display = '';
+                document.querySelector('.days-header').style.display = 'none';
+                if (calendarGrid) {
+                    calendarGrid.style.display = '';
+                    calendarGrid.className = 'week-view-container';
+                }
                 generateWeekCalendar();
             } else if (currentView === 'day') {
                 document.querySelector('.days-header').style.display = 'none';
-                calendarGrid.style.display = '';
+                if (calendarGrid) {
+                    calendarGrid.style.display = '';
+                    calendarGrid.className = 'calendar-grid';
+                }
                 generateDayCalendar();
             }
         }

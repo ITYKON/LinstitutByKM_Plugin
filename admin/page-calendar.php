@@ -98,6 +98,23 @@ $closing_time = get_option('ib_closing_time', '19:00');
             <!-- Les jours seront générés par JavaScript -->
         </div>
 
+        <!-- Vue semaine avec grille horaire -->
+        <div class="week-view-container" id="week-view-container" style="display: none;">
+            <div class="week-header-grid">
+                <div class="time-header-cell"></div>
+                <div class="week-day-header" data-day="0">Lun</div>
+                <div class="week-day-header" data-day="1">Mar</div>
+                <div class="week-day-header" data-day="2">Mer</div>
+                <div class="week-day-header" data-day="3">Jeu</div>
+                <div class="week-day-header" data-day="4">Ven</div>
+                <div class="week-day-header" data-day="5">Sam</div>
+                <div class="week-day-header" data-day="6">Dim</div>
+            </div>
+            <div class="week-time-grid" id="week-time-grid">
+                <!-- La grille horaire sera générée par JavaScript -->
+            </div>
+        </div>
+
         <!-- Le calendrier FullCalendar est toujours là mais masqué -->
         <div class="ib-calendar-container" style="display:none;">
             <div id="booking-calendar"></div>
@@ -194,6 +211,176 @@ $closing_time = get_option('ib_closing_time', '19:00');
     grid-template-columns: repeat(7, 1fr);
     gap: 1px;
     background: #eee;
+}
+
+/* Vue semaine avec grille horaire */
+.week-view-container {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.week-header-grid {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    background: #fff;
+    border-bottom: 1px solid #dadce0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.time-header-cell {
+    padding: 12px 8px;
+    font-size: 10px;
+    color: #5f6368;
+    text-align: center;
+    border-right: 1px solid #dadce0;
+    background: #fff;
+}
+
+.week-day-header {
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 400;
+    color: #3c4043;
+    border-right: 1px solid #dadce0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    background: #fff;
+    font-size: 11px;
+}
+
+.week-day-header:hover {
+    background: #f8f9fa;
+}
+
+.week-day-header.today {
+    background: #e8f0fe;
+    color: #1a73e8;
+    font-weight: 500;
+}
+
+.week-time-grid {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    position: relative;
+    max-height: 500px;
+    overflow-y: auto;
+    background: #fff;
+}
+
+.time-slot {
+    height: 60px;
+    border-bottom: 1px solid #f1f3f4;
+    border-right: 1px solid #dadce0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 2px 8px 0;
+    font-size: 10px;
+    color: #5f6368;
+    background: #fff;
+    position: relative;
+}
+
+.day-column {
+    height: 60px;
+    border-bottom: 1px solid #f1f3f4;
+    border-right: 1px solid #dadce0;
+    position: relative;
+    background: #fff;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.day-column:hover {
+    background: #f8f9fa;
+}
+
+.day-column.today {
+    background: #fef7e0;
+}
+
+/* Ligne de demi-heure */
+.day-column::after {
+    content: '';
+    position: absolute;
+    top: 30px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #f1f3f4;
+    z-index: 1;
+}
+
+/* Événements dans la vue semaine */
+.week-event {
+    position: absolute;
+    background: #e3f2fd;
+    border-left: 4px solid #1976d2;
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-size: 11px;
+    line-height: 1.2;
+    color: #1565c0;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    transition: all 0.2s ease;
+    overflow: hidden;
+    min-height: 20px;
+}
+
+.week-event:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+    z-index: 100;
+}
+
+.week-event-title {
+    font-weight: 600;
+    margin-bottom: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.week-event-client {
+    font-size: 10px;
+    opacity: 0.8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.week-event-time {
+    font-size: 9px;
+    opacity: 0.7;
+    margin-top: 1px;
+}
+
+/* Ligne "maintenant" */
+.now-line {
+    position: absolute;
+    left: 60px;
+    right: 0;
+    height: 2px;
+    background: #ea4335;
+    z-index: 50;
+    pointer-events: none;
+}
+
+.now-line::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    background: #ea4335;
+    border-radius: 50%;
 }
 
 /* Conteneur du jour */
@@ -1242,13 +1429,22 @@ body, .ib-calendar-page, .ib-calendar-content {
         }
     }
 
-    // Fonction utilitaire pour récupérer les réservations d'une date
+    // Fonction utilitaire pour récupérer les réservations d'une date avec filtres
     function getBookingsForDate(date) {
         const dateStr = date.toISOString().split('T')[0];
         return window.bookings.filter(booking => {
             if (!booking.start_time) return false;
             const bookingDate = new Date(booking.start_time).toISOString().split('T')[0];
-            return bookingDate === dateStr;
+            if (bookingDate !== dateStr) return false;
+
+            // Appliquer les filtres actifs
+            let matchEmp = !currentEmployee || booking.employee_id == currentEmployee;
+            let matchServ = !currentService || booking.service_id == currentService;
+            let bookingCat = (booking.category_id !== undefined && booking.category_id !== null) ? String(booking.category_id) : '';
+            let filterCat = String(currentCategory || '');
+            let matchCat = !currentCategory || bookingCat === filterCat;
+
+            return matchEmp && matchServ && matchCat;
         });
     }
 
@@ -1283,6 +1479,12 @@ body, .ib-calendar-page, .ib-calendar-content {
                 calendarGrid.className = 'calendar-grid';
             }
 
+            // Masquer toutes les vues d'abord
+            const weekContainer = document.getElementById('week-view-container');
+            if (weekContainer) {
+                weekContainer.style.display = 'none';
+            }
+
             // Affiche la bonne vue selon currentView
             if (currentView === 'month') {
                 document.querySelector('.days-header').style.display = '';
@@ -1294,8 +1496,7 @@ body, .ib-calendar-page, .ib-calendar-content {
             } else if (currentView === 'week') {
                 document.querySelector('.days-header').style.display = 'none';
                 if (calendarGrid) {
-                    calendarGrid.style.display = '';
-                    calendarGrid.className = 'week-view-container';
+                    calendarGrid.style.display = 'none';
                 }
                 generateWeekCalendar();
             } else if (currentView === 'day') {
@@ -1310,19 +1511,357 @@ body, .ib-calendar-page, .ib-calendar-content {
 
         // Génère la vue semaine
         function generateWeekCalendar() {
-            if (!calendarGrid || !monthYearElement) return;
-            calendarGrid.innerHTML = '';
+            if (!monthYearElement) return;
+
+            // Masquer la grille normale et afficher la vue semaine
+            calendarGrid.style.display = 'none';
+            const weekContainer = document.getElementById('week-view-container');
+            weekContainer.style.display = 'block';
+
             // Trouver le lundi de la semaine courante
-            const date = new Date(currentDate);
-            const dayOfWeek = date.getDay() === 0 ? 6 : date.getDay() - 1;
-            date.setDate(date.getDate() - dayOfWeek);
-            monthYearElement.textContent = 'Semaine du ' + date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+            const startDate = new Date(currentDate);
+            const dayOfWeek = startDate.getDay() === 0 ? 6 : startDate.getDay() - 1;
+            startDate.setDate(startDate.getDate() - dayOfWeek);
+
+            // Mettre à jour le titre
+            monthYearElement.textContent = 'Semaine du ' + startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            // Mettre à jour les en-têtes des jours
+            const dayHeaders = weekContainer.querySelectorAll('.week-day-header');
+            const today = new Date();
+
             for (let i = 0; i < 7; i++) {
-                const dayElement = createDayElement(date.getDate(), false);
-                calendarGrid.appendChild(dayElement);
-                date.setDate(date.getDate() + 1);
+                const currentDay = new Date(startDate);
+                currentDay.setDate(startDate.getDate() + i);
+
+                const dayHeader = dayHeaders[i];
+                const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+                dayHeader.innerHTML = `
+                    <div style="font-size: 12px; color: #70757a;">${dayNames[i]}</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-top: 2px;">${currentDay.getDate()}</div>
+                `;
+
+                // Marquer aujourd'hui
+                if (currentDay.toDateString() === today.toDateString()) {
+                    dayHeader.classList.add('today');
+                } else {
+                    dayHeader.classList.remove('today');
+                }
+
+                dayHeader.dataset.date = currentDay.toISOString().slice(0, 10);
             }
-            loadEvents();
+
+            generateWeekTimeGrid(startDate);
+            loadWeekEvents(startDate);
+        }
+
+        // Génère la grille horaire pour la vue semaine
+        function generateWeekTimeGrid(startDate) {
+            const timeGrid = document.getElementById('week-time-grid');
+            timeGrid.innerHTML = '';
+
+            // Heures de 9h à 17h
+            for (let hour = 9; hour <= 17; hour++) {
+                // Cellule de l'heure
+                const timeSlot = document.createElement('div');
+                timeSlot.className = 'time-slot';
+                timeSlot.textContent = hour.toString().padStart(2, '0') + ':00';
+                timeGrid.appendChild(timeSlot);
+
+                // Colonnes des jours pour cette heure
+                for (let day = 0; day < 7; day++) {
+                    const dayColumn = document.createElement('div');
+                    dayColumn.className = 'day-column';
+
+                    const currentDay = new Date(startDate);
+                    currentDay.setDate(startDate.getDate() + day);
+
+                    // Marquer aujourd'hui
+                    const today = new Date();
+                    if (currentDay.toDateString() === today.toDateString()) {
+                        dayColumn.classList.add('today');
+                    }
+
+                    dayColumn.dataset.date = currentDay.toISOString().slice(0, 10);
+                    dayColumn.dataset.hour = hour;
+                    dayColumn.dataset.day = day;
+
+                    timeGrid.appendChild(dayColumn);
+                }
+            }
+
+            // Ajouter la ligne "maintenant" si c'est aujourd'hui
+            addNowLine();
+        }
+
+        // Charge les événements pour la vue semaine
+        function loadWeekEvents(startDate) {
+            const timeGrid = document.getElementById('week-time-grid');
+
+            // Supprimer les événements existants
+            timeGrid.querySelectorAll('.week-event').forEach(event => event.remove());
+
+            // Grouper les événements par jour
+            const eventsByDay = {};
+
+            for (let day = 0; day < 7; day++) {
+                const currentDay = new Date(startDate);
+                currentDay.setDate(startDate.getDate() + day);
+                const dateStr = currentDay.toISOString().slice(0, 10);
+
+                const dayBookings = getBookingsForDate(currentDay);
+                eventsByDay[day] = dayBookings.map(booking => ({
+                    ...booking,
+                    date: dateStr,
+                    startMinutes: timeToMinutes(booking.start_time),
+                    endMinutes: timeToMinutes(booking.end_time)
+                }));
+            }
+
+            // Traiter les chevauchements et rendre les événements
+            Object.keys(eventsByDay).forEach(day => {
+                const dayEvents = eventsByDay[day];
+                if (dayEvents.length === 0) return;
+
+                const processedEvents = processOverlappingEvents(dayEvents);
+                processedEvents.forEach(event => {
+                    renderWeekEvent(event, parseInt(day));
+                });
+            });
+        }
+
+        // Convertit une heure en minutes
+        function timeToMinutes(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        // Traite les événements qui se chevauchent
+        function processOverlappingEvents(events) {
+            if (!events || events.length === 0) return [];
+
+            // Trier par heure de début
+            events.sort((a, b) => a.startMinutes - b.startMinutes);
+
+            // Grouper les événements qui se chevauchent
+            const groups = [];
+            const processed = new Set();
+
+            events.forEach((event, index) => {
+                if (processed.has(index)) return;
+
+                const group = [event];
+                processed.add(index);
+
+                // Trouver tous les événements qui se chevauchent
+                for (let i = index + 1; i < events.length; i++) {
+                    if (processed.has(i)) continue;
+
+                    const otherEvent = events[i];
+                    if (groupOverlapsWith(group, otherEvent)) {
+                        group.push(otherEvent);
+                        processed.add(i);
+                    }
+                }
+
+                groups.push(group);
+            });
+
+            // Calculer les positions pour chaque groupe
+            groups.forEach(group => {
+                calculateEventPositions(group);
+            });
+
+            return events;
+        }
+
+        // Vérifie si un événement chevauche avec un groupe
+        function groupOverlapsWith(group, event) {
+            return group.some(groupEvent =>
+                !(event.endMinutes <= groupEvent.startMinutes ||
+                  event.startMinutes >= groupEvent.endMinutes)
+            );
+        }
+
+        // Calcule les positions optimales pour un groupe d'événements
+        function calculateEventPositions(group) {
+            if (group.length === 1) {
+                group[0].column = 0;
+                group[0].totalColumns = 1;
+                group[0].width = 'calc(100% - 4px)';
+                group[0].left = '2px';
+                return;
+            }
+
+            // Algorithme de placement en colonnes
+            const columns = [];
+
+            group.forEach(event => {
+                let placed = false;
+
+                for (let colIndex = 0; colIndex < columns.length; colIndex++) {
+                    const column = columns[colIndex];
+                    let canPlace = true;
+
+                    for (const colEvent of column) {
+                        if (!(event.endMinutes <= colEvent.startMinutes ||
+                              event.startMinutes >= colEvent.endMinutes)) {
+                            canPlace = false;
+                            break;
+                        }
+                    }
+
+                    if (canPlace) {
+                        column.push(event);
+                        event.column = colIndex;
+                        placed = true;
+                        break;
+                    }
+                }
+
+                if (!placed) {
+                    columns.push([event]);
+                    event.column = columns.length - 1;
+                }
+            });
+
+            // Calculer les largeurs et positions
+            const totalColumns = columns.length;
+            const baseWidth = 100 / totalColumns;
+            const margin = 1;
+
+            group.forEach(event => {
+                event.totalColumns = totalColumns;
+                const width = baseWidth - margin;
+                const leftPosition = event.column * baseWidth + (margin / 2);
+
+                event.width = `${width}%`;
+                event.left = `${leftPosition}%`;
+            });
+        }
+
+        // Rend un événement dans la vue semaine
+        function renderWeekEvent(event, dayIndex) {
+            const timeGrid = document.getElementById('week-time-grid');
+
+            // Calculer la position verticale
+            const startHour = Math.floor(event.startMinutes / 60);
+            const startMin = event.startMinutes % 60;
+            const endHour = Math.floor(event.endMinutes / 60);
+            const endMin = event.endMinutes % 60;
+
+            // Position relative à 9h (première heure affichée)
+            const startOffset = (startHour - 9) * 60 + (startMin / 60) * 60;
+            const endOffset = (endHour - 9) * 60 + (endMin / 60) * 60;
+            const height = Math.max(endOffset - startOffset, 20);
+
+            // Trouver la colonne du jour
+            const dayColumns = timeGrid.querySelectorAll(`[data-day="${dayIndex}"]`);
+            if (dayColumns.length === 0) return;
+
+            // Utiliser la première colonne du jour comme référence
+            const firstColumn = dayColumns[0];
+            const columnRect = firstColumn.getBoundingClientRect();
+            const gridRect = timeGrid.getBoundingClientRect();
+
+            // Créer l'élément événement
+            const eventElement = document.createElement('div');
+            eventElement.className = 'week-event';
+
+            // Obtenir la couleur de l'employé
+            const employeeColor = window.employeeColors[event.employee_id] || '#1976d2';
+            const lightColor = lightenColor(employeeColor, 0.9);
+            const darkColor = darkenColor(employeeColor, 0.8);
+
+            eventElement.style.cssText = `
+                position: absolute;
+                top: ${startOffset}px;
+                height: ${height}px;
+                left: ${60 + dayIndex * (timeGrid.offsetWidth - 60) / 7 + parseFloat(event.left || '2px')}px;
+                width: ${(timeGrid.offsetWidth - 60) / 7 * parseFloat(event.width || '100%') / 100}px;
+                background: ${lightColor};
+                border-left-color: ${employeeColor};
+                color: ${darkColor};
+                z-index: ${10 + (event.column || 0)};
+            `;
+
+            // Contenu de l'événement
+            const showDetails = height > 30;
+            let innerHTML = `<div class="week-event-title">${event.service_name || 'Réservation'}</div>`;
+
+            if (showDetails) {
+                innerHTML += `<div class="week-event-client">${event.client_name || 'Client'}</div>`;
+                if (height > 50) {
+                    innerHTML += `<div class="week-event-time">${event.start_time} - ${event.end_time}</div>`;
+                }
+            }
+
+            eventElement.innerHTML = innerHTML;
+
+            // Gestionnaire de clic
+            eventElement.addEventListener('click', () => {
+                showEventDetails(event);
+            });
+
+            // Effets hover
+            eventElement.addEventListener('mouseenter', () => {
+                eventElement.style.boxShadow = `0 4px 12px ${employeeColor}40`;
+            });
+
+            eventElement.addEventListener('mouseleave', () => {
+                eventElement.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.12)';
+            });
+
+            timeGrid.appendChild(eventElement);
+        }
+
+        // Ajoute la ligne "maintenant"
+        function addNowLine() {
+            const timeGrid = document.getElementById('week-time-grid');
+            const existingLine = timeGrid.querySelector('.now-line');
+            if (existingLine) existingLine.remove();
+
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMin = now.getMinutes();
+
+            // Afficher seulement pendant les heures de travail
+            if (currentHour < 9 || currentHour > 17) return;
+
+            const nowLine = document.createElement('div');
+            nowLine.className = 'now-line';
+
+            const topPosition = (currentHour - 9) * 60 + (currentMin / 60) * 60;
+            nowLine.style.top = `${topPosition}px`;
+
+            timeGrid.appendChild(nowLine);
+        }
+
+        // Fonctions utilitaires pour les couleurs
+        function lightenColor(color, amount) {
+            const usePound = color[0] === '#';
+            const col = usePound ? color.slice(1) : color;
+            const num = parseInt(col, 16);
+            let r = (num >> 16) + amount * 255;
+            let g = (num >> 8 & 0x00FF) + amount * 255;
+            let b = (num & 0x0000FF) + amount * 255;
+            r = r > 255 ? 255 : r < 0 ? 0 : r;
+            g = g > 255 ? 255 : g < 0 ? 0 : g;
+            b = b > 255 ? 255 : b < 0 ? 0 : b;
+            return (usePound ? '#' : '') + (r << 16 | g << 8 | b).toString(16).padStart(6, '0');
+        }
+
+        function darkenColor(color, amount) {
+            const usePound = color[0] === '#';
+            const col = usePound ? color.slice(1) : color;
+            const num = parseInt(col, 16);
+            let r = (num >> 16) * amount;
+            let g = (num >> 8 & 0x00FF) * amount;
+            let b = (num & 0x0000FF) * amount;
+            r = Math.floor(r);
+            g = Math.floor(g);
+            b = Math.floor(b);
+            return (usePound ? '#' : '') + (r << 16 | g << 8 | b).toString(16).padStart(6, '0');
         }
 
         // Génère la vue jour
@@ -1652,6 +2191,18 @@ body, .ib-calendar-page, .ib-calendar-content {
             });
             
             container.appendChild(eventElement);
+        }
+
+        // Recharger la vue semaine si c'est la vue active
+        if (currentView === 'week') {
+            const weekContainer = document.getElementById('week-view-container');
+            if (weekContainer && weekContainer.style.display !== 'none') {
+                // Trouver le lundi de la semaine courante
+                const startDate = new Date(currentDate);
+                const dayOfWeek = startDate.getDay() === 0 ? 6 : startDate.getDay() - 1;
+                startDate.setDate(startDate.getDate() - dayOfWeek);
+                loadWeekEvents(startDate);
+            }
         }
     }
     

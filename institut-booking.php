@@ -1,4 +1,24 @@
 <?php
+// Ajout d'un intervalle cron personnalisé de 5 minutes
+add_filter('cron_schedules', function($schedules) {
+    $schedules['every_five_minutes'] = array(
+        'interval' => 300, // 5 minutes en secondes
+        'display' => __('Toutes les 5 minutes')
+    );
+    return $schedules;
+});
+
+// Planification du cron pour suppression auto des archives toutes les 5 minutes
+add_action('init', function() {
+    if (!wp_next_scheduled('ib_delete_old_archives_cron')) {
+        wp_schedule_event(time(), 'every_five_minutes', 'ib_delete_old_archives_cron');
+    }
+});
+add_action('ib_delete_old_archives_cron', function() {
+    if (class_exists('IB_Bookings')) {
+        IB_Bookings::delete_old_archives();
+    }
+});
 require_once plugin_dir_path(__FILE__) . 'includes/api-rest.php';
 /**
  * Plugin Name: Booking-plugin-KM
@@ -21,6 +41,7 @@ require_once IB_PLUGIN_DIR . 'includes/class-services.php';
 require_once IB_PLUGIN_DIR . 'includes/class-employees.php';
 require_once IB_PLUGIN_DIR . 'includes/class-bookings.php';
 require_once IB_PLUGIN_DIR . 'includes/class-clients.php';
+require_once IB_PLUGIN_DIR . 'includes/class-archives.php';
 require_once IB_PLUGIN_DIR . 'includes/class-extras.php';
 require_once IB_PLUGIN_DIR . 'includes/class-coupons.php';
 require_once IB_PLUGIN_DIR . 'includes/class-feedback.php';
@@ -34,6 +55,7 @@ require_once IB_PLUGIN_DIR . 'includes/class-availability.php';
 
 // Chargement des fichiers d'installation et de rôles
 require_once IB_PLUGIN_DIR . 'includes/install.php';
+// Appeler la mise à jour de la DB à chaque chargement admin
 require_once IB_PLUGIN_DIR . 'includes/roles.php';
 
 // Chargement des fichiers de notification
@@ -45,7 +67,8 @@ require_once IB_PLUGIN_DIR . 'includes/notifications-refonte-integration.php';
 // Chargement des fichiers admin UNIQUEMENT dans les callbacks de menu (voir plus bas)
 
 // Enregistrement des menus admin
-function ib_admin_menu() {
+function ib_admin_menu()
+{
     // SUPPRESSION de la vérification de droits
     // if (!current_user_can('administrator')) {
     //     return;
@@ -97,6 +120,22 @@ function ib_admin_menu() {
         'institut-booking-employees',
         'institut_booking_fullpage'
     );
+    add_submenu_page(
+        'institut-booking',
+        __('Archives', 'institut-booking'),
+        __('Archives', 'institut-booking'),
+        'read',
+        'institut-booking-archives',
+        // 'ib_page_archives_callback'
+        'institut_booking_fullpage'
+    );
+    // Callback pour afficher la page Archives
+    if (!function_exists('institut_booking_fullpage')) {
+        function ib_page_archives_callback()
+        {
+            include IB_PLUGIN_DIR . 'admin/page-archives.php';
+        }
+    }
 
     add_submenu_page(
         'institut-booking',
@@ -109,8 +148,8 @@ function ib_admin_menu() {
 
     add_submenu_page(
         'institut-booking',
-    __('Clientes', 'institut-booking'),
-    __('Clientes', 'institut-booking'),
+        __('Clientes', 'institut-booking'),
+        __('Clientes', 'institut-booking'),
         'read',
         'institut-booking-clients',
         'institut_booking_fullpage'
@@ -209,35 +248,36 @@ function ib_admin_menu() {
 add_action('admin_menu', 'ib_admin_menu');
 
 // Enregistrement des assets admin consolidés
-function ib_admin_assets($hook) {
+function ib_admin_assets($hook)
+{
     // Charger les styles uniquement sur les pages du plugin
     if (strpos($hook, 'institut-booking') !== false) {
         // Enregistrement des styles
         wp_enqueue_style('ib-admin-style', IB_PLUGIN_URL . 'assets/css/admin-style.css', [], '1.0');
         wp_enqueue_style('dashicons');
         wp_enqueue_style('wp-color-picker');
-        
+
         // Scripts spécifiques aux pages du plugin
         wp_enqueue_script('ib-pdf-ticket-fix', IB_PLUGIN_URL . 'assets/js/pdf-ticket-fix.js', [], '1.0-' . time(), true);
     }
-    
+
     // Charger le script de notifications sur TOUTES les pages d'administration
     wp_enqueue_script('ib-ultra-simple-notification', IB_PLUGIN_URL . 'assets/js/ultra-simple-notification.js', ['jquery'], '1.0-' . time(), true);
-    
+
     // Localisation des variables AJAX pour le script de notification
     wp_localize_script('ib-ultra-simple-notification', 'ib_notif_vars', array(
         'ajaxurl' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('ib_notifications_nonce'),
         'admin_nonce' => wp_create_nonce('ib_admin_nonce')
     ));
-    
+
     // Localisation des variables AJAX pour le script admin
     wp_localize_script('ib-admin-script', 'IBAdminVars', array(
         'ajaxurl' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('ib_notif_bell'),
         'admin_nonce' => wp_create_nonce('ib_admin_nonce')
     ));
-    
+
     // Ajout des dépendances pour les datepickers et colorpickers
     wp_enqueue_script('jquery-ui-datepicker');
     wp_enqueue_script('wp-color-picker');
@@ -245,7 +285,8 @@ function ib_admin_assets($hook) {
 add_action('admin_enqueue_scripts', 'ib_admin_assets');
 
 // Shortcode du formulaire de réservation
-function ib_booking_form_shortcode() {
+function ib_booking_form_shortcode()
+{
     // Empêcher la mise en cache de la page du formulaire pour éviter les nonces périmés
     if (!headers_sent()) {
         nocache_headers();
@@ -263,26 +304,27 @@ register_activation_hook(__FILE__, 'ib_install_plugin');
 add_action('wp_ajax_get_available_slots', 'handle_get_available_slots');
 add_action('wp_ajax_nopriv_get_available_slots', 'handle_get_available_slots');
 
-function handle_get_available_slots() {
+function handle_get_available_slots()
+{
     // Ne pas bloquer sur le nonce pour éviter les problèmes de pages mises en cache
     // if (isset($_POST['nonce']) && !wp_verify_nonce($_POST['nonce'], 'ib_nonce')) { wp_send_json_error(['message' => 'Nonce invalide'], 403); }
-    
+
     $employee_id = isset($_POST['employee_id']) ? intval($_POST['employee_id']) : 0;
     $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
     $date = isset($_POST['date']) ? sanitize_text_field($_POST['date']) : '';
-    
+
     if (!$employee_id || !$service_id || !$date) {
         wp_send_json_error(['message' => 'Paramètres manquants']);
         return;
     }
-    
+
     $slots = IB_Availability::get_available_slots($employee_id, $service_id, $date);
-    
+
     wp_send_json_success($slots);
 }
 
 // Traitement des actions extras (WordPress-compliant)
-add_action('admin_init', function() {
+add_action('admin_init', function () {
     if (!is_admin() || !isset($_GET['page']) || $_GET['page'] !== 'institut-booking-extras') return;
     if (isset($_POST['ib_add_extra'])) {
         IB_Extras::add($_POST['service_id'], $_POST['name'], $_POST['price'], $_POST['duration']);
@@ -302,7 +344,7 @@ add_action('admin_init', function() {
 });
 
 // Traitement des actions coupons (WordPress-compliant)
-add_action('admin_init', function() {
+add_action('admin_init', function () {
     if (!is_admin() || !isset($_GET['page']) || $_GET['page'] !== 'institut-booking-coupons') return;
     if (isset($_POST['ib_add_coupon'])) {
         IB_Coupons::add($_POST['code'], $_POST['discount'], $_POST['type'], $_POST['usage_limit'], $_POST['valid_from'], $_POST['valid_to']);
@@ -322,7 +364,7 @@ add_action('admin_init', function() {
 });
 
 // Traitement des actions catégories (WordPress-compliant)
-add_action('admin_init', function() {
+add_action('admin_init', function () {
     if (!is_admin() || !isset($_GET['page']) || $_GET['page'] !== 'institut-booking-categories') return;
     global $wpdb;
     if (isset($_POST['ib_add_category'])) {
@@ -345,7 +387,7 @@ add_action('admin_init', function() {
 
 
 // Traitement des actions notifications (WordPress-compliant)
-add_action('admin_init', function() {
+add_action('admin_init', function () {
     if (!isset($_GET['page']) || $_GET['page'] !== 'institut-booking-notifications') return;
     if (isset($_POST['save_notifications'])) {
         update_option('ib_notify_client_confirm', wp_kses_post($_POST['notify_client_confirm']));
@@ -361,7 +403,7 @@ add_action('admin_init', function() {
 });
 
 // Traitement des actions notifications avancées (WordPress-compliant)
-add_action('admin_init', function() {
+add_action('admin_init', function () {
     if (!isset($_GET['page']) || $_GET['page'] !== 'institut-booking-notifications-advanced') return;
     if (isset($_POST['ib_save_notifications_advanced'])) {
         update_option('ib_push_enable', isset($_POST['ib_push_enable']) ? 1 : 0);
@@ -375,7 +417,7 @@ add_action('admin_init', function() {
 });
 
 // Traitement des actions SMS (WordPress-compliant)
-add_action('admin_init', function() {
+add_action('admin_init', function () {
     if (!isset($_GET['page']) || $_GET['page'] !== 'institut-booking-sms') return;
     if (isset($_POST['save_sms'])) {
         update_option('ib_twilio_sid', sanitize_text_field($_POST['twilio_sid']));
@@ -387,7 +429,7 @@ add_action('admin_init', function() {
 });
 
 // Traitement des actions synchronisation calendrier (WordPress-compliant)
-add_action('admin_init', function() {
+add_action('admin_init', function () {
     if (!isset($_GET['page']) || $_GET['page'] !== 'institut-booking-calendar-sync') return;
     if (isset($_POST['ib_save_calendar_sync'])) {
         update_option('ib_gcal_client_id', sanitize_text_field($_POST['ib_gcal_client_id']));
@@ -400,7 +442,7 @@ add_action('admin_init', function() {
 });
 
 // Traitement des actions feedback (WordPress-compliant)
-add_action('admin_init', function() {
+add_action('admin_init', function () {
     if (!isset($_GET['page']) || $_GET['page'] !== 'ib-feedback') return;
     if (isset($_GET['delete'])) {
         IB_Feedback::delete((int)$_GET['delete']);
@@ -415,7 +457,7 @@ add_action('admin_init', function() {
 });
 
 // Traitement des actions réceptionniste (WordPress-compliant)
-add_action('admin_init', function() {
+add_action('admin_init', function () {
     if (!isset($_GET['page']) || $_GET['page'] !== 'institut-booking-receptionist') return;
     if (isset($_POST['add_booking'])) {
         IB_Bookings::add([
@@ -437,7 +479,8 @@ add_action('admin_init', function() {
 });
 
 // Enqueue scripts and styles for the booking form on the frontend
-function ib_enqueue_booking_form_assets() {
+function ib_enqueue_booking_form_assets()
+{
     // Only enqueue on pages where the shortcode is present (optional: optimize if needed)
     wp_enqueue_style('ib-frontend-style', IB_PLUGIN_URL . 'assets/css/admin-style.css', [], '1.0');
 
@@ -450,7 +493,7 @@ function ib_enqueue_booking_form_assets() {
 
     // SCRIPT FIX PDF POUR LES TICKETS (frontend)
     wp_enqueue_script('ib-pdf-ticket-fix-frontend', IB_PLUGIN_URL . 'assets/js/pdf-ticket-fix.js', [], '1.0-' . time(), true);
-    
+
     // Inject ajaxurl and nonce for frontend
     wp_localize_script('ib-frontend-script', 'ib_booking_form_vars', array(
         'ajaxurl' => admin_url('admin-ajax.php'),
@@ -460,7 +503,8 @@ function ib_enqueue_booking_form_assets() {
 add_action('wp_enqueue_scripts', 'ib_enqueue_booking_form_assets');
 
 // ROUTER WEB APP
-function institut_booking_fullpage() {
+function institut_booking_fullpage()
+{
     // Autoriser administrateurs, réceptionnistes, praticiennes et employés
     $user = wp_get_current_user();
     $allowed_roles = ['administrator', 'receptionist', 'ib_employee', 'employee'];
@@ -510,6 +554,9 @@ function institut_booking_fullpage() {
             break;
         case 'extras':
             include IB_PLUGIN_DIR . 'admin/page-extras.php';
+            break;
+        case 'archives':
+            include IB_PLUGIN_DIR . 'admin/page-archives.php';
             break;
         case 'coupons':
             include IB_PLUGIN_DIR . 'admin/page-coupons.php';
@@ -563,7 +610,8 @@ function institut_booking_fullpage() {
 add_action('wp_ajax_add_booking', 'handle_add_booking');
 add_action('wp_ajax_nopriv_add_booking', 'handle_add_booking');
 
-function handle_add_booking() {
+function handle_add_booking()
+{
     check_ajax_referer('ib_nonce', 'nonce');
     $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
     $employee_id = isset($_POST['employee_id']) ? intval($_POST['employee_id']) : 0;
@@ -583,7 +631,11 @@ function handle_add_booking() {
     // Contrôle anti-doublon
     $exists = $wpdb->get_var($wpdb->prepare(
         "SELECT COUNT(*) FROM $table WHERE service_id = %d AND employee_id = %d AND date = %s AND start_time = %s AND client_email = %s",
-        $service_id, $employee_id, $date, $start_time, $email
+        $service_id,
+        $employee_id,
+        $date,
+        $start_time,
+        $email
     ));
     if ($exists > 0) {
         wp_send_json_error(['message' => 'Réservation déjà enregistrée pour ce créneau.']);
@@ -643,7 +695,7 @@ function handle_add_booking() {
 
         // ENVOI EMAIL DE REMERCIEMENT UNIQUEMENT (Thank You)
         // L'email de confirmation sera envoyé uniquement quand la réservation sera validée dans le back office
-        
+
         // ENVOI EMAIL DE REMERCIEMENT (Thank You)
         require_once plugin_dir_path(__FILE__) . '/includes/notifications.php';
         IB_Notifications::send_thank_you($booking_id);
@@ -654,7 +706,8 @@ function handle_add_booking() {
 
 // === Endpoints AJAX pour la cloche de notifications premium (scroll infini, recherche, suppression, tout marquer comme lu) ===
 add_action('wp_ajax_ib_get_notifications', 'ib_get_notifications');
-function ib_get_notifications() {
+function ib_get_notifications()
+{
     // Remove nonce check for now to allow both nonce types
     check_ajax_referer('ib_notif_bell', 'nonce');
     global $wpdb;
@@ -664,10 +717,10 @@ function ib_get_notifications() {
     $limit = isset($_POST['limit']) ? max(1, intval($_POST['limit'])) : 10;
     $offset = ($page - 1) * $limit;
     $query = isset($_POST['query']) ? sanitize_text_field($_POST['query']) : '';
-    
+
     // Debug: Log the table name and user ID
     error_log('[IB Notifications] Table: ' . $table . ', User ID: ' . $user_id);
-    
+
     // Check if table exists
     $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table'");
     if (!$table_exists) {
@@ -678,7 +731,7 @@ function ib_get_notifications() {
         ]);
         return;
     }
-    
+
     // Only target admin notifications
     if ($query) {
         $sql = "SELECT * FROM $table WHERE target = %s AND (message LIKE %s) ORDER BY created_at DESC LIMIT %d OFFSET %d";
@@ -687,17 +740,17 @@ function ib_get_notifications() {
         $sql = "SELECT * FROM $table WHERE target = %s ORDER BY created_at DESC LIMIT %d OFFSET %d";
         $rows = $wpdb->get_results($wpdb->prepare($sql, 'admin', $limit, $offset));
     }
-    
+
     // Debug: Log the SQL query and results count
     error_log('[IB Notifications] SQL: ' . $wpdb->last_query);
     error_log('[IB Notifications] Found ' . count($rows) . ' notifications');
-    
+
     // Get unread count
     $unread_count = $wpdb->get_var($wpdb->prepare(
         "SELECT COUNT(*) FROM $table WHERE target = %s AND status = 'unread'",
         'admin'
     ));
-    
+
     $data = [];
     foreach ($rows as $row) {
         $data[] = [
@@ -711,9 +764,9 @@ function ib_get_notifications() {
             'avatar'  => '', // à personnaliser si besoin
         ];
     }
-    
+
     error_log('[IB Notifications] Returning data: ' . json_encode($data));
-    
+
     wp_send_json_success([
         'recent' => $data,
         'unread_count' => intval($unread_count)
@@ -721,7 +774,8 @@ function ib_get_notifications() {
 }
 
 add_action('wp_ajax_ib_mark_all_notifications_read', 'ib_mark_all_notifications_read');
-function ib_mark_all_notifications_read() {
+function ib_mark_all_notifications_read()
+{
     // Remove nonce check for now
     // check_ajax_referer('ib_notif_bell', 'nonce');
     global $wpdb;
@@ -736,7 +790,8 @@ function ib_mark_all_notifications_read() {
 }
 
 add_action('wp_ajax_ib_mark_notification_read', 'ib_mark_notification_read');
-function ib_mark_notification_read() {
+function ib_mark_notification_read()
+{
     // Remove nonce check for now
     // check_ajax_referer('ib_notif_bell', 'nonce');
     global $wpdb;
@@ -746,13 +801,15 @@ function ib_mark_notification_read() {
     // Update only admin notifications
     $wpdb->query($wpdb->prepare(
         "UPDATE $table SET status = 'read' WHERE id = %d AND target = %s",
-        $notif_id, 'admin'
+        $notif_id,
+        'admin'
     ));
     wp_send_json_success();
 }
 
 add_action('wp_ajax_ib_delete_notification', 'ib_delete_notification');
-function ib_delete_notification() {
+function ib_delete_notification()
+{
     // Remove nonce check for now
     // check_ajax_referer('ib_notif_bell', 'nonce');
     global $wpdb;
@@ -762,7 +819,8 @@ function ib_delete_notification() {
     // Delete only admin notifications
     $wpdb->query($wpdb->prepare(
         "DELETE FROM $table WHERE id = %d AND target = %s",
-        $notif_id, 'admin'
+        $notif_id,
+        'admin'
     ));
     wp_send_json_success();
 }

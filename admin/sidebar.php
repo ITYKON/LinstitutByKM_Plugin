@@ -57,7 +57,10 @@ $open_categories = ($current_page === 'institut-booking-categories') ? ' open' :
             <span class="dashicons dashicons-groups"></span>
             <span>Praticiennes</span>
         </a>
-       
+        <a href="<?php echo admin_url('admin.php?page=institut-booking-archives'); ?>" class="ib-sidebar-link custom-sidebar-link <?php echo $current_page === 'institut-booking-archives' ? 'active' : ''; ?>">
+            <span class="dashicons dashicons-calendar-alt"></span>
+            <span>Archives</span>
+        </a>
        
       
         <div class="custom-sidebar-section-title">CONFIGURATION</div>

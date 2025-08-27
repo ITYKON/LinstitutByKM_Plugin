@@ -215,16 +215,17 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
         <button type="button" id="ib-close-add-booking-modal-top" style="position:absolute;top:18px;right:18px;background:none;border:none;font-size:2em;color:#e9aebc;cursor:pointer;z-index:10;" title="Fermer">&times;</button>
         <div class="ib-form-title" style="color:#e9aebc;"><i class="dashicons dashicons-calendar-alt"></i> <span>Ajouter une réservation</span></div>
         <form method="post" class="ib-booking-form-admin">
-          <label for="add-booking-client-name">Client</label>
-          <input id="add-booking-client-name" name="client_name" required>
-          <label for="add-booking-client-email">Email</label>
-          <input id="add-booking-client-email" name="client_email" type="email" >
           <div style="width:260px;max-width:100%;margin-bottom:1.2em;">
             <label for="add-booking-client-phone">Téléphone</label>
             <div style="display:flex;align-items:center;">
               <input id="add-booking-client-phone" name="client_phone" type="tel" required placeholder="Ex: 555123456" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;">
             </div>
           </div>
+          <label for="add-booking-client-name">Client</label>
+          <input id="add-booking-client-name" name="client_name" required>
+          <label for="add-booking-client-email">Email</label>
+          <input id="add-booking-client-email" name="client_email" type="email" >
+          
           <label for="add-booking-service">Service</label>
           <select id="add-booking-service" name="service_id" required>
                 <option value="">Choisir</option>

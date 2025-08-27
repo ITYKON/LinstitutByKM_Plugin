@@ -52,6 +52,34 @@ if (!function_exists('ib_add_notification')) {
 }
 
 class IB_Bookings {
+    // Restaure une réservation archivée vers la table bookings
+    public static function restore_from_archive($archive_id) {
+        global $wpdb;
+        $archive = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}ib_bookings_archives WHERE id = %d", $archive_id));
+        if ($archive) {
+            $data = (array) $archive;
+            unset($data['id']);
+            unset($data['archived_at']);
+            $wpdb->insert($wpdb->prefix . 'ib_bookings', $data);
+            $wpdb->delete($wpdb->prefix . 'ib_bookings_archives', ['id' => $archive_id]);
+            return true;
+        }
+        return false;
+    }
+
+    // Supprime définitivement les archives de plus de 30 jours
+    public static function delete_old_archives() {
+        global $wpdb;
+        // Pour test : suppression après 5 minutes
+    $date_limit = gmdate('Y-m-d H:i:s', strtotime('-30 days'));
+        $result = $wpdb->query($wpdb->prepare(
+            "DELETE FROM {$wpdb->prefix}ib_bookings_archives WHERE archived_at < %s",
+            $date_limit
+        ));
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[IB_BOOKINGS] Suppression auto archives : ' . $result . ' lignes supprimées avant ' . $date_limit);
+        }
+    }
     public static function get_all() {
         global $wpdb;
         return $wpdb->get_results("SELECT * FROM {$wpdb->prefix}ib_bookings ORDER BY created_at DESC");
@@ -324,8 +352,26 @@ class IB_Bookings {
     public static function delete($id) {
         global $wpdb;
         $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}ib_bookings WHERE id = %d", $id));
-        $wpdb->delete("{$wpdb->prefix}ib_bookings", ['id' => intval($id)]);
         if ($booking) {
+            // Préparer les données à archiver en ne gardant que les colonnes existantes dans la table d'archives
+            $archive_table = $wpdb->prefix . 'ib_bookings_archives';
+            $columns = $wpdb->get_col("DESC $archive_table", 0);
+            $archive_data = array();
+            foreach ($columns as $col) {
+                if ($col === 'id') continue; // auto-increment
+                if ($col === 'archived_at') {
+                    // Forcer le format DATETIME UTC pour archived_at
+                    $archive_data['archived_at'] = gmdate('Y-m-d H:i:s');
+                } elseif (isset($booking->$col)) {
+                    $archive_data[$col] = $booking->$col;
+                } else {
+                    $archive_data[$col] = null;
+                }
+            }
+            $wpdb->insert($archive_table, $archive_data);
+            // Supprimer la réservation originale
+            $wpdb->delete("{$wpdb->prefix}ib_bookings", ['id' => intval($id)]);
+            // Email d'annulation
             $service = IB_Services::get_by_id($booking->service_id);
             $employee = IB_Employees::get_by_id($booking->employee_id);
             IB_Email::send_auto('cancel', [

@@ -1432,9 +1432,29 @@ body, .ib-calendar-page, .ib-calendar-content {
     // Fonction utilitaire pour récupérer les réservations d'une date avec filtres
     function getBookingsForDate(date) {
         const dateStr = date.toISOString().split('T')[0];
-        return window.bookings.filter(booking => {
-            if (!booking.start_time) return false;
-            const bookingDate = new Date(booking.start_time).toISOString().split('T')[0];
+
+        if (!window.bookings || !Array.isArray(window.bookings)) {
+            return [];
+        }
+
+        const result = window.bookings.filter(booking => {
+            if (!booking.start_time) {
+                return false;
+            }
+
+            // Essayer différents formats de date
+            let bookingDate;
+            try {
+                // Si c'est déjà au format YYYY-MM-DD
+                if (booking.start_time.includes('-') && booking.start_time.length >= 10) {
+                    bookingDate = booking.start_time.split(' ')[0]; // Prendre juste la partie date
+                } else {
+                    bookingDate = new Date(booking.start_time).toISOString().split('T')[0];
+                }
+            } catch (e) {
+                return false;
+            }
+
             if (bookingDate !== dateStr) return false;
 
             // Appliquer les filtres actifs
@@ -1446,6 +1466,8 @@ body, .ib-calendar-page, .ib-calendar-content {
 
             return matchEmp && matchServ && matchCat;
         });
+
+        return result;
     }
 
     // Variables globales
@@ -1610,12 +1632,29 @@ body, .ib-calendar-page, .ib-calendar-content {
                 const dateStr = currentDay.toISOString().slice(0, 10);
 
                 const dayBookings = getBookingsForDate(currentDay);
-                eventsByDay[day] = dayBookings.map(booking => ({
-                    ...booking,
-                    date: dateStr,
-                    startMinutes: timeToMinutes(booking.start_time),
-                    endMinutes: timeToMinutes(booking.end_time)
-                }));
+
+                eventsByDay[day] = dayBookings.map(booking => {
+                    // Extraire les heures de début et fin
+                    let startTime = booking.start_time;
+                    let endTime = booking.end_time;
+
+                    // Si c'est un datetime complet, extraire juste l'heure
+                    if (startTime && startTime.includes(' ')) {
+                        startTime = startTime.split(' ')[1];
+                    }
+                    if (endTime && endTime.includes(' ')) {
+                        endTime = endTime.split(' ')[1];
+                    }
+
+                    return {
+                        ...booking,
+                        date: dateStr,
+                        start_time_only: startTime,
+                        end_time_only: endTime,
+                        startMinutes: timeToMinutes(booking.start_time),
+                        endMinutes: timeToMinutes(booking.end_time)
+                    };
+                });
             }
 
             // Traiter les chevauchements et rendre les événements
@@ -1623,8 +1662,11 @@ body, .ib-calendar-page, .ib-calendar-content {
                 const dayEvents = eventsByDay[day];
                 if (dayEvents.length === 0) return;
 
+                console.log(`Rendu jour ${day} - ${dayEvents.length} événements`);
+
                 const processedEvents = processOverlappingEvents(dayEvents);
                 processedEvents.forEach(event => {
+                    console.log('Rendu événement:', event);
                     renderWeekEvent(event, parseInt(day));
                 });
             });
@@ -1632,8 +1674,20 @@ body, .ib-calendar-page, .ib-calendar-content {
 
         // Convertit une heure en minutes
         function timeToMinutes(timeStr) {
+            if (!timeStr) return 0;
+
+            // Si c'est un datetime complet, extraire juste l'heure
+            if (timeStr.includes(' ')) {
+                timeStr = timeStr.split(' ')[1];
+            }
+
+            // Si c'est au format ISO, extraire l'heure
+            if (timeStr.includes('T')) {
+                timeStr = timeStr.split('T')[1].split('.')[0];
+            }
+
             const [hours, minutes] = timeStr.split(':').map(Number);
-            return hours * 60 + minutes;
+            return hours * 60 + (minutes || 0);
         }
 
         // Traite les événements qui se chevauchent
@@ -1755,15 +1809,6 @@ body, .ib-calendar-page, .ib-calendar-content {
             const endOffset = (endHour - 9) * 60 + (endMin / 60) * 60;
             const height = Math.max(endOffset - startOffset, 20);
 
-            // Trouver la colonne du jour
-            const dayColumns = timeGrid.querySelectorAll(`[data-day="${dayIndex}"]`);
-            if (dayColumns.length === 0) return;
-
-            // Utiliser la première colonne du jour comme référence
-            const firstColumn = dayColumns[0];
-            const columnRect = firstColumn.getBoundingClientRect();
-            const gridRect = timeGrid.getBoundingClientRect();
-
             // Créer l'élément événement
             const eventElement = document.createElement('div');
             eventElement.className = 'week-event';
@@ -1773,26 +1818,45 @@ body, .ib-calendar-page, .ib-calendar-content {
             const lightColor = lightenColor(employeeColor, 0.9);
             const darkColor = darkenColor(employeeColor, 0.8);
 
+            // Calculer la position et taille
+            const columnWidth = `calc((100% - 60px) / 7)`;
+            const leftPosition = `calc(60px + ${dayIndex} * (100% - 60px) / 7 + ${event.left || '2px'})`;
+            const eventWidth = event.width || 'calc(100% - 4px)';
+
             eventElement.style.cssText = `
                 position: absolute;
                 top: ${startOffset}px;
                 height: ${height}px;
-                left: ${60 + dayIndex * (timeGrid.offsetWidth - 60) / 7 + parseFloat(event.left || '2px')}px;
-                width: ${(timeGrid.offsetWidth - 60) / 7 * parseFloat(event.width || '100%') / 100}px;
+                left: ${leftPosition};
+                width: ${eventWidth};
                 background: ${lightColor};
-                border-left-color: ${employeeColor};
+                border-left: 4px solid ${employeeColor};
                 color: ${darkColor};
                 z-index: ${10 + (event.column || 0)};
+                border-radius: 4px;
+                padding: 4px 6px;
+                font-size: 11px;
+                line-height: 1.2;
+                cursor: pointer;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+                transition: all 0.2s ease;
+                overflow: hidden;
+                min-height: 20px;
             `;
 
             // Contenu de l'événement
             const showDetails = height > 30;
-            let innerHTML = `<div class="week-event-title">${event.service_name || 'Réservation'}</div>`;
+            const serviceName = event.service_name || (window.services && window.services.find(s => s.id == event.service_id)?.name) || 'Réservation';
+            const clientName = event.client_name || 'Client';
+            const startTime = event.start_time_only || event.start_time;
+            const endTime = event.end_time_only || event.end_time;
+
+            let innerHTML = `<div class="week-event-title">${serviceName}</div>`;
 
             if (showDetails) {
-                innerHTML += `<div class="week-event-client">${event.client_name || 'Client'}</div>`;
+                innerHTML += `<div class="week-event-client">${clientName}</div>`;
                 if (height > 50) {
-                    innerHTML += `<div class="week-event-time">${event.start_time} - ${event.end_time}</div>`;
+                    innerHTML += `<div class="week-event-time">${startTime} - ${endTime}</div>`;
                 }
             }
 

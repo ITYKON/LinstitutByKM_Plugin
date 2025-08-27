@@ -77,6 +77,11 @@ $closing_time = get_option('ib_closing_time', '19:00');
                 <button id="today">Aujourd'hui</button>
                 <button id="next-month">&gt;</button>
             </div>
+            <div class="calendar-view-switch" style="margin-top: 10px; display: flex; gap: 10px;">
+                <button class="calendar-view-btn active" data-view="month">Mois</button>
+                <button class="calendar-view-btn" data-view="week">Semaine</button>
+                <button class="calendar-view-btn" data-view="day">Jour</button>
+            </div>
         </div>
 
         <div class="days-header">
@@ -115,9 +120,27 @@ $closing_time = get_option('ib_closing_time', '19:00');
     padding: 0;
 }
 
-/* Conteneur principal */
 .ib-calendar-page {
     width: 100%;
+/* Boutons de vue calendrier */
+.calendar-view-switch {
+    justify-content: flex-end;
+}
+.calendar-view-btn {
+    background: #f5f6fa;
+    border: none;
+    color: #888;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.calendar-view-btn.active {
+    background: #e9aebc;
+    color: #fff;
+}
     max-width: 100%;
     margin: 0;
     padding: 15px;
@@ -1238,6 +1261,62 @@ body, .ib-calendar-page, .ib-calendar-content {
     
     // Initialisation de l'application
     document.addEventListener('DOMContentLoaded', function() {
+        // Gestion des boutons de vue calendrier
+        const viewButtons = document.querySelectorAll('.calendar-view-btn');
+        let currentView = 'month';
+        viewButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                viewButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentView = btn.getAttribute('data-view');
+                updateCalendarView();
+            });
+        });
+
+        function updateCalendarView() {
+            // Affiche la bonne vue selon currentView
+            if (currentView === 'month') {
+                document.querySelector('.days-header').style.display = '';
+                calendarGrid.style.display = '';
+                // On affiche le calendrier mensuel
+                generateCalendar();
+            } else if (currentView === 'week') {
+                document.querySelector('.days-header').style.display = '';
+                calendarGrid.style.display = '';
+                generateWeekCalendar();
+            } else if (currentView === 'day') {
+                document.querySelector('.days-header').style.display = 'none';
+                calendarGrid.style.display = '';
+                generateDayCalendar();
+            }
+        }
+
+        // Génère la vue semaine
+        function generateWeekCalendar() {
+            if (!calendarGrid || !monthYearElement) return;
+            calendarGrid.innerHTML = '';
+            // Trouver le lundi de la semaine courante
+            const date = new Date(currentDate);
+            const dayOfWeek = date.getDay() === 0 ? 6 : date.getDay() - 1;
+            date.setDate(date.getDate() - dayOfWeek);
+            monthYearElement.textContent = 'Semaine du ' + date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+            for (let i = 0; i < 7; i++) {
+                const dayElement = createDayElement(date.getDate(), false);
+                calendarGrid.appendChild(dayElement);
+                date.setDate(date.getDate() + 1);
+            }
+            loadEvents();
+        }
+
+        // Génère la vue jour
+        function generateDayCalendar() {
+            if (!calendarGrid || !monthYearElement) return;
+            calendarGrid.innerHTML = '';
+            monthYearElement.textContent = currentDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const dayElement = createDayElement(currentDate.getDate(), false);
+            calendarGrid.appendChild(dayElement);
+            loadEvents();
+        }
         try {
             // Stocker les données globalement
             window.bookings = <?php echo json_encode($bookings); ?>;

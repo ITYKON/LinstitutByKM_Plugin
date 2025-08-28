@@ -1784,9 +1784,12 @@ body, .ib-calendar-page, .ib-calendar-content {
                 const dayBookings = getBookingsForDate(currentDay);
 
                 eventsByDay[day] = dayBookings.map(booking => {
+                    // Calculer l'heure de fin correcte basée sur la durée du service
+                    const calculatedEndTime = calculateEndTime(booking);
+
                     // Extraire les heures de début et fin
                     let startTime = booking.start_time;
-                    let endTime = booking.end_time;
+                    let endTime = calculatedEndTime;
 
                     // Si c'est un datetime complet, extraire juste l'heure
                     if (startTime && startTime.includes(' ')) {
@@ -1801,8 +1804,9 @@ body, .ib-calendar-page, .ib-calendar-content {
                         date: dateStr,
                         start_time_only: startTime,
                         end_time_only: endTime,
+                        calculated_end_time: calculatedEndTime,
                         startMinutes: timeToMinutes(booking.start_time),
-                        endMinutes: timeToMinutes(booking.end_time)
+                        endMinutes: timeToMinutes(calculatedEndTime || booking.end_time)
                     };
                 });
             }
@@ -1812,11 +1816,10 @@ body, .ib-calendar-page, .ib-calendar-content {
                 const dayEvents = eventsByDay[day];
                 if (dayEvents.length === 0) return;
 
-                console.log(`Rendu jour ${day} - ${dayEvents.length} événements`);
+
 
                 const processedEvents = processOverlappingEvents(dayEvents);
                 processedEvents.forEach(event => {
-                    console.log('Rendu événement:', event);
                     renderWeekEvent(event, parseInt(day));
                 });
             });
@@ -2036,14 +2039,20 @@ body, .ib-calendar-page, .ib-calendar-content {
             const serviceName = event.service_name || (window.services && window.services.find(s => s.id == event.service_id)?.name) || 'Réservation';
             const clientName = event.client_name || 'Client';
             const startTime = event.start_time_only || event.start_time;
-            const endTime = event.end_time_only || event.end_time;
+            const endTime = event.end_time_only || event.calculated_end_time || event.end_time;
+
+            // Calculer la durée pour l'affichage
+            const durationMinutes = event.endMinutes - event.startMinutes;
+            const durationText = durationMinutes < 60 ? `${durationMinutes}min` : `${Math.floor(durationMinutes/60)}h${(durationMinutes%60).toString().padStart(2, '0')}`;
 
             let innerHTML = `<div class="week-event-title">${serviceName}</div>`;
 
             if (showDetails) {
                 innerHTML += `<div class="week-event-client">${clientName}</div>`;
                 if (height > 50) {
-                    innerHTML += `<div class="week-event-time">${startTime} - ${endTime}</div>`;
+                    innerHTML += `<div class="week-event-time">${startTime} - ${endTime} (${durationText})</div>`;
+                } else if (height > 35) {
+                    innerHTML += `<div class="week-event-time">${startTime} (${durationText})</div>`;
                 }
             }
 
@@ -2200,9 +2209,12 @@ body, .ib-calendar-page, .ib-calendar-content {
 
             // Traiter les données des événements
             const dayEvents = dayBookings.map(booking => {
+                // Calculer l'heure de fin correcte basée sur la durée du service
+                const calculatedEndTime = calculateEndTime(booking);
+
                 // Extraire les heures de début et fin
                 let startTime = booking.start_time;
-                let endTime = booking.end_time;
+                let endTime = calculatedEndTime;
 
                 // Si c'est un datetime complet, extraire juste l'heure
                 if (startTime && startTime.includes(' ')) {
@@ -2216,8 +2228,9 @@ body, .ib-calendar-page, .ib-calendar-content {
                     ...booking,
                     start_time_only: startTime,
                     end_time_only: endTime,
+                    calculated_end_time: calculatedEndTime,
                     startMinutes: timeToMinutes(booking.start_time),
-                    endMinutes: timeToMinutes(booking.end_time)
+                    endMinutes: timeToMinutes(calculatedEndTime || booking.end_time)
                 };
             });
 
@@ -2285,14 +2298,20 @@ body, .ib-calendar-page, .ib-calendar-content {
             const serviceName = event.service_name || (window.services && window.services.find(s => s.id == event.service_id)?.name) || 'Réservation';
             const clientName = event.client_name || 'Client';
             const startTime = event.start_time_only || event.start_time;
-            const endTime = event.end_time_only || event.end_time;
+            const endTime = event.end_time_only || event.calculated_end_time || event.end_time;
+
+            // Calculer la durée pour l'affichage
+            const durationMinutes = event.endMinutes - event.startMinutes;
+            const durationText = durationMinutes < 60 ? `${durationMinutes}min` : `${Math.floor(durationMinutes/60)}h${(durationMinutes%60).toString().padStart(2, '0')}`;
 
             let innerHTML = `<div class="day-event-title">${serviceName}</div>`;
 
             if (showDetails) {
                 innerHTML += `<div class="day-event-client">${clientName}</div>`;
                 if (height > 60) {
-                    innerHTML += `<div class="day-event-time">${startTime} - ${endTime}</div>`;
+                    innerHTML += `<div class="day-event-time">${startTime} - ${endTime} (${durationText})</div>`;
+                } else if (height > 45) {
+                    innerHTML += `<div class="day-event-time">${startTime} (${durationText})</div>`;
                 }
             }
 

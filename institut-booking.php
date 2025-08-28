@@ -20,6 +20,7 @@ require_once IB_PLUGIN_DIR . 'includes/helpers.php';
 require_once IB_PLUGIN_DIR . 'includes/class-migrations.php';
 require_once IB_PLUGIN_DIR . 'includes/class-services.php';
 require_once IB_PLUGIN_DIR . 'includes/class-employees.php';
+require_once IB_PLUGIN_DIR . 'includes/class-employee-absences.php';
 require_once IB_PLUGIN_DIR . 'includes/class-bookings.php';
 require_once IB_PLUGIN_DIR . 'includes/class-clients.php';
 require_once IB_PLUGIN_DIR . 'includes/class-extras.php';
@@ -217,9 +218,18 @@ function ib_admin_assets($hook) {
         wp_enqueue_style('ib-admin-style', IB_PLUGIN_URL . 'assets/css/admin-style.css', [], '1.0');
         wp_enqueue_style('dashicons');
         wp_enqueue_style('wp-color-picker');
-        
+
         // Scripts spécifiques aux pages du plugin
         wp_enqueue_script('ib-pdf-ticket-fix', IB_PLUGIN_URL . 'assets/js/pdf-ticket-fix.js', [], '1.0-' . time(), true);
+
+        // Script pour le calendrier des absences sur la page employés
+        if (strpos($hook, 'employees') !== false) {
+            wp_enqueue_script('ib-absence-calendar', IB_PLUGIN_URL . 'assets/js/absence-calendar.js', ['jquery'], '1.0-' . time(), true);
+            wp_localize_script('ib-absence-calendar', 'ib_absence_ajax', [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('ib_absence_nonce')
+            ]);
+        }
     }
     
     // Localisation des variables AJAX pour le script de notification
@@ -795,3 +805,118 @@ function ib_delete_notification() {
 //         'nonce' => wp_create_nonce('ib_notif_bell')
 //     ));
 // });
+
+// Actions AJAX pour la gestion des absences
+add_action('wp_ajax_get_absences', 'ib_ajax_get_absences');
+add_action('wp_ajax_get_absence', 'ib_ajax_get_absence');
+add_action('wp_ajax_delete_absence', 'ib_ajax_delete_absence');
+
+// Action AJAX pour récupérer les praticiennes disponibles (côté client)
+add_action('wp_ajax_get_available_employees', 'ib_ajax_get_available_employees');
+add_action('wp_ajax_nopriv_get_available_employees', 'ib_ajax_get_available_employees');
+
+function ib_ajax_get_absences() {
+    check_ajax_referer('ib_absence_nonce', 'nonce');
+
+    $start_date = isset($_POST['start_date']) ? sanitize_text_field($_POST['start_date']) : '';
+    $end_date = isset($_POST['end_date']) ? sanitize_text_field($_POST['end_date']) : '';
+    $employee_id = isset($_POST['employee_id']) ? intval($_POST['employee_id']) : null;
+
+    if (!$start_date || !$end_date) {
+        wp_send_json_error('Dates manquantes');
+        return;
+    }
+
+    $absences = IB_Employee_Absences::get_by_date_range($start_date, $end_date, $employee_id);
+    wp_send_json_success($absences);
+}
+
+function ib_ajax_get_absence() {
+    check_ajax_referer('ib_absence_nonce', 'nonce');
+
+    $absence_id = isset($_POST['absence_id']) ? intval($_POST['absence_id']) : 0;
+
+    if (!$absence_id) {
+        wp_send_json_error('ID d\'absence manquant');
+        return;
+    }
+
+    $absence = IB_Employee_Absences::get_by_id($absence_id);
+    if ($absence) {
+        wp_send_json_success($absence);
+    } else {
+        wp_send_json_error('Absence introuvable');
+    }
+}
+
+function ib_ajax_delete_absence() {
+    check_ajax_referer('ib_absence_nonce', 'nonce');
+
+    $absence_id = isset($_POST['absence_id']) ? intval($_POST['absence_id']) : 0;
+
+    if (!$absence_id) {
+        wp_send_json_error('ID d\'absence manquant');
+        return;
+    }
+
+    $result = IB_Employee_Absences::delete($absence_id);
+    if ($result !== false) {
+        IB_Logs::add(get_current_user_id(), 'suppression_absence', json_encode(['absence_id' => $absence_id]));
+        wp_send_json_success('Absence supprimée avec succès');
+    } else {
+        wp_send_json_error('Erreur lors de la suppression');
+    }
+}
+
+function ib_ajax_get_available_employees() {
+    $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
+    $date = isset($_POST['date']) ? sanitize_text_field($_POST['date']) : '';
+
+    if (!$service_id) {
+        wp_send_json_error('ID de service manquant');
+        return;
+    }
+
+    // Récupérer tous les employés pour ce service
+    $service = IB_Services::get_by_id($service_id);
+    if (!$service || !isset($service->employee_ids)) {
+        wp_send_json_error('Service introuvable');
+        return;
+    }
+
+    $employee_ids = json_decode($service->employee_ids, true);
+    if (!is_array($employee_ids)) {
+        wp_send_json_error('Aucun employé assigné à ce service');
+        return;
+    }
+
+    $available_employees = [];
+
+    foreach ($employee_ids as $employee_id) {
+        $employee = IB_Employees::get_by_id($employee_id);
+        if (!$employee) continue;
+
+        // Si une date est fournie, vérifier les absences
+        if ($date) {
+            if (IB_Employee_Absences::is_employee_absent($employee_id, $date)) {
+                continue; // Employé absent, on l'exclut
+            }
+
+            // Vérifier aussi si l'employé travaille ce jour-là
+            $day = strtolower(date('l', strtotime($date)));
+            if (!IB_Employees::works_on_day($employee_id, $day)) {
+                continue; // Employé ne travaille pas ce jour
+            }
+        }
+
+        $available_employees[] = [
+            'id' => $employee->id,
+            'name' => $employee->name,
+            'email' => $employee->email,
+            'phone' => $employee->phone,
+            'photo' => $employee->photo
+        ];
+    }
+
+    wp_send_json_success($available_employees);
+}

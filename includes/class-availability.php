@@ -22,12 +22,21 @@ class IB_Availability {
 
         // Vérifier si l'employé travaille ce jour-là
         require_once plugin_dir_path(__FILE__) . '/class-employees.php';
-        
+
         if (!IB_Employees::works_on_day($employee_id, $day)) {
             error_log("❌ L'employé $employee_id ne travaille pas le $day");
             return [];
         }
         error_log("✅ L'employé $employee_id travaille le $day");
+
+        // Vérifier si l'employé est absent ce jour-là
+        require_once plugin_dir_path(__FILE__) . '/class-employee-absences.php';
+
+        if (IB_Employee_Absences::is_employee_absent($employee_id, $date)) {
+            error_log("❌ L'employé $employee_id est absent le $date");
+            return [];
+        }
+        error_log("✅ L'employé $employee_id n'est pas absent le $date");
 
         // Récupérer les horaires d'ouverture dynamiques
         $opening = get_option('ib_opening_time', '09:00');
@@ -118,11 +127,15 @@ class IB_Availability {
         for ($i = 0; $i < $max_days; $i++) {
             $current_date = date('Y-m-d', $date);
             $day = strtolower(date('l', $date));
-            
+
             if (self::is_day_open($day)) {
-                $slots = self::get_available_slots($employee_id, $service_id, $current_date);
-                if (!empty($slots)) {
-                    return $current_date;
+                // Vérifier si l'employé n'est pas absent ce jour-là
+                require_once plugin_dir_path(__FILE__) . '/class-employee-absences.php';
+                if (!IB_Employee_Absences::is_employee_absent($employee_id, $current_date)) {
+                    $slots = self::get_available_slots($employee_id, $service_id, $current_date);
+                    if (!empty($slots)) {
+                        return $current_date;
+                    }
                 }
             }
             $date = strtotime('+1 day', $date);

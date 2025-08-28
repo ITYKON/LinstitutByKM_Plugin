@@ -171,6 +171,27 @@ function ib_install_plugin() {
     ) $charset_collate;";
     dbDelta($sql);
 
+    // Table des absences des employés
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}ib_employee_absences (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        employee_id bigint(20) NOT NULL,
+        start_date date NOT NULL,
+        end_date date NOT NULL,
+        type varchar(50) NOT NULL DEFAULT 'absence',
+        reason text,
+        status varchar(20) NOT NULL DEFAULT 'approved',
+        created_by bigint(20) NOT NULL,
+        created_at datetime NOT NULL,
+        updated_at datetime NOT NULL,
+        PRIMARY KEY  (id),
+        KEY employee_id (employee_id),
+        KEY start_date (start_date),
+        KEY end_date (end_date),
+        KEY type (type),
+        KEY status (status)
+    ) $charset_collate;";
+    dbDelta($sql);
+
     // Table de liaison services-praticiennes
     $table_service_employees = $wpdb->prefix . 'ib_service_employees';
     $exists = $wpdb->get_var("SHOW TABLES LIKE '$table_service_employees'");

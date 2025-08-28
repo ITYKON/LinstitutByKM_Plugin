@@ -1,6 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit;
 require_once plugin_dir_path(__FILE__) . '../includes/class-employees.php';
+require_once plugin_dir_path(__FILE__) . '../includes/class-employee-absences.php';
 require_once plugin_dir_path(__FILE__) . '../includes/class-logs.php';
 // Traitement ajout employé
 if (isset($_POST['add_employee'])) {
@@ -58,6 +59,47 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])
     IB_Logs::add(get_current_user_id(), 'suppression_employe', json_encode(['employee_id' => $_GET['id']]));
     echo '<div class="notice notice-success" style="margin-bottom:1.5em;"><p>Employé supprimé avec succès.</p></div>';
 }
+
+// Traitement des actions d'absence
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['action']) && $_POST['action'] === 'add_absence') {
+        $employee_id = intval($_POST['employee_id']);
+        $start_date = sanitize_text_field($_POST['start_date']);
+        $end_date = sanitize_text_field($_POST['end_date']);
+        $type = sanitize_text_field($_POST['type']);
+        $reason = sanitize_textarea_field($_POST['reason']);
+        $status = sanitize_text_field($_POST['status']);
+
+        if ($employee_id && $start_date && $end_date && $type) {
+            // Validation des dates
+            if (strtotime($end_date) < strtotime($start_date)) {
+                echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Erreur : la date de fin doit être postérieure ou égale à la date de début.</p></div>';
+            } else if (isset($_POST['absence_id']) && !empty($_POST['absence_id'])) {
+                // Mise à jour
+                $absence_id = intval($_POST['absence_id']);
+                $result = IB_Employee_Absences::update($absence_id, $employee_id, $start_date, $end_date, $type, $reason, $status);
+                if ($result !== false) {
+                    echo '<div class="notice notice-success" style="margin-bottom:1.5em;"><p>Absence mise à jour avec succès.</p></div>';
+                } else {
+                    echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Erreur : conflit avec une autre absence ou problème de mise à jour.</p></div>';
+                }
+            } else {
+                // Ajout
+                $result = IB_Employee_Absences::add($employee_id, $start_date, $end_date, $type, $reason, $status);
+                if ($result !== false) {
+                    IB_Logs::add(get_current_user_id(), 'ajout_absence', json_encode(['employee_id' => $employee_id, 'start_date' => $start_date, 'end_date' => $end_date, 'type' => $type]));
+                    echo '<div class="notice notice-success" style="margin-bottom:1.5em;"><p>Absence ajoutée avec succès.</p></div>';
+                } else {
+                    echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Erreur : conflit avec une autre absence ou problème d\'insertion.</p></div>';
+                }
+            }
+            } // Fermeture du else if pour la validation des dates
+        } else {
+            echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Veuillez remplir tous les champs obligatoires.</p></div>';
+        }
+    }
+}
+
 $employees = IB_Employees::get_all();
 $edit_employee = null;
 if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) {
@@ -155,6 +197,28 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
             </tbody>
         </table>
         <?php endif; ?>
+
+        <!-- SECTION CALENDRIER DES ABSENCES -->
+        <div class="ib-absences-section" style="margin-top: 3rem;">
+            <div class="ib-admin-section-header" style="display:flex;align-items:center;gap:1.2rem;justify-content:space-between;">
+                <div style="font-size:1.18rem;font-weight:700;letter-spacing:-0.5px;color:#222;padding-bottom:0.7rem;">Calendrier des absences</div>
+                <div style="display:flex;gap:1rem;align-items:center;">
+                    <select id="absence-employee-filter" class="ib-input" style="min-width:200px;">
+                        <option value="">Tous les employés</option>
+                        <?php foreach($employees as $employee): ?>
+                            <option value="<?php echo $employee->id; ?>"><?php echo esc_html($employee->name); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button class="ib-btn accent" id="btn-add-absence" type="button">+ Ajouter une absence</button>
+                </div>
+            </div>
+
+            <!-- Calendrier -->
+            <div id="absence-calendar" class="ib-absence-calendar">
+                <!-- Le calendrier sera généré par JavaScript -->
+            </div>
+        </div>
+
         <!-- MODAL BACKDROP POUR AJOUT -->
         <div id="ib-modal-bg-add-employee" class="ib-modal-bg" style="display:none;"></div>
         <!-- FORMULAIRE MODAL D'AJOUT -->
@@ -327,6 +391,75 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
             };
         </script>
         <?php endif; ?>
+
+        <!-- MODALS POUR GESTION DES ABSENCES -->
+        <!-- Modal backdrop pour absence -->
+        <div id="ib-modal-bg-absence" class="ib-modal-bg" style="display:none;"></div>
+
+        <!-- Modal d'ajout d'absence -->
+        <div id="ib-add-absence-form" class="ib-modal" style="display:none;">
+            <button class="ib-modal-close" type="button" onclick="closeAbsenceModal()">&times;</button>
+            <div class="ib-form-title">Ajouter une absence</div>
+            <form id="absence-form" method="post">
+                <input type="hidden" name="action" value="add_absence">
+                <input type="hidden" name="absence_id" value="">
+
+                <div class="ib-form-group">
+                    <select class="ib-input" name="employee_id" id="absence_employee_id" required>
+                        <option value="">Sélectionner un employé</option>
+                        <?php foreach($employees as $employee): ?>
+                            <option value="<?php echo $employee->id; ?>"><?php echo esc_html($employee->name); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <label for="absence_employee_id">Employé</label>
+                </div>
+
+                <div class="ib-form-group">
+                    <input class="ib-input" name="start_date" id="absence_start_date" type="date" placeholder=" " required>
+                    <label for="absence_start_date">Date de début</label>
+                </div>
+
+                <div class="ib-form-group">
+                    <input class="ib-input" name="end_date" id="absence_end_date" type="date" placeholder=" " required>
+                    <label for="absence_end_date">Date de fin</label>
+                </div>
+
+                <div class="ib-form-group">
+                    <select class="ib-input" name="type" id="absence_type" required>
+                        <option value="">Sélectionner un type</option>
+                        <option value="absence">Absence</option>
+                        <option value="conge">Congé payé</option>
+                        <option value="maladie">Congé maladie</option>
+                        <option value="formation">Formation</option>
+                        <option value="personnel">Congé personnel</option>
+                        <option value="maternite">Congé maternité</option>
+                        <option value="paternite">Congé paternité</option>
+                    </select>
+                    <label for="absence_type">Type d'absence</label>
+                </div>
+
+                <div class="ib-form-group">
+                    <select class="ib-input" name="status" id="absence_status" required>
+                        <option value="approved">Approuvé</option>
+                        <option value="pending">En attente</option>
+                        <option value="rejected">Refusé</option>
+                    </select>
+                    <label for="absence_status">Statut</label>
+                </div>
+
+                <div class="ib-form-group">
+                    <textarea class="ib-input" name="reason" id="absence_reason" placeholder=" " rows="3"></textarea>
+                    <label for="absence_reason">Motif (optionnel)</label>
+                </div>
+
+                <div class="ib-form-group" style="margin-top:1.2em;display:flex;gap:1em;">
+                    <button class="ib-btn accent" type="submit">Enregistrer</button>
+                    <button type="button" class="ib-btn cancel" onclick="closeAbsenceModal()">Annuler</button>
+                    <button type="button" class="ib-btn delete" id="delete-absence-btn" style="display:none;" onclick="deleteAbsence()">Supprimer</button>
+                </div>
+            </form>
+        </div>
+
     </div>
 </div>
 <script>

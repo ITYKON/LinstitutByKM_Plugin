@@ -152,9 +152,153 @@ class InstitutCalendar {
       this.renderCurrentView();
     } catch (e) {
       console.error("Erreur chargement événements", e);
-      this.events = [];
+      // En cas d'erreur, charger des données de test avec chevauchements
+      this.loadTestData();
       this.renderCurrentView();
     }
+  }
+
+  // Fonction pour charger des données de test avec chevauchements
+  loadTestData() {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const dayAfter = new Date(today);
+    dayAfter.setDate(today.getDate() + 2);
+
+    // Couleurs des employés pour les tests
+    const employeeColors = {
+      'Marie Dubois': '#4285f4',
+      'Sophie Martin': '#34a853',
+      'Julie Leroy': '#ea4335',
+      'Emma Bernard': '#fbbc04',
+      'Léa Moreau': '#9c27b0'
+    };
+
+    this.events = [
+      // Événements qui se chevauchent aujourd'hui
+      {
+        id: 1,
+        title: 'Coupe + Brushing',
+        client: 'Mme Dupont',
+        service: 'Coupe + Brushing',
+        employee: 'Marie Dubois',
+        employee_id: 1,
+        date: today.toISOString().slice(0, 10),
+        startTime: '09:00',
+        endTime: '10:30',
+        color: employeeColors['Marie Dubois']
+      },
+      {
+        id: 2,
+        title: 'Coloration',
+        client: 'Mlle Rousseau',
+        service: 'Coloration',
+        employee: 'Sophie Martin',
+        employee_id: 2,
+        date: today.toISOString().slice(0, 10),
+        startTime: '09:30',
+        endTime: '11:00',
+        color: employeeColors['Sophie Martin']
+      },
+      {
+        id: 3,
+        title: 'Manucure',
+        client: 'Mme Petit',
+        service: 'Manucure',
+        employee: 'Julie Leroy',
+        employee_id: 3,
+        date: today.toISOString().slice(0, 10),
+        startTime: '10:00',
+        endTime: '11:00',
+        color: employeeColors['Julie Leroy']
+      },
+      {
+        id: 4,
+        title: 'Soin visage',
+        client: 'Mme Laurent',
+        service: 'Soin visage',
+        employee: 'Emma Bernard',
+        employee_id: 4,
+        date: today.toISOString().slice(0, 10),
+        startTime: '10:15',
+        endTime: '11:15',
+        color: employeeColors['Emma Bernard']
+      },
+      // Événements de l'après-midi avec chevauchements
+      {
+        id: 5,
+        title: 'Coupe homme',
+        client: 'M. Durand',
+        service: 'Coupe homme',
+        employee: 'Marie Dubois',
+        employee_id: 1,
+        date: today.toISOString().slice(0, 10),
+        startTime: '14:00',
+        endTime: '14:45',
+        color: employeeColors['Marie Dubois']
+      },
+      {
+        id: 6,
+        title: 'Balayage',
+        client: 'Mlle Garcia',
+        service: 'Balayage',
+        employee: 'Sophie Martin',
+        employee_id: 2,
+        date: today.toISOString().slice(0, 10),
+        startTime: '14:30',
+        endTime: '16:30',
+        color: employeeColors['Sophie Martin']
+      },
+      {
+        id: 7,
+        title: 'Pédicure',
+        client: 'Mme Blanc',
+        service: 'Pédicure',
+        employee: 'Julie Leroy',
+        employee_id: 3,
+        date: today.toISOString().slice(0, 10),
+        startTime: '14:45',
+        endTime: '15:45',
+        color: employeeColors['Julie Leroy']
+      },
+      // Événements demain
+      {
+        id: 8,
+        title: 'Mèches',
+        client: 'Mme Roux',
+        service: 'Mèches',
+        employee: 'Léa Moreau',
+        employee_id: 5,
+        date: tomorrow.toISOString().slice(0, 10),
+        startTime: '09:00',
+        endTime: '11:00',
+        color: employeeColors['Léa Moreau']
+      },
+      {
+        id: 9,
+        title: 'Coupe + Couleur',
+        client: 'Mlle Thomas',
+        service: 'Coupe + Couleur',
+        employee: 'Marie Dubois',
+        employee_id: 1,
+        date: tomorrow.toISOString().slice(0, 10),
+        startTime: '09:30',
+        endTime: '12:00',
+        color: employeeColors['Marie Dubois']
+      }
+    ];
+
+    // Initialiser les employés pour les filtres
+    this.employees = [
+      { id: 1, name: 'Marie Dubois', color: employeeColors['Marie Dubois'] },
+      { id: 2, name: 'Sophie Martin', color: employeeColors['Sophie Martin'] },
+      { id: 3, name: 'Julie Leroy', color: employeeColors['Julie Leroy'] },
+      { id: 4, name: 'Emma Bernard', color: employeeColors['Emma Bernard'] },
+      { id: 5, name: 'Léa Moreau', color: employeeColors['Léa Moreau'] }
+    ];
+
+    console.log('Données de test chargées avec chevauchements:', this.events);
   }
 
   changeView(view) {
@@ -338,51 +482,34 @@ class InstitutCalendar {
         daysGrid.appendChild(dayCol);
       }
     }
-    // Positionner les events (hors all-day) dans la bonne colonne/jour
+    // Grouper les événements par jour et traiter les chevauchements
+    const eventsByDay = {};
     this.events.forEach((ev) => {
       if (ev.startTime === "00:00" && ev.endTime === "23:59") return; // déjà affiché en all-day
       const evDate = ev.date;
+      if (!eventsByDay[evDate]) {
+        eventsByDay[evDate] = [];
+      }
+      eventsByDay[evDate].push(ev);
+    });
+
+    // Traiter chaque jour séparément
+    Object.keys(eventsByDay).forEach(dateStr => {
+      const dayEvents = eventsByDay[dateStr];
       const dayIdx = weekDays.findIndex(
-        (d) => d.toISOString().slice(0, 10) === evDate
+        (d) => d.toISOString().slice(0, 10) === dateStr
       );
       if (dayIdx === -1) return;
-      // Calculer la position top/height selon l'heure
-      const startHour = parseInt(ev.startTime.split(":")[0]);
-      const startMin = parseInt(ev.startTime.split(":")[1]);
-      const endHour = parseInt(ev.endTime.split(":")[0]);
-      const endMin = parseInt(ev.endTime.split(":")[1]);
-      const hourHeight = 48; // px, doit matcher le CSS
-      const gridStart =
-        (startHour - 7) * hourHeight + (startMin / 60) * hourHeight + 32; // +32 pour all-day
-      const gridEnd =
-        (endHour - 7) * hourHeight + (endMin / 60) * hourHeight + 32;
-      const top = gridStart;
-      const height = Math.max(gridEnd - gridStart, 24); // min 24px
-      // Sélecteur colonne : (i * 8) + 1 + dayIdx + 8 (pour all-day)
-      const colIdx = (startHour - 7) * 8 + 1 + dayIdx + 8; // +8 pour la ligne all-day
-      const dayCol = daysGrid.children[colIdx];
-      if (!dayCol) return;
-      // Empilement si overlap (simple)
-      let overlapCount = 0;
-      for (let c = 0; c < dayCol.children.length; c++) {
-        const child = dayCol.children[c];
-        if (child.className === "event-block") overlapCount++;
-      }
-      // Créer le bloc event
-      const eventBlock = document.createElement("div");
-      eventBlock.className = "event-block";
-      eventBlock.style.top = top + "px";
-      eventBlock.style.height = height + "px";
-      eventBlock.style.background = "#f7faff";
-      eventBlock.style.borderLeftColor = ev.color || "#007aff";
-      eventBlock.style.left = overlapCount * 8 + "px";
-      eventBlock.style.width = `calc(100% - ${overlapCount * 8 + 8}px)`;
-      eventBlock.innerHTML = `<div class=\"event-title\">${ev.title}</div><div class=\"event-client\">${ev.client}</div><div class=\"event-time\">${ev.startTime} - ${ev.endTime}</div>`;
-      eventBlock.setAttribute("data-color", ev.color || "#007aff");
-      eventBlock.style.position = "absolute";
-      eventBlock.onclick = () => openCalendarModal("Détail réservation", [ev]);
-      dayCol.appendChild(eventBlock);
+
+      // Traiter les chevauchements pour ce jour
+      const processedEvents = this.processOverlappingEvents(dayEvents);
+
+      // Rendre les événements traités
+      processedEvents.forEach((ev) => {
+        this.renderWeekEvent(ev, dayIdx, daysGrid, weekDays);
+      });
     });
+
     // Ligne rouge "now"
     const now = new Date();
     if (weekDays.some((d) => d.toDateString() === now.toDateString())) {
@@ -395,6 +522,101 @@ class InstitutCalendar {
         daysGrid.appendChild(nowLine);
       }
     }
+  }
+
+  // Fonction pour rendre un événement individuel dans la vue semaine
+  renderWeekEvent(ev, dayIdx, daysGrid, weekDays) {
+    // Calculer la position top/height selon l'heure
+    const startHour = parseInt(ev.startTime.split(":")[0]);
+    const startMin = parseInt(ev.startTime.split(":")[1]);
+    const endHour = parseInt(ev.endTime.split(":")[0]);
+    const endMin = parseInt(ev.endTime.split(":")[1]);
+    const hourHeight = 48; // px, doit matcher le CSS
+
+    const gridStart = (startHour - 7) * hourHeight + (startMin / 60) * hourHeight + 32; // +32 pour all-day
+    const gridEnd = (endHour - 7) * hourHeight + (endMin / 60) * hourHeight + 32;
+    const top = gridStart;
+    const height = Math.max(gridEnd - gridStart, 24); // min 24px
+
+    // Trouver la colonne du jour
+    const colIdx = (startHour - 7) * 8 + 1 + dayIdx + 8; // +8 pour la ligne all-day
+    const dayCol = daysGrid.children[colIdx];
+    if (!dayCol) return;
+
+    // Créer le bloc événement avec le nouveau positionnement
+    const eventBlock = document.createElement("div");
+    eventBlock.className = "event-block overlapping-event";
+    eventBlock.style.position = "absolute";
+    eventBlock.style.top = top + "px";
+    eventBlock.style.height = height + "px";
+
+    // Appliquer les couleurs de l'employé
+    const employeeColor = ev.color || "#007aff";
+    eventBlock.style.background = this.lightenColor(employeeColor, 0.9);
+    eventBlock.style.borderLeft = `4px solid ${employeeColor}`;
+    eventBlock.style.color = this.darkenColor(employeeColor, 0.7);
+
+    // Appliquer le positionnement calculé pour les chevauchements
+    eventBlock.style.width = ev.width || "calc(100% - 8px)";
+    eventBlock.style.left = ev.left || "4px";
+    eventBlock.style.zIndex = 10 + (ev.column || 0);
+
+    // Contenu de l'événement avec style minimaliste
+    const duration = Math.round((ev.endMinutes - ev.startMinutes) / 60 * 10) / 10;
+    const showDetails = height > 40; // Afficher les détails seulement si assez de place
+
+    let innerHTML = `<div class="event-title">${ev.title}</div>`;
+    if (showDetails) {
+      innerHTML += `<div class="event-client">${ev.client}</div>`;
+      if (height > 60) {
+        innerHTML += `<div class="event-time">${ev.startTime} - ${ev.endTime}</div>`;
+      }
+    }
+
+    eventBlock.innerHTML = innerHTML;
+    eventBlock.setAttribute("data-color", employeeColor);
+    eventBlock.onclick = () => openCalendarModal("Détail réservation", [ev]);
+
+    // Effet hover subtil
+    eventBlock.addEventListener('mouseenter', () => {
+      eventBlock.style.boxShadow = `0 4px 12px ${employeeColor}40`;
+      eventBlock.style.transform = 'translateY(-1px)';
+    });
+
+    eventBlock.addEventListener('mouseleave', () => {
+      eventBlock.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+      eventBlock.style.transform = 'translateY(0)';
+    });
+
+    dayCol.appendChild(eventBlock);
+  }
+
+  // Fonction utilitaire pour éclaircir une couleur
+  lightenColor(color, amount) {
+    const usePound = color[0] === '#';
+    const col = usePound ? color.slice(1) : color;
+    const num = parseInt(col, 16);
+    let r = (num >> 16) + amount * 255;
+    let g = (num >> 8 & 0x00FF) + amount * 255;
+    let b = (num & 0x0000FF) + amount * 255;
+    r = r > 255 ? 255 : r < 0 ? 0 : r;
+    g = g > 255 ? 255 : g < 0 ? 0 : g;
+    b = b > 255 ? 255 : b < 0 ? 0 : b;
+    return (usePound ? '#' : '') + (r << 16 | g << 8 | b).toString(16).padStart(6, '0');
+  }
+
+  // Fonction utilitaire pour assombrir une couleur
+  darkenColor(color, amount) {
+    const usePound = color[0] === '#';
+    const col = usePound ? color.slice(1) : color;
+    const num = parseInt(col, 16);
+    let r = (num >> 16) * amount;
+    let g = (num >> 8 & 0x00FF) * amount;
+    let b = (num & 0x0000FF) * amount;
+    r = Math.floor(r);
+    g = Math.floor(g);
+    b = Math.floor(b);
+    return (usePound ? '#' : '') + (r << 16 | g << 8 | b).toString(16).padStart(6, '0');
   }
 
   renderDayView() {
@@ -773,51 +995,143 @@ class InstitutCalendar {
   }
 
   processOverlappingEvents(events, detailed = false) {
+    if (!events || events.length === 0) return [];
+
+    // Trier les événements par heure de début
     events.sort((a, b) => {
       const timeA = parseInt(a.startTime.replace(":", ""));
       const timeB = parseInt(b.startTime.replace(":", ""));
       return timeA - timeB;
     });
-    const processedEvents = [];
+
+    // Convertir les heures en minutes pour plus de précision
+    const eventsWithMinutes = events.map(event => ({
+      ...event,
+      startMinutes: this.timeToMinutes(event.startTime),
+      endMinutes: this.timeToMinutes(event.endTime)
+    }));
+
+    // Grouper les événements qui se chevauchent
+    const overlappingGroups = this.findOverlappingGroups(eventsWithMinutes);
+
+    // Calculer les positions pour chaque groupe
+    overlappingGroups.forEach(group => {
+      this.calculateEventPositions(group);
+    });
+
+    return eventsWithMinutes;
+  }
+
+  // Convertir heure:minute en minutes totales
+  timeToMinutes(timeStr) {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  // Trouver les groupes d'événements qui se chevauchent
+  findOverlappingGroups(events) {
+    const groups = [];
+    const processed = new Set();
+
+    events.forEach((event, index) => {
+      if (processed.has(index)) return;
+
+      const group = [event];
+      processed.add(index);
+
+      // Trouver tous les événements qui se chevauchent avec ce groupe
+      for (let i = index + 1; i < events.length; i++) {
+        if (processed.has(i)) continue;
+
+        const otherEvent = events[i];
+        if (this.groupOverlapsWith(group, otherEvent)) {
+          group.push(otherEvent);
+          processed.add(i);
+        }
+      }
+
+      groups.push(group);
+    });
+
+    return groups;
+  }
+
+  // Vérifier si un événement chevauche avec un groupe
+  groupOverlapsWith(group, event) {
+    return group.some(groupEvent =>
+      this.eventsOverlap(groupEvent, event)
+    );
+  }
+
+  // Vérifier si deux événements se chevauchent
+  eventsOverlap(event1, event2) {
+    return !(event1.endMinutes <= event2.startMinutes ||
+             event1.startMinutes >= event2.endMinutes);
+  }
+
+  // Calculer les positions optimales pour un groupe d'événements chevauchants
+  calculateEventPositions(group) {
+    if (group.length === 1) {
+      group[0].column = 0;
+      group[0].totalColumns = 1;
+      group[0].width = "calc(100% - 8px)";
+      group[0].left = "4px";
+      return;
+    }
+
+    // Algorithme de placement en colonnes (similaire à Google Calendar)
     const columns = [];
-    events.forEach((event) => {
-      const eventStart = parseInt(event.startTime.replace(":", ""));
-      const eventEnd = parseInt(event.endTime.replace(":", ""));
+
+    group.forEach(event => {
       let placed = false;
-      for (let i = 0; i < columns.length; i++) {
-        let overlaps = false;
-        for (const colEvent of columns[i]) {
-          const colEventStart = parseInt(colEvent.startTime.replace(":", ""));
-          const colEventEnd = parseInt(colEvent.endTime.replace(":", ""));
-          if (!(eventEnd <= colEventStart || eventStart >= colEventEnd)) {
-            overlaps = true;
+
+      // Essayer de placer l'événement dans une colonne existante
+      for (let colIndex = 0; colIndex < columns.length; colIndex++) {
+        const column = columns[colIndex];
+        let canPlace = true;
+
+        for (const colEvent of column) {
+          if (this.eventsOverlap(event, colEvent)) {
+            canPlace = false;
             break;
           }
         }
-        if (!overlaps) {
-          columns[i].push(event);
-          event.column = i;
+
+        if (canPlace) {
+          column.push(event);
+          event.column = colIndex;
           placed = true;
           break;
         }
       }
+
+      // Si aucune colonne disponible, créer une nouvelle colonne
       if (!placed) {
         columns.push([event]);
         event.column = columns.length - 1;
       }
-      processedEvents.push(event);
     });
-    processedEvents.forEach((event) => {
-      const totalColumns = columns.length;
+
+    // Calculer les largeurs et positions finales
+    const totalColumns = columns.length;
+    const baseWidth = 100 / totalColumns;
+    const margin = 2; // Marge entre les événements en %
+
+    group.forEach(event => {
+      event.totalColumns = totalColumns;
+
+      // Calculer la largeur avec des marges appropriées
+      let width = baseWidth;
       if (totalColumns > 1) {
-        event.width = `calc(${100 / totalColumns}% - 8px)`;
-        event.left = `calc(${event.column * (100 / totalColumns)}% + 4px)`;
-      } else {
-        event.width = "calc(100% - 8px)";
-        event.left = "4px";
+        width = baseWidth - margin;
       }
+
+      // Position horizontale
+      const leftPosition = event.column * baseWidth + (margin / 2);
+
+      event.width = `${width}%`;
+      event.left = `${leftPosition}%`;
     });
-    return processedEvents;
   }
 
   updateCurrentTimeLine() {

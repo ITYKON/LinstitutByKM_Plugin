@@ -2071,6 +2071,17 @@ body, .ib-calendar-page, .ib-calendar-content {
             const eventElement = document.createElement('div');
             eventElement.className = 'week-event';
 
+            // Stocker les données de l'événement pour le clic
+            eventElement.dataset.eventId = event.id;
+            eventElement.dataset.title = event.title || 'Sans titre';
+            eventElement.dataset.client = event.client || 'Client inconnu';
+            eventElement.dataset.service = event.service || 'Service inconnu';
+            eventElement.dataset.employee = event.employee || 'Employé inconnu';
+            eventElement.dataset.notes = event.notes || '';
+            eventElement.dataset.color = window.employeeColors[event.employee_id] || '#1976d2';
+            eventElement.dataset.startTime = event.start_time_only || event.start_time;
+            eventElement.dataset.endTime = event.end_time_only || event.calculated_end_time || event.end_time;
+
             // Obtenir la couleur de l'employé
             const employeeColor = window.employeeColors[event.employee_id] || '#1976d2';
             const lightColor = lightenColor(employeeColor, 0.9);
@@ -2127,8 +2138,24 @@ body, .ib-calendar-page, .ib-calendar-content {
             eventElement.innerHTML = innerHTML;
 
             // Gestionnaire de clic
-            eventElement.addEventListener('click', () => {
-                showEventDetails(event);
+            eventElement.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const eventData = {
+                    id: event.id,
+                    title: event.title || 'Réservation sans titre',
+                    client: event.client_name || event.client || 'Client non spécifié',
+                    client_phone: event.client_phone || event.phone || '',
+                    service_name: event.service_name || event.service || 'Service non spécifié',
+                    service_id: event.service_id || (event.service && event.service.id) || null,
+                    employee: event.employee_name || event.employee || 'Non attribué',
+                    employee_id: event.employee_id || (event.employee && event.employee.id) || null,
+                    notes: event.notes || '',
+                    color: window.employeeColors[event.employee_id] || '#4f8cff',
+                    start_time: event.start_time_only || event.start_time,
+                    end_time: event.end_time_only || event.calculated_end_time || event.end_time,
+                    date: event.date || new Date().toISOString().split('T')[0]
+                };
+                showEventDetails(eventData);
             });
 
             // Effets hover
@@ -2336,6 +2363,17 @@ body, .ib-calendar-page, .ib-calendar-content {
             const eventElement = document.createElement('div');
             eventElement.className = 'day-event';
 
+            // Stocker les données de l'événement pour le clic
+            eventElement.dataset.eventId = event.id;
+            eventElement.dataset.title = event.title || 'Sans titre';
+            eventElement.dataset.client = event.client_name || 'Client inconnu';
+            eventElement.dataset.service = event.service_name || 'Service inconnu';
+            eventElement.dataset.employee = event.employee || 'Employé inconnu';
+            eventElement.dataset.notes = event.notes || '';
+            eventElement.dataset.color = window.employeeColors[event.employee_id] || '#1976d2';
+            eventElement.dataset.startTime = event.start_time_only || event.start_time;
+            eventElement.dataset.endTime = event.end_time_only || event.calculated_end_time || event.end_time;
+
             // Obtenir la couleur de l'employé
             const employeeColor = window.employeeColors[event.employee_id] || '#1976d2';
             const lightColor = lightenColor(employeeColor, 0.9);
@@ -2392,8 +2430,24 @@ body, .ib-calendar-page, .ib-calendar-content {
             eventElement.innerHTML = innerHTML;
 
             // Gestionnaire de clic
-            eventElement.addEventListener('click', () => {
-                showEventDetails(event);
+            eventElement.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const eventData = {
+                    id: event.id,
+                    title: event.title || 'Réservation sans titre',
+                    client: event.client_name || event.client || 'Client non spécifié',
+                    client_phone: event.client_phone || event.phone || '',
+                    service_name: event.service_name || event.service || 'Service non spécifié',
+                    service_id: event.service_id || (event.service && event.service.id) || null,
+                    employee: event.employee_name || event.employee || 'Non attribué',
+                    employee_id: event.employee_id || (event.employee && event.employee.id) || null,
+                    notes: event.notes || '',
+                    color: window.employeeColors[event.employee_id] || '#4f8cff',
+                    start_time: event.start_time_only || event.start_time,
+                    end_time: event.end_time_only || event.calculated_end_time || event.end_time,
+                    date: event.date || new Date().toISOString().split('T')[0]
+                };
+                showEventDetails(eventData);
             });
 
             // Effets hover
@@ -2829,7 +2883,7 @@ body, .ib-calendar-page, .ib-calendar-content {
                 }
             }
             
-            // Créer l'élément d'événement
+            // Créer l'élément événement
             const eventElement = document.createElement('div');
             eventElement.className = 'calendar-event';
             eventElement.style.backgroundColor = `${employeeColor}33`;
@@ -2840,7 +2894,9 @@ body, .ib-calendar-page, .ib-calendar-content {
             eventElement.dataset.booking = JSON.stringify({
                 client: clientName,
                 service: serviceName,
+                service_id: booking.service_id || null,
                 employee: employeeName,
+                employee_id: booking.employee_id || null,
                 startTime: startTime,
                 endTime: endTime,
                 notes: booking.notes || 'Aucune note',
@@ -2884,6 +2940,117 @@ body, .ib-calendar-page, .ib-calendar-content {
         }
     }
     
+    // Fonction utilitaire pour formater l'heure
+    function formatTime(timeStr) {
+        if (!timeStr) return '';
+        // Si c'est au format HH:MM:SS, ne garder que HH:MM
+        if (timeStr.includes(':')) {
+            const parts = timeStr.split(':');
+            // Si on a au moins 2 parties (heures et minutes)
+            if (parts.length >= 2) {
+                return `${parts[0]}:${parts[1]}`;
+            }
+            return timeStr;
+        }
+        return timeStr;
+    }
+    
+    // Fonction pour afficher les détails d'un événement
+    function showEventDetails(event) {
+        const modal = document.getElementById('ib-calendar-modal');
+        const modalContent = document.getElementById('ib-calendar-modal-content');
+        
+        // Récupérer les données de l'événement
+        const title = event.title || '';
+        const client = event.client || event.client_name || 'Client non spécifié';
+        const phone = event.phone || event.client_phone || 'Non renseigné';
+        // Cherche le nom du service si seulement l'ID est présent
+        let service = event.service || event.service_name;
+        if ((!service || service === '' || service === 'Service non spécifié') && event.service_id && window.services) {
+            const foundService = window.services.find(s => s.id == event.service_id);
+            service = foundService ? foundService.name : 'Service non spécifié';
+        }
+        if (!service || service === '') service = 'Service non spécifié';
+
+        // Cherche le nom de l'employé si seulement l'ID est présent
+        let employee = event.employee || event.employee_name;
+        if ((!employee || employee === '' || employee === 'Non attribué') && event.employee_id && window.employees) {
+            const foundEmployee = window.employees.find(e => e.id == event.employee_id);
+            employee = foundEmployee ? foundEmployee.name : 'Non attribué';
+        }
+        if (!employee || employee === '') employee = 'Non attribué';
+        const notes = event.notes || 'Aucune note';
+        const color = event.color || '#4f8cff';
+        const startTime = formatTime(event.start_time_only || event.start_time) || 'Non spécifié';
+        const endTime = formatTime(event.end_time_only || event.calculated_end_time || event.end_time) || 'Non spécifié';
+        
+        // Créer le titre avec le service et l'employé
+        const modalTitle = service !== 'Service non spécifié' ? service : 'Réservation';
+        const employeeInfo = employee !== 'Non attribué' ? ` - ${employee}` : '';
+        
+        // Créer le contenu du modal
+        modalContent.innerHTML = `
+            <div class='ib-modal-header'>
+                <h2 style='font-weight:700;color:${color};margin-bottom:0.5em;'>${modalTitle}${employeeInfo}</h2>
+                <div class='ib-event-meta' style='font-size:1em;color:#888;margin-bottom:0.7em;'>
+                    <span class='ib-event-time'>${startTime} - ${endTime}</span>
+            </div>
+        </div>
+        <div class='ib-modal-body'>
+            <div class='ib-event-modern' style='background:${color}22;color:#22223b;padding:1.2em 1.5em;border-radius:1.2em;'>
+                <div class="event-detail-row">
+                    <span class="event-detail-label">Client :</span>
+                    <span class="event-detail-value">${client}</span>
+                </div>
+                <div class="event-detail-row">
+                    <span class="event-detail-label">Téléphone :</span>
+                    <span class="event-detail-value">${phone}</span>
+                </div>
+                <div class="event-detail-row">
+                    <span class="event-detail-label">Service :</span>
+                    <span class="event-detail-value">${service}</span>
+                </div>
+                <div class="event-detail-row">
+                    <span class="event-detail-label">Date :</span>
+                    <span class="event-detail-value">${event.date || new Date(event.start).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                </div>
+                <div class="event-detail-row">
+                    <span class="event-detail-label">Horaire :</span>
+                    <span class="event-detail-value">${startTime} - ${endTime}</span>
+                </div>
+                <div class="event-detail-row">
+                    <span class="event-detail-label">Employé :</span>
+                    <span class="event-detail-value">${employee}</span>
+                </div>
+                ${notes !== 'Aucune note' ? `
+                <div class="event-detail-row">
+                    <span class="event-detail-label">Notes :</span>
+                    <span class="event-detail-value">${notes}</span>
+                </div>` : ''}
+            </div>
+            <div style='margin-top: 20px; display: flex; justify-content: flex-end;'>
+                <button id='close-event-details' style='padding: 8px 16px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;'>Fermer</button>
+        `;
+        
+        // Afficher le modal
+        modal.style.display = 'flex';
+        
+        // Gestionnaire de fermeture
+        const closeBtn = document.getElementById('close-event-details');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+        }
+        
+        // Fermer en cliquant en dehors du modal
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+    
     // Fonction pour afficher les détails d'une réservation
     function showBookingDetails(booking) {
         const modal = document.createElement('div');
@@ -2899,22 +3066,37 @@ body, .ib-calendar-page, .ib-calendar-content {
         modal.style.alignItems = 'center';
         modal.style.zIndex = '1000';
         
+        // Récupérer les noms à partir des IDs si disponibles
+        let serviceName = booking.service || 'Service inconnu';
+        let employeeName = booking.employee || 'Employé inconnu';
+        
+        // Si les IDs sont disponibles, essayer de récupérer les noms depuis les données globales
+        if (booking.service_id && window.services) {
+            const service = window.services.find(s => s.id == booking.service_id);
+            if (service) serviceName = service.name;
+        }
+        
+        if (booking.employee_id && window.employees) {
+            const employee = window.employees.find(e => e.id == booking.employee_id);
+            if (employee) employeeName = employee.name;
+        }
+        
         modal.innerHTML = `
             <div class="booking-details" style="background: white; padding: 20px; border-radius: 8px; max-width: 500px; width: 90%;">
                 <h3 style="margin-top: 0; color: #333;">Détails de la réservation</h3>
-                <div style="margin-bottom: 10px;"><strong>Client:</strong> ${booking.client}</div>
-                <div style="margin-bottom: 10px;"><strong>Service:</strong> ${booking.service}</div>
-                <div style="margin-bottom: 10px;"><strong>Employé:</strong> ${booking.employee}</div>
-                <div style="margin-bottom: 10px;"><strong>Horaire:</strong> ${booking.startTime} - ${booking.endTime || '?'}</div>
-                <div style="margin-bottom: 10px;"><strong>Statut:</strong> ${booking.status}</div>
-                <div style="margin-bottom: 15px;"><strong>Notes:</strong> ${booking.notes}</div>
+                <div style="margin-bottom: 10px;"><strong>Client:</strong> ${booking.client || 'Non spécifié'}</div>
+                <div style="margin-bottom: 10px;"><strong>Service:</strong> ${serviceName}</div>
+                <div style="margin-bottom: 10px;"><strong>Employé:</strong> ${employeeName}</div>
+                <div style="margin-bottom: 10px;"><strong>Horaire:</strong> ${booking.startTime || '?'} - ${booking.endTime || '?'}</div>
+                <div style="margin-bottom: 10px;"><strong>Statut:</strong> ${booking.status || 'Non spécifié'}</div>
+                <div style="margin-bottom: 15px;"><strong>Notes:</strong> ${booking.notes || 'Aucune note'}</div>
                 <button id="close-booking-details" style="padding: 8px 16px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">Fermer</button>
             </div>
         `;
         
         document.body.appendChild(modal);
         
-        // Gérer la fermeture de la modale
+        // Gestionnaire de clic pour fermer la modale
         const closeBtn = modal.querySelector('#close-booking-details');
         closeBtn.addEventListener('click', () => {
             document.body.removeChild(modal);

@@ -183,6 +183,81 @@
   margin-right: 4px;
 }
 
+/* Styles pour le modal de détails des événements */
+#ib-calendar-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+#ib-calendar-modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.ib-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.ib-modal-body {
+    padding: 20px 24px;
+}
+
+.ib-event-modern {
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.event-detail-row {
+    display: flex;
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.event-detail-label {
+    font-weight: 500;
+    color: #5f6368;
+    min-width: 100px;
+    flex-shrink: 0;
+}
+
+.event-detail-value {
+    color: #202124;
+    flex-grow: 1;
+    word-break: break-word;
+}
+
+.ib-emp-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-weight: 500;
+    margin-right: 8px;
+}
+
 /* Couleurs des employés */
 .fc-event[data-employee-color="1"] { border-left-color: #4f8cff; }
 .fc-event[data-employee-color="2"] { border-left-color: #00c48c; }

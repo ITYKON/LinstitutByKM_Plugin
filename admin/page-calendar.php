@@ -1684,6 +1684,7 @@ body, .ib-calendar-page, .ib-calendar-content {
 
     // Variables globales
     let currentDate = new Date();
+    let currentView = 'month';
     let calendarGrid, monthYearElement, prevMonthBtn, nextMonthBtn, todayBtn;
     
     // Palette de couleurs employé (récupérée du PHP)
@@ -1693,7 +1694,6 @@ body, .ib-calendar-page, .ib-calendar-content {
     document.addEventListener('DOMContentLoaded', function() {
         // Gestion des boutons de vue calendrier
         const viewButtons = document.querySelectorAll('.calendar-view-btn');
-        let currentView = 'month';
         viewButtons.forEach(btn => {
             btn.addEventListener('click', function() {
                 viewButtons.forEach(b => b.classList.remove('active'));
@@ -1731,18 +1731,21 @@ body, .ib-calendar-page, .ib-calendar-content {
                     calendarGrid.className = 'calendar-grid';
                 }
                 generateCalendar();
+                updateMonthYearDisplay();
             } else if (currentView === 'week') {
                 document.querySelector('.days-header').style.display = 'none';
                 if (calendarGrid) {
                     calendarGrid.style.display = 'none';
                 }
                 generateWeekCalendar();
+                updateWeekDisplay();
             } else if (currentView === 'day') {
                 document.querySelector('.days-header').style.display = 'none';
                 if (calendarGrid) {
                     calendarGrid.style.display = 'none';
                 }
                 generateDayCalendar();
+                updateDayDisplay();
             }
         }
 
@@ -2530,22 +2533,53 @@ body, .ib-calendar-page, .ib-calendar-content {
                 // Gestionnaires d'événements pour la navigation
                 if (prevMonthBtn) {
                     prevMonthBtn.addEventListener('click', () => {
-                        currentDate.setMonth(currentDate.getMonth() - 1);
-                        generateCalendar();
+                        if (currentView === 'month') {
+                            currentDate.setMonth(currentDate.getMonth() - 1);
+                            generateCalendar();
+                            updateMonthYearDisplay();
+                        } else if (currentView === 'week') {
+                            currentDate.setDate(currentDate.getDate() - 7);
+                            generateWeekCalendar();
+                            updateWeekDisplay();
+                        } else if (currentView === 'day') {
+                            currentDate.setDate(currentDate.getDate() - 1);
+                            generateDayCalendar();
+                            updateDayDisplay();
+                        }
                     });
                 }
                 
                 if (nextMonthBtn) {
                     nextMonthBtn.addEventListener('click', () => {
-                        currentDate.setMonth(currentDate.getMonth() + 1);
-                        generateCalendar();
+                        if (currentView === 'month') {
+                            currentDate.setMonth(currentDate.getMonth() + 1);
+                            generateCalendar();
+                            updateMonthYearDisplay();
+                        } else if (currentView === 'week') {
+                            currentDate.setDate(currentDate.getDate() + 7);
+                            generateWeekCalendar();
+                            updateWeekDisplay();
+                        } else if (currentView === 'day') {
+                            currentDate.setDate(currentDate.getDate() + 1);
+                            generateDayCalendar();
+                            updateDayDisplay();
+                        }
                     });
                 }
                 
                 if (todayBtn) {
                     todayBtn.addEventListener('click', () => {
                         currentDate = new Date();
-                        generateCalendar();
+                        if (currentView === 'month') {
+                            generateCalendar();
+                            updateMonthYearDisplay();
+                        } else if (currentView === 'week') {
+                            generateWeekCalendar();
+                            updateWeekDisplay();
+                        } else if (currentView === 'day') {
+                            generateDayCalendar();
+                            updateDayDisplay();
+                        }
                     });
                 }
             }
@@ -2576,6 +2610,36 @@ body, .ib-calendar-page, .ib-calendar-content {
         }
     }); // Fin de DOMContentLoaded
     
+    // Fonction pour mettre à jour l'affichage du mois/année
+    function updateMonthYearDisplay() {
+        if (!monthYearElement) return;
+        const options = { month: 'long', year: 'numeric' };
+        monthYearElement.textContent = currentDate.toLocaleDateString('fr-FR', options);
+    }
+    
+    // Fonction pour mettre à jour l'affichage de la semaine
+    function updateWeekDisplay() {
+        if (!monthYearElement) return;
+        const startOfWeek = new Date(currentDate);
+        startOfWeek.setDate(currentDate.getDate() - currentDate.getDay() + 1); // Lundi
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6); // Dimanche
+        
+        const options = { day: 'numeric', month: 'long', year: 'numeric' };
+        monthYearElement.textContent = 
+            'Semaine du ' + 
+            startOfWeek.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + 
+            ' au ' + 
+            endOfWeek.toLocaleDateString('fr-FR', options);
+    }
+    
+    // Fonction pour mettre à jour l'affichage du jour
+    function updateDayDisplay() {
+        if (!monthYearElement) return;
+        const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        monthYearElement.textContent = currentDate.toLocaleDateString('fr-FR', options);
+    }
+    
     // Fonction pour générer le calendrier
     function generateCalendar() {
         if (!calendarGrid || !monthYearElement) return;
@@ -2584,8 +2648,7 @@ body, .ib-calendar-page, .ib-calendar-content {
         calendarGrid.innerHTML = '';
         
         // Mettre à jour le titre du mois/année
-        const options = { month: 'long', year: 'numeric' };
-        monthYearElement.textContent = currentDate.toLocaleDateString('fr-FR', options);
+        updateMonthYearDisplay();
         
         // Obtenir le premier jour du mois et le nombre de jours
         const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);

@@ -118,13 +118,36 @@ $closing_time = get_option('ib_closing_time', '19:00');
         <!-- Vue jour avec grille horaire -->
         <div class="day-view-container" id="day-view-container" style="display: none;">
             <div class="day-header-grid">
-                <div class="time-header-cell"></div>
+                <div class="day-navigation">
+                    <button class="day-nav-btn" id="prev-day" title="Jour précédent">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                        </svg>
+                    </button>
+                    <button class="day-nav-btn" id="today-btn" title="Aujourd'hui">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                    </button>
+                </div>
                 <div class="day-header-single" id="day-header-single">
                     <!-- En-tête du jour sera généré par JavaScript -->
                 </div>
+                <div class="day-navigation">
+                    <button class="day-nav-btn" id="next-day" title="Jour suivant">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
             <div class="day-time-grid" id="day-time-grid">
-                <!-- La grille horaire sera générée par JavaScript -->
+                <div class="day-time-column" id="day-time-column">
+                    <!-- Colonne des heures -->
+                </div>
+                <div class="day-events-column" id="day-events-column">
+                    <!-- Colonne des événements -->
+                </div>
             </div>
         </div>
 
@@ -396,82 +419,120 @@ $closing_time = get_option('ib_closing_time', '19:00');
     border-radius: 50%;
 }
 
-/* Vue jour avec grille horaire */
+/* Vue jour avec grille horaire - Design minimaliste */
 .day-view-container {
     background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+    box-shadow: none;
     overflow: hidden;
+    border: 1px solid #e8eaed;
 }
 
 .day-header-grid {
-    display: grid;
-    grid-template-columns: 60px 1fr;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     background: #fff;
-    border-bottom: 1px solid #dadce0;
+    border-bottom: 1px solid #e8eaed;
     position: sticky;
     top: 0;
     z-index: 10;
+    padding: 16px 24px;
+}
+
+.day-navigation {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.day-nav-btn {
+    background: none;
+    border: none;
+    color: #5f6368;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+
+.day-nav-btn:hover {
+    background: #f1f3f4;
+    color: #202124;
 }
 
 .day-header-single {
-    padding: 16px 24px;
     text-align: center;
     font-weight: 400;
     color: #3c4043;
-    background: #fff;
-    font-size: 14px;
-    border-right: 1px solid #dadce0;
+    font-size: 16px;
+    flex: 1;
 }
 
 .day-header-single.today {
-    background: #e8f0fe;
     color: #1a73e8;
     font-weight: 500;
 }
 
 .day-time-grid {
-    display: grid;
-    grid-template-columns: 60px 1fr;
+    display: flex;
     position: relative;
-    max-height: 500px;
+    max-height: 600px;
     overflow-y: auto;
     background: #fff;
+}
+
+.day-time-column {
+    width: 80px;
+    background: #fff;
+    border-right: 1px solid #e8eaed;
+    flex-shrink: 0;
 }
 
 .day-time-slot {
     height: 60px;
     border-bottom: 1px solid #f1f3f4;
-    border-right: 1px solid #dadce0;
     display: flex;
     align-items: flex-start;
     justify-content: flex-end;
-    padding: 2px 8px 0;
-    font-size: 10px;
-    color: #5f6368;
+    padding: 4px 12px 0 8px;
+    font-size: 11px;
+    color: #70757a;
     background: #fff;
     position: relative;
+    font-weight: 400;
 }
 
-.day-column-single {
+.day-events-column {
+    flex: 1;
+    position: relative;
+    background: #fff;
+    min-height: 540px; /* 9 heures * 60px */
+}
+
+.day-hour-line {
     height: 60px;
     border-bottom: 1px solid #f1f3f4;
     position: relative;
-    background: #fff;
     cursor: pointer;
     transition: background-color 0.15s;
 }
 
-.day-column-single:hover {
+.day-hour-line:hover {
     background: #f8f9fa;
 }
 
-.day-column-single.today {
+.day-hour-line.today {
     background: #fef7e0;
 }
 
 /* Ligne de demi-heure pour vue jour */
-.day-column-single::after {
+.day-hour-line::after {
     content: '';
     position: absolute;
     top: 30px;
@@ -482,42 +543,46 @@ $closing_time = get_option('ib_closing_time', '19:00');
     z-index: 1;
 }
 
-/* Événements dans la vue jour */
+/* Événements dans la vue jour - Style minimaliste */
 .day-event {
     position: absolute;
     background: #e3f2fd;
-    border-left: 4px solid #1976d2;
-    border-radius: 4px;
-    padding: 6px 8px;
-    font-size: 12px;
-    line-height: 1.3;
+    border-left: 3px solid #1976d2;
+    border-radius: 2px;
+    padding: 8px 12px;
+    font-size: 13px;
+    line-height: 1.4;
     color: #1565c0;
     cursor: pointer;
     z-index: 10;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
     transition: all 0.2s ease;
     overflow: hidden;
-    min-height: 24px;
-    margin: 1px;
+    min-height: 28px;
+    margin: 2px 4px 2px 0;
+    border-right: none;
+    border-top: none;
+    border-bottom: none;
 }
 
 .day-event:hover {
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    transform: translateX(2px);
     z-index: 100;
 }
 
 .day-event-title {
-    font-weight: 600;
-    margin-bottom: 2px;
+    font-weight: 500;
+    margin-bottom: 3px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 13px;
 }
 
 .day-event-client {
-    font-size: 11px;
-    opacity: 0.8;
+    font-size: 12px;
+    opacity: 0.85;
     margin-bottom: 2px;
     white-space: nowrap;
     overflow: hidden;
@@ -525,9 +590,9 @@ $closing_time = get_option('ib_closing_time', '19:00');
 }
 
 .day-event-time {
-    font-size: 10px;
-    opacity: 0.7;
-    font-weight: 500;
+    font-size: 11px;
+    opacity: 0.75;
+    font-weight: 400;
 }
 
 /* Conteneur du jour */
@@ -2160,35 +2225,41 @@ body, .ib-calendar-page, .ib-calendar-content {
 
             generateDayTimeGrid();
             loadDayEvents();
+            setupDayNavigation();
         }
 
         // Génère la grille horaire pour la vue jour
         function generateDayTimeGrid() {
-            const timeGrid = document.getElementById('day-time-grid');
-            timeGrid.innerHTML = '';
+            const timeColumn = document.getElementById('day-time-column');
+            const eventsColumn = document.getElementById('day-events-column');
+
+            // Vider les colonnes
+            timeColumn.innerHTML = '';
+            eventsColumn.innerHTML = '';
+
+            const today = new Date();
+            const isToday = currentDate.toDateString() === today.toDateString();
 
             // Heures de 9h à 17h
             for (let hour = 9; hour <= 17; hour++) {
-                // Cellule de l'heure
+                // Cellule de l'heure dans la colonne de gauche
                 const timeSlot = document.createElement('div');
                 timeSlot.className = 'day-time-slot';
                 timeSlot.textContent = hour.toString().padStart(2, '0') + ':00';
-                timeGrid.appendChild(timeSlot);
+                timeColumn.appendChild(timeSlot);
 
-                // Colonne du jour pour cette heure
-                const dayColumn = document.createElement('div');
-                dayColumn.className = 'day-column-single';
+                // Ligne horaire dans la colonne des événements
+                const hourLine = document.createElement('div');
+                hourLine.className = 'day-hour-line';
 
-                // Marquer aujourd'hui
-                const today = new Date();
-                if (currentDate.toDateString() === today.toDateString()) {
-                    dayColumn.classList.add('today');
+                if (isToday) {
+                    hourLine.classList.add('today');
                 }
 
-                dayColumn.dataset.date = currentDate.toISOString().slice(0, 10);
-                dayColumn.dataset.hour = hour;
+                hourLine.dataset.date = currentDate.toISOString().slice(0, 10);
+                hourLine.dataset.hour = hour;
 
-                timeGrid.appendChild(dayColumn);
+                eventsColumn.appendChild(hourLine);
             }
 
             // Ajouter la ligne "maintenant" si c'est aujourd'hui
@@ -2197,10 +2268,10 @@ body, .ib-calendar-page, .ib-calendar-content {
 
         // Charge les événements pour la vue jour
         function loadDayEvents() {
-            const timeGrid = document.getElementById('day-time-grid');
+            const eventsColumn = document.getElementById('day-events-column');
 
             // Supprimer les événements existants
-            timeGrid.querySelectorAll('.day-event').forEach(event => event.remove());
+            eventsColumn.querySelectorAll('.day-event').forEach(event => event.remove());
 
             // Récupérer les réservations du jour
             const dayBookings = getBookingsForDate(currentDate);
@@ -2245,7 +2316,7 @@ body, .ib-calendar-page, .ib-calendar-content {
 
         // Rend un événement dans la vue jour
         function renderDayEvent(event) {
-            const timeGrid = document.getElementById('day-time-grid');
+            const eventsColumn = document.getElementById('day-events-column');
 
             // Calculer la position verticale
             const startHour = Math.floor(event.startMinutes / 60);
@@ -2278,19 +2349,19 @@ body, .ib-calendar-page, .ib-calendar-content {
                 left: ${leftPosition};
                 width: ${eventWidth};
                 background: ${lightColor};
-                border-left: 4px solid ${employeeColor};
+                border-left: 3px solid ${employeeColor};
                 color: ${darkColor};
                 z-index: ${10 + (event.column || 0)};
-                border-radius: 4px;
-                padding: 6px 8px;
-                font-size: 12px;
-                line-height: 1.3;
+                border-radius: 2px;
+                padding: 8px 12px;
+                font-size: 13px;
+                line-height: 1.4;
                 cursor: pointer;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
                 transition: all 0.2s ease;
                 overflow: hidden;
-                min-height: 24px;
-                margin: 1px;
+                min-height: 28px;
+                margin: 0;
             `;
 
             // Contenu de l'événement
@@ -2331,13 +2402,13 @@ body, .ib-calendar-page, .ib-calendar-content {
                 eventElement.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.12)';
             });
 
-            timeGrid.appendChild(eventElement);
+            eventsColumn.appendChild(eventElement);
         }
 
         // Ajoute la ligne "maintenant" pour la vue jour
         function addDayNowLine() {
-            const timeGrid = document.getElementById('day-time-grid');
-            const existingLine = timeGrid.querySelector('.now-line');
+            const eventsColumn = document.getElementById('day-events-column');
+            const existingLine = eventsColumn.querySelector('.now-line');
             if (existingLine) existingLine.remove();
 
             const now = new Date();
@@ -2350,12 +2421,64 @@ body, .ib-calendar-page, .ib-calendar-content {
 
             const nowLine = document.createElement('div');
             nowLine.className = 'now-line';
-            nowLine.style.left = '60px';
+            nowLine.style.left = '0';
+            nowLine.style.right = '0';
 
             const topPosition = (currentHour - 9) * 60 + (currentMin / 60) * 60;
             nowLine.style.top = `${topPosition}px`;
 
-            timeGrid.appendChild(nowLine);
+            eventsColumn.appendChild(nowLine);
+        }
+
+        // Configure la navigation entre les jours
+        function setupDayNavigation() {
+            const prevBtn = document.getElementById('prev-day');
+            const nextBtn = document.getElementById('next-day');
+            const todayBtn = document.getElementById('today-btn');
+
+            // Navigation jour précédent
+            prevBtn.onclick = () => {
+                currentDate.setDate(currentDate.getDate() - 1);
+                generateDayCalendar();
+            };
+
+            // Navigation jour suivant
+            nextBtn.onclick = () => {
+                currentDate.setDate(currentDate.getDate() + 1);
+                generateDayCalendar();
+            };
+
+            // Retour à aujourd'hui
+            todayBtn.onclick = () => {
+                currentDate = new Date();
+                generateDayCalendar();
+            };
+
+            // Navigation au clavier
+            document.addEventListener('keydown', handleDayKeyNavigation);
+        }
+
+        // Gestion de la navigation au clavier pour la vue jour
+        function handleDayKeyNavigation(e) {
+            if (currentView !== 'day') return;
+
+            switch(e.key) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    currentDate.setDate(currentDate.getDate() - 1);
+                    generateDayCalendar();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    generateDayCalendar();
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    currentDate = new Date();
+                    generateDayCalendar();
+                    break;
+            }
         }
         try {
             // Stocker les données globalement

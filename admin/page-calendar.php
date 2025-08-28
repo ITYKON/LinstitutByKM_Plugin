@@ -255,6 +255,11 @@ $closing_time = get_option('ib_closing_time', '19:00');
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-width: 900px;
+    position: relative;
 }
 
 .week-header-grid {
@@ -305,6 +310,10 @@ $closing_time = get_option('ib_closing_time', '19:00');
     max-height: 500px;
     overflow-y: auto;
     background: #fff;
+    width: 100%;
+    min-width: 900px;
+    max-width: 1200px;
+    overflow-x: hidden;
 }
 
 .time-slot {
@@ -2087,31 +2096,34 @@ body, .ib-calendar-page, .ib-calendar-content {
             const lightColor = lightenColor(employeeColor, 0.9);
             const darkColor = darkenColor(employeeColor, 0.8);
 
-            // Calculer la position et taille
-            const columnWidth = `calc((100% - 60px) / 7)`;
-            const leftPosition = `calc(60px + ${dayIndex} * (100% - 60px) / 7 + ${event.left || '2px'})`;
-            const eventWidth = event.width || 'calc(100% - 4px)';
+            // Correction du positionnement horizontal pour rester dans la colonne du jour
+            // Largeur d'une colonne (hors time slot)
+            const gridWidth = timeGrid.offsetWidth - 60; // 60px pour la colonne des heures
+            const colWidth = gridWidth / 7;
+            // Position de la colonne du jour
+            const leftBase = 60 + dayIndex * colWidth;
+            // Décalage pour chevauchement
+            const eventLeft = event.left ? (parseFloat(event.left) / 100) * colWidth : 2;
+            const eventWidth = event.width ? (parseFloat(event.width) / 100) * colWidth : (colWidth - 4);
 
-            eventElement.style.cssText = `
-                position: absolute;
-                top: ${startOffset}px;
-                height: ${height}px;
-                left: ${leftPosition};
-                width: ${eventWidth};
-                background: ${lightColor};
-                border-left: 4px solid ${employeeColor};
-                color: ${darkColor};
-                z-index: ${10 + (event.column || 0)};
-                border-radius: 4px;
-                padding: 4px 6px;
-                font-size: 11px;
-                line-height: 1.2;
-                cursor: pointer;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-                transition: all 0.2s ease;
-                overflow: hidden;
-                min-height: 20px;
-            `;
+            eventElement.style.position = 'absolute';
+            eventElement.style.top = `${startOffset}px`;
+            eventElement.style.height = `${height}px`;
+            eventElement.style.left = `${leftBase + eventLeft}px`;
+            eventElement.style.width = `${eventWidth}px`;
+            eventElement.style.background = lightColor;
+            eventElement.style.borderLeft = `4px solid ${employeeColor}`;
+            eventElement.style.color = darkColor;
+            eventElement.style.zIndex = `${10 + (event.column || 0)}`;
+            eventElement.style.borderRadius = '4px';
+            eventElement.style.padding = '4px 6px';
+            eventElement.style.fontSize = '11px';
+            eventElement.style.lineHeight = '1.2';
+            eventElement.style.cursor = 'pointer';
+            eventElement.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.12)';
+            eventElement.style.transition = 'all 0.2s ease';
+            eventElement.style.overflow = 'hidden';
+            eventElement.style.minHeight = '20px';
 
             // Contenu de l'événement
             const showDetails = height > 30;

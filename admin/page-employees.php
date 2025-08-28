@@ -24,7 +24,6 @@ if (isset($_POST['add_employee'])) {
             echo '<div class="notice notice-success" style="margin-bottom:1.5em;"><p>Employé ajouté avec succès.</p></div>';
         }
     }
-}
 // Traitement édition employé
 if (isset($_POST['update_employee'])) {
     $id = intval($_POST['employee_id']);

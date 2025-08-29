@@ -228,7 +228,7 @@ $closing_time = get_option('ib_closing_time', '19:00');
 /* Grille des jours */
 .days-header {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, 230px); /* Largeur identique à la vue semaine */
     gap: 1px;
     background: #eee;
     margin-bottom: 1px;
@@ -236,9 +236,11 @@ $closing_time = get_option('ib_closing_time', '19:00');
 
 .day-header {
     background: white;
-    padding: 10px;
+    padding: 10px 0;
     text-align: center;
     font-weight: 500;
+    font-size: 1em;
+    border-right: 1px solid #eee;
 }
 
 /* Grille des dates */
@@ -254,17 +256,20 @@ $closing_time = get_option('ib_closing_time', '19:00');
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     width: 100%;
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
-    min-width: 900px;
+    min-width: unset;
+    overflow-x: auto;
     position: relative;
+    /* Ajout scroll horizontal interne */
 }
 
 .week-header-grid {
     display: grid;
-    grid-template-columns: 60px repeat(7, 1fr);
+    grid-template-columns: 60px repeat(7, 230px); /* Largeur augmentée de 50px */
     background: #fff;
     border-bottom: 1px solid #dadce0;
     position: sticky;
@@ -305,15 +310,15 @@ $closing_time = get_option('ib_closing_time', '19:00');
 
 .week-time-grid {
     display: grid;
-    grid-template-columns: 60px repeat(7, 1fr);
+    grid-template-columns: 60px repeat(7, 230px); /* Largeur fixe pour 7 jours */
     position: relative;
     max-height: 500px;
     overflow-y: auto;
     background: #fff;
     width: 100%;
-    min-width: 900px;
-    max-width: 1200px;
-    overflow-x: hidden;
+    min-width: 1670px;
+    max-width: 1670px;
+    overflow-x: auto;
 }
 
 .time-slot {
@@ -1768,9 +1773,10 @@ body, .ib-calendar-page, .ib-calendar-content {
             weekContainer.style.display = 'block';
 
             // Trouver le lundi de la semaine courante
-            const startDate = new Date(currentDate);
-            const dayOfWeek = startDate.getDay() === 0 ? 6 : startDate.getDay() - 1;
-            startDate.setDate(startDate.getDate() - dayOfWeek);
+                const startDate = new Date(currentDate);
+                // Correction finale : semaine commence toujours le lundi
+                const dayOfWeek = startDate.getDay();
+                startDate.setDate(startDate.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
 
             // Mettre à jour le titre
             monthYearElement.textContent = 'Semaine du ' + startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -1822,16 +1828,17 @@ body, .ib-calendar-page, .ib-calendar-content {
                     const dayColumn = document.createElement('div');
                     dayColumn.className = 'day-column';
 
-                    const currentDay = new Date(startDate);
-                    currentDay.setDate(startDate.getDate() + day);
+                    // Correction : calculer la date de la colonne à partir du lundi de la semaine
+                    let colDate = new Date(startDate);
+                    colDate.setDate(startDate.getDate() + day);
 
                     // Marquer aujourd'hui
                     const today = new Date();
-                    if (currentDay.toDateString() === today.toDateString()) {
+                    if (colDate.toDateString() === today.toDateString()) {
                         dayColumn.classList.add('today');
                     }
 
-                    dayColumn.dataset.date = currentDay.toISOString().slice(0, 10);
+                    dayColumn.dataset.date = colDate.toISOString().slice(0, 10);
                     dayColumn.dataset.hour = hour;
                     dayColumn.dataset.day = day;
 
@@ -1854,11 +1861,15 @@ body, .ib-calendar-page, .ib-calendar-content {
             const eventsByDay = {};
 
             for (let day = 0; day < 7; day++) {
-                const currentDay = new Date(startDate);
-                currentDay.setDate(startDate.getDate() + day);
-                const dateStr = currentDay.toISOString().slice(0, 10);
+                // Correction : calculer la date de la colonne à partir du lundi de la semaine
+                let colDate = new Date(startDate);
+                colDate.setDate(startDate.getDate() + day);
+                const dateStr = colDate.toISOString().slice(0, 10);
 
-                const dayBookings = getBookingsForDate(currentDay);
+                const dayBookings = getBookingsForDate(colDate);
+
+                // DEBUG : Afficher la date de la colonne et les événements trouvés
+                console.log('Colonne', day, 'date:', dateStr, 'bookings:', dayBookings.map(b => b.start_time));
 
                 eventsByDay[day] = dayBookings.map(booking => {
                     // Calculer l'heure de fin correcte basée sur la durée du service
@@ -2096,13 +2107,9 @@ body, .ib-calendar-page, .ib-calendar-content {
             const lightColor = lightenColor(employeeColor, 0.9);
             const darkColor = darkenColor(employeeColor, 0.8);
 
-            // Correction du positionnement horizontal pour rester dans la colonne du jour
-            // Largeur d'une colonne (hors time slot)
-            const gridWidth = timeGrid.offsetWidth - 60; // 60px pour la colonne des heures
-            const colWidth = gridWidth / 7;
-            // Position de la colonne du jour
+            // Placement horizontal basé sur largeur fixe de colonne
+            const colWidth = 230; // largeur CSS d'une colonne jour
             const leftBase = 60 + dayIndex * colWidth;
-            // Décalage pour chevauchement
             const eventLeft = event.left ? (parseFloat(event.left) / 100) * colWidth : 2;
             const eventWidth = event.width ? (parseFloat(event.width) / 100) * colWidth : (colWidth - 4);
 
@@ -3525,7 +3532,26 @@ body, .ib-calendar-page, .ib-calendar-content {
                 minute: '2-digit', 
                 meridiem: false 
             },
-            locale: 'fr',
+            locale: {
+                code: 'fr',
+                week: {
+                    dow: 1, // Monday is the first day of the week
+                    doy: 4  // The week that contains Jan 4th is the first week of the year
+                },
+                buttonText: {
+                    prev: 'Précédent',
+                    next: 'Suivant',
+                    today: 'Aujourd\'hui',
+                    month: 'Mois',
+                    week: 'Semaine',
+                    day: 'Jour',
+                    list: 'Liste'
+                },
+                allDayText: 'Toute la journée',
+                moreLinkText: 'en plus',
+                noEventsText: 'Aucun événement à afficher',
+                weekText: 'Sem.'
+            },
             firstDay: 1,
             editable: false,
             selectable: true,

@@ -153,7 +153,12 @@ $closing_time = get_option('ib_closing_time', '19:00');
 
         <!-- Le calendrier FullCalendar est toujours là mais masqué -->
         <div class="ib-calendar-container" style="display:none;">
-            <div id="booking-calendar"></div>
+            <div id="booking-calendar-container" style="width: 100%; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+                <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <div id="booking-calendar" style="min-width: 1000px; min-height: 600px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;">
+                    </div>
+                </div>
+            </div>
         </div>
         <div id="ib-calendar-no-results" style="display:none;text-align:center;color:#888;margin-top:2em;font-size:1.2em;">Aucun résultat pour ces filtres.</div>
     </div>
@@ -166,6 +171,134 @@ $closing_time = get_option('ib_closing_time', '19:00');
     </div>
 </div>
 <style>
+/* Container for the calendar with horizontal scrolling */
+.fc .fc-daygrid-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure the header and body scroll together */
+.fc .fc-scrollgrid {
+    min-width: 900px; /* Minimum width to ensure content is readable */
+    table-layout: fixed;
+}
+
+/* Month view specific styles */
+.fc-dayGridMonth-view {
+    --day-cell-width: 120px;
+}
+
+.fc-dayGridMonth-view .fc-scrollgrid {
+    table-layout: fixed;
+    width: 100% !important;
+    min-width: 100% !important;
+}
+
+.fc-dayGridMonth-view .fc-scrollgrid-section-body table,
+.fc-dayGridMonth-view .fc-scrollgrid-section-header table {
+    width: 100% !important;
+    table-layout: fixed;
+}
+
+/* Force all cells to be exactly the same width */
+.fc-dayGridMonth-view .fc-col-header {
+    width: 100% !important;
+    min-width: 100% !important;
+}
+
+.fc-dayGridMonth-view .fc-col-header-cell,
+.fc-dayGridMonth-view .fc-daygrid-day {
+    width: var(--day-cell-width) !important;
+    min-width: var(--day-cell-width) !important;
+    max-width: var(--day-cell-width) !important;
+    box-sizing: border-box;
+}
+
+.fc-dayGridMonth-view .fc-daygrid-day {
+    height: 100px;
+    overflow: hidden;
+}
+
+/* Ensure the day cell content doesn't affect the width */
+.fc-dayGridMonth-view .fc-daygrid-day-frame {
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+/* Force the day number to stay in place */
+.fc-dayGridMonth-view .fc-daygrid-day-top {
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
+.fc-dayGridMonth-view .fc-daygrid-day-frame {
+    min-height: 100%;
+    height: 100%;
+}
+
+.fc-dayGridMonth-view .fc-daygrid-day-top {
+    padding: 4px 8px;
+    position: relative;
+    z-index: 1;
+}
+
+.fc-dayGridMonth-view .fc-daygrid-day-number {
+    float: right;
+    font-weight: bold;
+}
+
+.fc-dayGridMonth-view .fc-daygrid-day-events {
+    margin: 2px 4px 1px;
+    overflow: hidden;
+    max-height: calc(100% - 30px);
+    overflow-y: auto;
+}
+
+.fc-dayGridMonth-view .fc-daygrid-event {
+    margin: 1px 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Header alignment */
+.fc-dayGridMonth-view .fc-col-header {
+    width: 100% !important;
+}
+
+.fc-dayGridMonth-view .fc-col-header-cell {
+    width: var(--day-cell-width) !important;
+    min-width: var(--day-cell-width) !important;
+    max-width: var(--day-cell-width) !important;
+    padding: 4px 2px !important;
+    text-align: center;
+}
+
+/* Ensure all cells in the grid have the same width */
+.fc-dayGridMonth-view .fc-scrollgrid-sync-table {
+    width: 100% !important;
+    table-layout: fixed;
+}
+
+.fc-dayGridMonth-view .fc-daygrid-body {
+    width: 100% !important;
+}
+
+.fc-dayGridMonth-view .fc-daygrid-body > table {
+    width: 100% !important;
+}
+
+/* Hide scrollbars but keep functionality */
+.fc-dayGridMonth-view .fc-daygrid-day-events::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+.fc-dayGridMonth-view .fc-daygrid-day-events::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.2);
+    border-radius: 2px;
+}
+
 /* Reset et styles de base */
 * {
     box-sizing: border-box;
@@ -228,7 +361,7 @@ $closing_time = get_option('ib_closing_time', '19:00');
 /* Grille des jours */
 .days-header {
     display: grid;
-    grid-template-columns: repeat(7, 230px); /* Largeur identique à la vue semaine */
+    grid-template-columns: repeat(7, 1fr); /* Match calendar-grid for alignment */
     gap: 1px;
     background: #eee;
     margin-bottom: 1px;
@@ -1065,12 +1198,40 @@ body, .ib-calendar-page, .ib-calendar-content {
         --fc-highlight-color: rgba(26, 115, 232, 0.1);
         width: 100% !important;
         max-width: 100% !important;
-        margin: 0 auto !important;
+        margin: 0 !important;
         padding: 0 !important;
-        height: calc(100vh - 100px) !important;
+        height: auto !important;
         min-height: 600px;
         box-sizing: border-box;
         table-layout: fixed;
+    }
+    
+    /* Correction du header et des colonnes */
+    .fc .fc-scrollgrid {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        table-layout: fixed;
+    }
+    
+    .fc .fc-scrollgrid-section > *,
+    .fc .fc-scrollgrid-section > * > tr > * {
+        width: calc(100% / 7) !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+    
+    .fc .fc-scrollgrid-section-body > table,
+    .fc .fc-scrollgrid-section-body > table > tbody,
+    .fc .fc-scrollgrid-section-body > table > tbody > tr,
+    .fc .fc-scrollgrid-section-body > table > tbody > tr > td {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+    
+    .fc .fc-scrollgrid-section-body {
+        width: 100% !important;
+        overflow-x: auto;
     }
 
     /* En-tête du calendrier */

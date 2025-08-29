@@ -142,31 +142,33 @@ function initCalendar() {
         // Debug log for MonthView click
         const clickedDay = info.date.getDate();
         const calculatedDate = new Date(info.date); // Create a new date object to avoid reference issues
-        
+
         // Get local date components
         const localYear = calculatedDate.getFullYear();
         const localMonth = calculatedDate.getMonth();
         const localDate = calculatedDate.getDate();
         const localHours = calculatedDate.getHours();
         const localMinutes = calculatedDate.getMinutes();
-        
+
         // Create a date string in local timezone
         const pad = (n) => n.toString().padStart(2, "0");
-        const isoLocal = `${localYear}-${pad(localMonth + 1)}-${pad(localDate)}`;
-        
+        const isoLocal = `${localYear}-${pad(localMonth + 1)}-${pad(
+          localDate
+        )}`;
+
         // Get UTC components
         const utcYear = calculatedDate.getUTCFullYear();
         const utcMonth = calculatedDate.getUTCMonth();
         const utcDate = calculatedDate.getUTCDate();
         const utcHours = calculatedDate.getUTCHours();
-        
+
         // Create ISO string (UTC)
         const isoUTC = calculatedDate.toISOString().slice(0, 10);
-        
+
         console.log("[MonthView Click - Detailed Debug]", {
           // Original date info
           originalDate: info.date.toString(),
-          
+
           // Local time components
           local: {
             year: localYear,
@@ -176,9 +178,9 @@ function initCalendar() {
             minutes: localMinutes,
             string: calculatedDate.toLocaleString(),
             dateString: calculatedDate.toLocaleDateString(),
-            timeString: calculatedDate.toLocaleTimeString()
+            timeString: calculatedDate.toLocaleTimeString(),
           },
-          
+
           // UTC components
           utc: {
             year: utcYear,
@@ -186,20 +188,20 @@ function initCalendar() {
             date: utcDate,
             hours: utcHours,
             string: calculatedDate.toISOString(),
-            dateString: calculatedDate.toUTCString()
+            dateString: calculatedDate.toUTCString(),
           },
-          
+
           // Timezone info
           timezone: {
             offset: calculatedDate.getTimezoneOffset(),
             offsetHours: calculatedDate.getTimezoneOffset() / -60,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           },
-          
+
           // Calculated values
           isoLocal,
           isoUTC,
-          
+
           // Original values
           clickedDay,
           calculatedDate: calculatedDate.toString(),
@@ -303,6 +305,16 @@ function initCalendar() {
     events: function (fetchInfo, successCallback, failureCallback) {
       // Récupérer les filtres actifs
       const filters = getActiveFilters();
+      // Log pour debug : vue, dates, filtres
+      console.log(
+        "[FullCalendar events] Vue:",
+        calendar.view.type,
+        "Dates:",
+        fetchInfo.startStr,
+        fetchInfo.endStr,
+        "Filtres:",
+        filters
+      );
 
       // Appel AJAX pour récupérer les événements
       fetch(ibkCalendarData.ajax_url, {
@@ -320,6 +332,7 @@ function initCalendar() {
       })
         .then((response) => response.json())
         .then((data) => {
+          console.log("[FullCalendar events] Réponse:", data);
           if (data.success) {
             successCallback(data.data);
           } else {
@@ -394,6 +407,7 @@ function initEventListeners() {
       const view = this.getAttribute("data-calendar-view");
       calendar.changeView(view);
       updateViewSelector(view);
+      refetchEvents(); // Recharge les événements avec les filtres actifs après changement de vue
     });
   });
 

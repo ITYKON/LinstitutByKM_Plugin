@@ -1857,7 +1857,35 @@ body, .ib-calendar-page, .ib-calendar-content {
                     targetDate: localDateStr
                 });
                 
-                return bookingDateStr === localDateStr;
+                // Vérifier si la date de la réservation correspond à la date cible
+                const dateMatches = bookingDateStr === localDateStr;
+
+                // Appliquer les filtres actifs
+                let matchEmp = !currentEmployee || booking.employee_id == currentEmployee;
+                let matchServ = !currentService || booking.service_id == currentService;
+                let bookingCat = (booking.category_id !== undefined && booking.category_id !== null) ? String(booking.category_id) : '';
+                let filterCat = String(currentCategory || '');
+                let matchCat = !currentCategory || bookingCat === filterCat;
+
+                console.log('[getBookingsForDate] Filter results:', {
+                    dateMatches,
+                    matchEmp,
+                    matchServ,
+                    matchCat,
+                    booking: {
+                        id: booking.id,
+                        employee_id: booking.employee_id,
+                        service_id: booking.service_id,
+                        category_id: booking.category_id
+                    },
+                    filters: {
+                        currentEmployee,
+                        currentService,
+                        currentCategory
+                    }
+                });
+
+                return dateMatches && matchEmp && matchServ && matchCat;
                 
             } catch (e) {
                 console.error('[getBookingsForDate] Error processing booking date:', e);
@@ -1865,13 +1893,13 @@ body, .ib-calendar-page, .ib-calendar-content {
             }
 
             // Appliquer les filtres actifs
-            let matchEmp = !currentEmployee || booking.employee_id == currentEmployee;
-            let matchServ = !currentService || booking.service_id == currentService;
-            let bookingCat = (booking.category_id !== undefined && booking.category_id !== null) ? String(booking.category_id) : '';
-            let filterCat = String(currentCategory || '');
-            let matchCat = !currentCategory || bookingCat === filterCat;
+            // let matchEmp = !currentEmployee || booking.employee_id == currentEmployee;
+            // let matchServ = !currentService || booking.service_id == currentService;
+            // let bookingCat = (booking.category_id !== undefined && booking.category_id !== null) ? String(booking.category_id) : '';
+            // let filterCat = String(currentCategory || '');
+            // let matchCat = !currentCategory || bookingCat === filterCat;
 
-            return matchEmp && matchServ && matchCat;
+            // return matchEmp && matchServ && matchCat;
         });
 
         return result;
@@ -3905,6 +3933,18 @@ body, .ib-calendar-page, .ib-calendar-content {
         }
     }
 
+    // Fonction pour mettre à jour la vue active en fonction des filtres
+    function updateActiveView() {
+        if (currentView === 'month') {
+            updateCalendar();
+            generateCalendar();
+        } else if (currentView === 'week') {
+            generateWeekCalendar();
+        } else if (currentView === 'day') {
+            generateDayCalendar();
+        }
+    }
+
     // --- Filtres dynamiques ---
     // Employé (select)
     document.getElementById('ib-calendar-employee').addEventListener('change', function(e) {
@@ -3918,20 +3958,17 @@ body, .ib-calendar-page, .ib-calendar-content {
                 chip.classList.remove('active');
             }
         });
-        updateCalendar();
-        generateCalendar(); // Ajout : met à jour le calendrier personnalisé
+        updateActiveView();
     });
     // Service
     document.getElementById('ib-calendar-service').addEventListener('change', function(e) {
-    currentService = this.value;
-    updateCalendar();
-    generateCalendar(); // Ajout : met à jour le calendrier personnalisé
+        currentService = this.value;
+        updateActiveView();
     });
     // Catégorie
     document.getElementById('ib-calendar-category').addEventListener('change', function(e) {
-    currentCategory = this.value;
-    updateCalendar();
-    generateCalendar(); // Ajout : met à jour le calendrier personnalisé
+        currentCategory = this.value;
+        updateActiveView();
     });
     // Barre employés : filtrage + synchronisation select
     document.querySelectorAll('.ib-employee-chip').forEach(function(chip){
@@ -3941,8 +3978,7 @@ body, .ib-calendar-page, .ib-calendar-content {
             var empId = chip.getAttribute('data-employee');
             currentEmployee = empId;
             document.getElementById('ib-calendar-employee').value = empId;
-            updateCalendar();
-            generateCalendar(); // Ajout : met à jour le calendrier personnalisé
+            updateActiveView(); // Utilisation de updateActiveView pour gérer toutes les vues
         });
     });
 

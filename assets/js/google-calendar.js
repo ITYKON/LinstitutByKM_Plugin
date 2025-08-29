@@ -139,6 +139,75 @@ function initCalendar() {
     dateClick: function (info) {
       // Créer un nouvel événement au clic sur une cellule
       if (info.view.type === "dayGridMonth") {
+        // Debug log for MonthView click
+        const clickedDay = info.date.getDate();
+        const calculatedDate = new Date(info.date); // Create a new date object to avoid reference issues
+        
+        // Get local date components
+        const localYear = calculatedDate.getFullYear();
+        const localMonth = calculatedDate.getMonth();
+        const localDate = calculatedDate.getDate();
+        const localHours = calculatedDate.getHours();
+        const localMinutes = calculatedDate.getMinutes();
+        
+        // Create a date string in local timezone
+        const pad = (n) => n.toString().padStart(2, "0");
+        const isoLocal = `${localYear}-${pad(localMonth + 1)}-${pad(localDate)}`;
+        
+        // Get UTC components
+        const utcYear = calculatedDate.getUTCFullYear();
+        const utcMonth = calculatedDate.getUTCMonth();
+        const utcDate = calculatedDate.getUTCDate();
+        const utcHours = calculatedDate.getUTCHours();
+        
+        // Create ISO string (UTC)
+        const isoUTC = calculatedDate.toISOString().slice(0, 10);
+        
+        console.log("[MonthView Click - Detailed Debug]", {
+          // Original date info
+          originalDate: info.date.toString(),
+          
+          // Local time components
+          local: {
+            year: localYear,
+            month: localMonth,
+            date: localDate,
+            hours: localHours,
+            minutes: localMinutes,
+            string: calculatedDate.toLocaleString(),
+            dateString: calculatedDate.toLocaleDateString(),
+            timeString: calculatedDate.toLocaleTimeString()
+          },
+          
+          // UTC components
+          utc: {
+            year: utcYear,
+            month: utcMonth,
+            date: utcDate,
+            hours: utcHours,
+            string: calculatedDate.toISOString(),
+            dateString: calculatedDate.toUTCString()
+          },
+          
+          // Timezone info
+          timezone: {
+            offset: calculatedDate.getTimezoneOffset(),
+            offsetHours: calculatedDate.getTimezoneOffset() / -60,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          },
+          
+          // Calculated values
+          isoLocal,
+          isoUTC,
+          
+          // Original values
+          clickedDay,
+          calculatedDate: calculatedDate.toString(),
+          minutes: calculatedDate.getMinutes(),
+          raw: calculatedDate,
+          toLocaleString: calculatedDate.toLocaleString(),
+          toISOString: calculatedDate.toISOString(),
+        });
         calendar.changeView("timeGridDay", info.date);
         return;
       }
@@ -171,13 +240,15 @@ function initCalendar() {
     // Gestion du clic sur un événement
     eventClick: function (info) {
       selectedEvent = info.event;
-      
+
       // Create a deep copy of the event data to avoid modifying the original
       const eventData = {
         id: selectedEvent.id,
         title: selectedEvent.title,
         start: selectedEvent.start,
-        end: selectedEvent.end || new Date(selectedEvent.start.getTime() + 60 * 60 * 1000),
+        end:
+          selectedEvent.end ||
+          new Date(selectedEvent.start.getTime() + 60 * 60 * 1000),
         allDay: selectedEvent.allDay,
         extendedProps: {
           ...selectedEvent.extendedProps,
@@ -187,7 +258,7 @@ function initCalendar() {
           service: selectedEvent.extendedProps.service,
           employee: selectedEvent.extendedProps.employee,
           status: selectedEvent.extendedProps.status,
-          notes: selectedEvent.extendedProps.notes
+          notes: selectedEvent.extendedProps.notes,
         },
         backgroundColor: selectedEvent.backgroundColor,
         textColor: selectedEvent.textColor,

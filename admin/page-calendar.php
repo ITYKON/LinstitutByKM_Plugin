@@ -1818,9 +1818,19 @@ body, .ib-calendar-page, .ib-calendar-content {
 
     // Fonction utilitaire pour récupérer les réservations d'une date avec filtres
     function getBookingsForDate(date) {
-        const dateStr = date.toISOString().split('T')[0];
+        // Format the date in local timezone (YYYY-MM-DD)
+        const pad = n => n.toString().padStart(2, '0');
+        const localDateStr = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+        
+        console.log('[getBookingsForDate]', {
+            inputDate: date.toString(),
+            localDateStr,
+            timezoneOffset: date.getTimezoneOffset(),
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        });
 
         if (!window.bookings || !Array.isArray(window.bookings)) {
+            console.log('[getBookingsForDate] No bookings data');
             return [];
         }
 
@@ -1829,20 +1839,30 @@ body, .ib-calendar-page, .ib-calendar-content {
                 return false;
             }
 
-            // Essayer différents formats de date
-            let bookingDate;
+            // Try different date formats
+            let bookingDateStr;
             try {
-                // Si c'est déjà au format YYYY-MM-DD
+                // If it's already in YYYY-MM-DD format
                 if (booking.start_time.includes('-') && booking.start_time.length >= 10) {
-                    bookingDate = booking.start_time.split(' ')[0]; // Prendre juste la partie date
+                    bookingDateStr = booking.start_time.split(' ')[0]; // Take just the date part
                 } else {
-                    bookingDate = new Date(booking.start_time).toISOString().split('T')[0];
+                    // Create a date in local timezone
+                    const bookingDate = new Date(booking.start_time);
+                    bookingDateStr = `${bookingDate.getFullYear()}-${pad(bookingDate.getMonth() + 1)}-${pad(bookingDate.getDate())}`;
                 }
+                
+                console.log('[getBookingsForDate] Checking booking:', {
+                    bookingStart: booking.start_time,
+                    bookingDate: bookingDateStr,
+                    targetDate: localDateStr
+                });
+                
+                return bookingDateStr === localDateStr;
+                
             } catch (e) {
+                console.error('[getBookingsForDate] Error processing booking date:', e);
                 return false;
             }
-
-            if (bookingDate !== dateStr) return false;
 
             // Appliquer les filtres actifs
             let matchEmp = !currentEmployee || booking.employee_id == currentEmployee;

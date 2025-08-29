@@ -3939,9 +3939,19 @@ body, .ib-calendar-page, .ib-calendar-content {
             updateCalendar();
             generateCalendar();
         } else if (currentView === 'week') {
-            generateWeekCalendar();
+            // Mettre à jour la vue semaine via la fonction updateCalendarView()
+            const viewButtons = document.querySelectorAll('.calendar-view-btn');
+            const weekBtn = Array.from(viewButtons).find(btn => btn.getAttribute('data-view') === 'week');
+            if (weekBtn) {
+                weekBtn.click();
+            }
         } else if (currentView === 'day') {
-            generateDayCalendar();
+            // Mettre à jour la vue jour via la fonction updateCalendarView()
+            const viewButtons = document.querySelectorAll('.calendar-view-btn');
+            const dayBtn = Array.from(viewButtons).find(btn => btn.getAttribute('data-view') === 'day');
+            if (dayBtn) {
+                dayBtn.click();
+            }
         }
     }
 

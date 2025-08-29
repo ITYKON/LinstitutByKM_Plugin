@@ -108,8 +108,34 @@ function initCalendar() {
       },
     })),
 
-    // Événements
-    events: bookings,
+    // Événements dynamiques avec filtres pour toutes les vues
+    events: function (fetchInfo, successCallback, failureCallback) {
+      const filters = getActiveFilters();
+      fetch(ibkCalendarData.ajax_url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          action: "ibk_get_events",
+          nonce: ibkCalendarData.nonces.get_events,
+          start: fetchInfo.startStr,
+          end: fetchInfo.endStr,
+          ...filters,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            successCallback(data.data);
+          } else {
+            failureCallback(data.data);
+          }
+        })
+        .catch((error) => {
+          failureCallback(error);
+        });
+    },
     eventTimeFormat: {
       hour: "2-digit",
       minute: "2-digit",

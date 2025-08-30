@@ -1934,42 +1934,46 @@ body, .ib-calendar-page, .ib-calendar-content {
             const weekContainer = document.getElementById('week-view-container');
             weekContainer.style.display = 'block';
 
-            // Trouver le lundi de la semaine courante
-                const startDate = new Date(currentDate);
-                // Correction finale : semaine commence toujours le lundi
-                const dayOfWeek = startDate.getDay();
-                startDate.setDate(startDate.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+            // Trouver le lundi de la semaine courante en gérant correctement le fuseau horaire
+            let weekStart = new Date(currentDate);
+            // S'assurer que nous travaillons avec la date locale
+            weekStart.setHours(12, 0, 0, 0); // Éviter les problèmes de changement d'heure
+            let dayOfWeek = weekStart.getDay();
+            // Calculer le décalage par rapport au lundi (1 = lundi, 0 = dimanche)
+            const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+            weekStart.setDate(weekStart.getDate() - daysToSubtract);
 
-            // Mettre à jour le titre
-            monthYearElement.textContent = 'Semaine du ' + startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+            // Calculer le dimanche de la semaine
+            let weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+
+            // Mettre à jour le titre (du lundi au dimanche)
+            monthYearElement.textContent = 'Semaine du ' + weekStart.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) + ' au ' + weekEnd.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 
             // Mettre à jour les en-têtes des jours
             const dayHeaders = weekContainer.querySelectorAll('.week-day-header');
             const today = new Date();
-
+            const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
             for (let i = 0; i < 7; i++) {
-                const currentDay = new Date(startDate);
-                currentDay.setDate(startDate.getDate() + i);
-
-                const dayHeader = dayHeaders[i];
-                const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+                let currentDay = new Date(weekStart);
+                currentDay.setDate(weekStart.getDate() + i);
+                let dayHeader = dayHeaders[i];
                 dayHeader.innerHTML = `
                     <div style="font-size: 12px; color: #70757a;">${dayNames[i]}</div>
                     <div style="font-size: 18px; font-weight: 600; margin-top: 2px;">${currentDay.getDate()}</div>
                 `;
-
                 // Marquer aujourd'hui
                 if (currentDay.toDateString() === today.toDateString()) {
                     dayHeader.classList.add('today');
                 } else {
                     dayHeader.classList.remove('today');
                 }
-
                 dayHeader.dataset.date = currentDay.toISOString().slice(0, 10);
             }
 
-            generateWeekTimeGrid(startDate);
-            loadWeekEvents(startDate);
+            // Utiliser weekStart pour la grille et les événements
+            generateWeekTimeGrid(weekStart);
+            loadWeekEvents(weekStart);
         }
 
         // Génère la grille horaire pour la vue semaine
@@ -2845,31 +2849,28 @@ body, .ib-calendar-page, .ib-calendar-content {
         }
     }); // Fin de DOMContentLoaded
     
-    // Fonction pour mettre à jour l'affichage du mois/année
-    function updateMonthYearDisplay() {
-        if (!monthYearElement) return;
-        const options = { month: 'long', year: 'numeric' };
-        monthYearElement.textContent = currentDate.toLocaleDateString('fr-FR', options);
-    }
-    
     // Fonction pour mettre à jour l'affichage de la semaine
     function updateWeekDisplay() {
         if (!monthYearElement) return;
-        const startOfWeek = new Date(currentDate);
-        startOfWeek.setDate(currentDate.getDate() - currentDate.getDay() + 1); // Lundi
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6); // Dimanche
         
-        const options = { day: 'numeric', month: 'long', year: 'numeric' };
-        monthYearElement.textContent = 
-            'Semaine du ' + 
-            startOfWeek.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + 
+        // Use the same calculation as in generateWeekCalendar
+        const weekStart = new Date(currentDate);
+        weekStart.setHours(12, 0, 0, 0); // Avoid DST issues
+        const dayOfWeek = weekStart.getDay();
+        const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        weekStart.setDate(weekStart.getDate() - daysToSubtract);
+        
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        
+        monthYearElement.textContent = 'Semaine du ' + 
+            weekStart.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) + 
             ' au ' + 
-            endOfWeek.toLocaleDateString('fr-FR', options);
+            weekEnd.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
     }
     
-    // Fonction pour mettre à jour l'affichage du jour
-    function updateDayDisplay() {
+    // Fonction pour mettre à jour l'affichage du mois/année
+    function updateMonthYearDisplay() {
         if (!monthYearElement) return;
         const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
         monthYearElement.textContent = currentDate.toLocaleDateString('fr-FR', options);
@@ -3105,10 +3106,10 @@ body, .ib-calendar-page, .ib-calendar-content {
             const weekContainer = document.getElementById('week-view-container');
             if (weekContainer && weekContainer.style.display !== 'none') {
                 // Trouver le lundi de la semaine courante
-                const startDate = new Date(currentDate);
-                const dayOfWeek = startDate.getDay() === 0 ? 6 : startDate.getDay() - 1;
-                startDate.setDate(startDate.getDate() - dayOfWeek);
-                loadWeekEvents(startDate);
+                let weekStart = new Date(currentDate);
+                let dayOfWeek = weekStart.getDay();
+                weekStart.setDate(weekStart.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+                loadWeekEvents(weekStart);
             }
         }
 

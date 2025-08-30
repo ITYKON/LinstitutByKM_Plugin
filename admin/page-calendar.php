@@ -1812,7 +1812,7 @@ body, .ib-calendar-page, .ib-calendar-content {
     function handleDayClick(dayElement, date) {
         const dayBookings = getBookingsForDate(date);
         if (dayBookings.length > 0) {
-            showAllBookingsForDay(dayBookings, window.employees, window.services, window.employeeColors);
+           showAllBookingsForDay(dayBookings, window.employees, window.services, window.employeeColors, date);
         }
     }
 
@@ -2752,7 +2752,7 @@ body, .ib-calendar-page, .ib-calendar-content {
                         const day = parseInt(dayElement.querySelector('.day-number').textContent);
                         const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
                         const dayBookings = getBookingsForDate(date);
-                        showAllBookingsForDay(dayBookings, window.employees, window.services, window.employeeColors);
+                        showAllBookingsForDay(dayBookings, window.employees, window.services, window.employeeColors, date);
                     }
                     // Clic sur "+X plus"
                     if (e.target.classList.contains('more-events')) {
@@ -2761,7 +2761,7 @@ body, .ib-calendar-page, .ib-calendar-content {
                         const day = parseInt(dayElement.querySelector('.day-number').textContent);
                         const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
                         const dayBookings = getBookingsForDate(date);
-                        showAllBookingsForDay(dayBookings, window.employees, window.services, window.employeeColors);
+                    showAllBookingsForDay(dayBookings, window.employees, window.services, window.employeeColors, date);
                     }
                 });
                 
@@ -3292,7 +3292,7 @@ body, .ib-calendar-page, .ib-calendar-content {
     }
     
     // Fonction pour afficher toutes les réservations d'une journée
-    function showAllBookingsForDay(bookings, employees, services, employeeColors) {
+    function showAllBookingsForDay(bookings, employees, services, employeeColors, clickedDate) {
         // Fermer toute modale existante
         const existingModal = document.querySelector('.all-bookings-modal');
         if (existingModal) {
@@ -3457,12 +3457,9 @@ body, .ib-calendar-page, .ib-calendar-content {
         document.head.appendChild(style);
         
         // Date au format lisible
-        const dateStr = new Date(bookings[0]?.start_time || new Date()).toLocaleDateString('fr-FR', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        });
+       const dateStr = clickedDate
+    ? new Date(clickedDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    : (bookings[0]?.start_time ? new Date(bookings[0].start_time).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
         
         // Création de la modale
         modal.innerHTML = `

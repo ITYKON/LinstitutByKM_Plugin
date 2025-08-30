@@ -354,6 +354,7 @@ $closing_time = get_option('ib_closing_time', '19:00');
     background: #f5f5f5;
     border: 1px solid #ddd;
     border-radius: 4px;
+    color: #888888;
     padding: 5px 15px;
     cursor: pointer;
 }

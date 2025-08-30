@@ -4,7 +4,7 @@ require_once plugin_dir_path(__FILE__) . '../includes/class-services.php';
 require_once plugin_dir_path(__FILE__) . '../includes/class-employees.php';
 require_once plugin_dir_path(__FILE__) . '../includes/class-categories.php';
 require_once plugin_dir_path(__FILE__) . '../includes/class-bookings.php';
-$bookings = IB_Bookings::get_all();
+$bookings = array_values(array_filter(IB_Bookings::get_all(), function($b) { return isset($b->status) && $b->status === 'confirmee'; }));
 $services = IB_Services::get_all();
 $employees = IB_Employees::get_all();
 $categories = IB_Categories::get_all();
@@ -1818,19 +1818,10 @@ body, .ib-calendar-page, .ib-calendar-content {
 
     // Fonction utilitaire pour récupérer les réservations d'une date avec filtres
     function getBookingsForDate(date) {
-        // Format the date in local timezone (YYYY-MM-DD)
-        const pad = n => n.toString().padStart(2, '0');
-        const localDateStr = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-        
-        console.log('[getBookingsForDate]', {
-            inputDate: date.toString(),
-            localDateStr,
-            timezoneOffset: date.getTimezoneOffset(),
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-        });
+    date.setHours(12, 0, 0, 0); // Fix timezone offset
+    const dateStr = date.toISOString().split('T')[0];
 
         if (!window.bookings || !Array.isArray(window.bookings)) {
-            console.log('[getBookingsForDate] No bookings data');
             return [];
         }
 
@@ -1839,67 +1830,29 @@ body, .ib-calendar-page, .ib-calendar-content {
                 return false;
             }
 
-            // Try different date formats
-            let bookingDateStr;
+            // Essayer différents formats de date
+            let bookingDate;
             try {
-                // If it's already in YYYY-MM-DD format
+                // Si c'est déjà au format YYYY-MM-DD
                 if (booking.start_time.includes('-') && booking.start_time.length >= 10) {
-                    bookingDateStr = booking.start_time.split(' ')[0]; // Take just the date part
+                    bookingDate = booking.start_time.split(' ')[0]; // Prendre juste la partie date
                 } else {
-                    // Create a date in local timezone
-                    const bookingDate = new Date(booking.start_time);
-                    bookingDateStr = `${bookingDate.getFullYear()}-${pad(bookingDate.getMonth() + 1)}-${pad(bookingDate.getDate())}`;
+                    bookingDate = new Date(booking.start_time).toISOString().split('T')[0];
                 }
-                
-                console.log('[getBookingsForDate] Checking booking:', {
-                    bookingStart: booking.start_time,
-                    bookingDate: bookingDateStr,
-                    targetDate: localDateStr
-                });
-                
-                // Vérifier si la date de la réservation correspond à la date cible
-                const dateMatches = bookingDateStr === localDateStr;
-
-                // Appliquer les filtres actifs
-                let matchEmp = !currentEmployee || booking.employee_id == currentEmployee;
-                let matchServ = !currentService || booking.service_id == currentService;
-                let bookingCat = (booking.category_id !== undefined && booking.category_id !== null) ? String(booking.category_id) : '';
-                let filterCat = String(currentCategory || '');
-                let matchCat = !currentCategory || bookingCat === filterCat;
-
-                console.log('[getBookingsForDate] Filter results:', {
-                    dateMatches,
-                    matchEmp,
-                    matchServ,
-                    matchCat,
-                    booking: {
-                        id: booking.id,
-                        employee_id: booking.employee_id,
-                        service_id: booking.service_id,
-                        category_id: booking.category_id
-                    },
-                    filters: {
-                        currentEmployee,
-                        currentService,
-                        currentCategory
-                    }
-                });
-
-                return dateMatches && matchEmp && matchServ && matchCat;
-                
             } catch (e) {
-                console.error('[getBookingsForDate] Error processing booking date:', e);
                 return false;
             }
 
-            // Appliquer les filtres actifs
-            // let matchEmp = !currentEmployee || booking.employee_id == currentEmployee;
-            // let matchServ = !currentService || booking.service_id == currentService;
-            // let bookingCat = (booking.category_id !== undefined && booking.category_id !== null) ? String(booking.category_id) : '';
-            // let filterCat = String(currentCategory || '');
-            // let matchCat = !currentCategory || bookingCat === filterCat;
+            if (bookingDate !== dateStr) return false;
 
-            // return matchEmp && matchServ && matchCat;
+            // Appliquer les filtres actifs
+            let matchEmp = !currentEmployee || booking.employee_id == currentEmployee;
+            let matchServ = !currentService || booking.service_id == currentService;
+            let bookingCat = (booking.category_id !== undefined && booking.category_id !== null) ? String(booking.category_id) : '';
+            let filterCat = String(currentCategory || '');
+            let matchCat = !currentCategory || bookingCat === filterCat;
+
+            return matchEmp && matchServ && matchCat;
         });
 
         return result;
@@ -3659,7 +3612,7 @@ body, .ib-calendar-page, .ib-calendar-content {
             ]
         ];
     }, $bookings)); ?>;
-    allEvents = allEvents.filter(ev => (ev.extendedProps.status === 'confirmé' || ev.extendedProps.status === 'confirme' || ev.extendedProps.status === 'confirmee'));
+    allEvents = allEvents.filter(ev => ev.extendedProps.status === 'confirmee');
 
     // Variables de filtre
     let currentEmployee = '';
@@ -3933,28 +3886,6 @@ body, .ib-calendar-page, .ib-calendar-content {
         }
     }
 
-    // Fonction pour mettre à jour la vue active en fonction des filtres
-    function updateActiveView() {
-        if (currentView === 'month') {
-            updateCalendar();
-            generateCalendar();
-        } else if (currentView === 'week') {
-            // Mettre à jour la vue semaine via la fonction updateCalendarView()
-            const viewButtons = document.querySelectorAll('.calendar-view-btn');
-            const weekBtn = Array.from(viewButtons).find(btn => btn.getAttribute('data-view') === 'week');
-            if (weekBtn) {
-                weekBtn.click();
-            }
-        } else if (currentView === 'day') {
-            // Mettre à jour la vue jour via la fonction updateCalendarView()
-            const viewButtons = document.querySelectorAll('.calendar-view-btn');
-            const dayBtn = Array.from(viewButtons).find(btn => btn.getAttribute('data-view') === 'day');
-            if (dayBtn) {
-                dayBtn.click();
-            }
-        }
-    }
-
     // --- Filtres dynamiques ---
     // Employé (select)
     document.getElementById('ib-calendar-employee').addEventListener('change', function(e) {
@@ -3968,17 +3899,20 @@ body, .ib-calendar-page, .ib-calendar-content {
                 chip.classList.remove('active');
             }
         });
-        updateActiveView();
+        updateCalendar();
+        generateCalendar(); // Ajout : met à jour le calendrier personnalisé
     });
     // Service
     document.getElementById('ib-calendar-service').addEventListener('change', function(e) {
-        currentService = this.value;
-        updateActiveView();
+    currentService = this.value;
+    updateCalendar();
+    generateCalendar(); // Ajout : met à jour le calendrier personnalisé
     });
     // Catégorie
     document.getElementById('ib-calendar-category').addEventListener('change', function(e) {
-        currentCategory = this.value;
-        updateActiveView();
+    currentCategory = this.value;
+    updateCalendar();
+    generateCalendar(); // Ajout : met à jour le calendrier personnalisé
     });
     // Barre employés : filtrage + synchronisation select
     document.querySelectorAll('.ib-employee-chip').forEach(function(chip){
@@ -3988,7 +3922,8 @@ body, .ib-calendar-page, .ib-calendar-content {
             var empId = chip.getAttribute('data-employee');
             currentEmployee = empId;
             document.getElementById('ib-calendar-employee').value = empId;
-            updateActiveView(); // Utilisation de updateActiveView pour gérer toutes les vues
+            updateCalendar();
+            generateCalendar(); // Ajout : met à jour le calendrier personnalisé
         });
     });
 
@@ -4061,14 +3996,13 @@ body, .ib-calendar-page, .ib-calendar-content {
             showEventModal(info.event);
         });
         
-        // Handle day cell clicks
-        document.addEventListener('click', (e) => {
-            const dayCell = e.target.closest('.fc-daygrid-day-frame');
-            if (!dayCell || e.target.classList.contains('ib-event-dot')) return;
-            
-            const dateStr = dayCell.parentElement.getAttribute('data-date');
-            if (dateStr) showDayModal(dateStr);
-        });
+    // Legacy day cell click handler disabled to prevent duplicate modal
+    // document.addEventListener('click', (e) => {
+    //     const dayCell = e.target.closest('.fc-daygrid-day-frame');
+    //     if (!dayCell || e.target.classList.contains('ib-event-dot')) return;
+    //     const dateStr = dayCell.parentElement.getAttribute('data-date');
+    //     if (dateStr) showDayModal(dateStr);
+    // });
     };
 
     // Initialize everything

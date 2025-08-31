@@ -54,7 +54,7 @@ function ib_check_phone_exists() {
         }
         // 2. Si pas trouvé dans clients, vérifier dans les réservations (sur les 9 derniers chiffres)
         $booking_query = $wpdb->prepare(
-            "SELECT DISTINCT client_name, client_phone FROM {$bookings_table} WHERE RIGHT(REGEXP_REPLACE(client_phone, '[^0-9]', ''), 9) = %s LIMIT 1",
+            "SELECT DISTINCT client_name, client_phone, client_email FROM {$bookings_table} WHERE RIGHT(REGEXP_REPLACE(client_phone, '[^0-9]', ''), 9) = %s LIMIT 1",
             $last9
         );
         $booking = $wpdb->get_row($booking_query);
@@ -62,6 +62,7 @@ function ib_check_phone_exists() {
             $result['exists'] = true;
             $result['source'] = 'booking';
             $result['client_name'] = $booking->client_name;
+            $result['client_email'] = isset($booking->client_email) ? $booking->client_email : '';
             wp_send_json_success($result);
             return;
         }

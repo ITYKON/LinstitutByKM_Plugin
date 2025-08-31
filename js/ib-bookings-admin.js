@@ -36,10 +36,17 @@ jQuery(function ($) {
             if (result.source === 'client') {
                 msg = `Client trouvé: <span style='color:#1ca127;font-weight:bold;'>${result.client_name}</span>`;
                 if (result.client_name) clientNameInput.value = result.client_name;
-                if (result.client_email) clientEmailInput.value = result.client_email;
+                if (result.client_email) {
+                    clientEmailInput.value = result.client_email;
+                    msg += `<br><span style='color:#0073aa;'>${result.client_email}</span>`;
+                }
             } else if (result.source === 'booking') {
-                msg = `<span style="white-space:nowrap;">Numéro existant: <span style="color:#1ca127;font-weight:bold;">${result.client_name}</span></span>`;
+                msg = `<span style=\"white-space:nowrap;\">Numéro existant: <span style=\"color:#1ca127;font-weight:bold;\">${result.client_name}</span></span>`;
                 if (result.client_name) clientNameInput.value = result.client_name;
+                if (result.client_email) {
+                    clientEmailInput.value = result.client_email;
+                    msg += `<br><span style='color:#0073aa;'>${result.client_email}</span>`;
+                }
             }
             messageDiv.innerHTML = `<p style='margin:4px 0 0 0;font-size:14px;color:#222;display:inline;'>${msg}</p>`;
             clientNameInput.style.backgroundColor = '#f0f0f0';
@@ -49,7 +56,7 @@ jQuery(function ($) {
                 messageDiv.innerHTML = '';
             }, 20000);
         } else {
-            messageDiv.innerHTML = '<span style="color:#d63638;white-space:nowrap;">Nouveau client</span>';
+            messageDiv.innerHTML = '<span style=\"color:#d63638;white-space:nowrap;\">Nouveau client</span>';
 
             clientNameInput.style.backgroundColor = '';
             clientNameInput.title = '';

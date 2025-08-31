@@ -147,12 +147,37 @@ class AbsenceCalendar {
     }
 
     bindModalEvents() {
+        console.log('bindModalEvents called');
         const modal = document.getElementById('ib-add-absence-form');
         const backdrop = document.getElementById('ib-modal-bg-absence');
         const form = document.getElementById('absence-form');
 
         if (form) {
-            form.addEventListener('submit', (e) => this.handleFormSubmit(e));
+            console.log('Form found, setting up event listener');
+            
+            // Créer une nouvelle fonction pour le gestionnaire avec un ID unique
+            const handlerId = 'formSubmitHandler_' + Date.now();
+            const handleFormSubmit = (e) => {
+                console.log('Form submit handler called', handlerId);
+                e.preventDefault();
+                e.stopPropagation();
+                return this.handleFormSubmit(e);
+            };
+            
+            // Supprimer d'abord les écouteurs existants
+            if (this._formSubmitHandler) {
+                console.log('Removing existing form submit handler');
+                form.removeEventListener('submit', this._formSubmitHandler);
+            }
+            
+            // Ajouter le nouvel écouteur
+            form.addEventListener('submit', handleFormSubmit);
+            
+            // Stocker la référence pour une éventuelle suppression ultérieure
+            this._formSubmitHandler = handleFormSubmit;
+            console.log('New form submit handler registered', handlerId);
+        } else {
+            console.error('Form not found for binding events');
         }
     }
 
@@ -349,14 +374,24 @@ class AbsenceCalendar {
             form.querySelector('input[name="absence_id"]').value = '';
             deleteBtn.style.display = 'none';
             
-            // Set date if provided
-            if (dateStr) {
+            // Set date if provided and is a string (not FormData)
+            if (dateStr && typeof dateStr === 'string') {
                 form.querySelector('input[name="start_date"]').value = dateStr;
                 form.querySelector('input[name="end_date"]').value = dateStr;
             }
 
             backdrop.style.display = 'block';
             modal.style.display = 'block';
+        }
+    }
+    
+    closeAbsenceModal() {
+        const modal = document.getElementById('ib-add-absence-form');
+        const backdrop = document.getElementById('ib-modal-bg-absence');
+        
+        if (modal && backdrop) {
+            modal.style.display = 'none';
+            backdrop.style.display = 'none';
         }
     }
 
@@ -401,7 +436,24 @@ class AbsenceCalendar {
     }
 
     async handleFormSubmit(e) {
+        console.log('handleFormSubmit called');
         e.preventDefault();
+        e.stopPropagation();
+        
+        // Vérifier si une soumission est déjà en cours
+        if (this._isSubmitting) {
+            console.log('Form submission already in progress, ignoring duplicate');
+            return;
+        }
+        
+        this._isSubmitting = true;
+        
+        // Désactiver le bouton de soumission pour éviter les doubles clics
+        const submitButton = e.target.querySelector('button[type="submit"]');
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Enregistrement...';
+        }
 
         // Validation des dates
         const startDate = e.target.querySelector('input[name="start_date"]').value;
@@ -423,23 +475,55 @@ class AbsenceCalendar {
                 credentials: 'same-origin',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-WP-Nonce': ib_absence_ajax.nonce
+                    'X-WP-Nonce': ib_absence_ajax.nonce,
+                    'Cache-Control': 'no-cache'
                 }
             });
 
-            const result = await response.json();
+            // Lire la réponse comme texte d'abord
+            const responseText = await response.text();
+            let result;
             
-            if (result.success) {
-                // Fermer le modal et recharger les données
-                this.closeAbsenceModal();
-                await this.loadAbsences();
-                this.renderCalendar();
-            } else {
-                alert('Erreur: ' + (result.data?.message || 'Échec de l\'enregistrement'));
+            try {
+                // Essayer de parser la réponse en JSON
+                result = JSON.parse(responseText);
+                
+                if (result.success) {
+                    // Fermer le modal et recharger les données
+                    this.closeAbsenceModal();
+                    await this.loadAbsences();
+                    this.renderCalendar();
+                } else {
+                    console.error('Erreur du serveur:', result);
+                    alert('Erreur: ' + (result.data?.message || 'Échec de l\'enregistrement'));
+                }
+            } catch (e) {
+                // Si le parsing JSON échoue, afficher la réponse brute
+                // Si la réponse réussit mais n'est pas du JSON valide, traiter comme un succès
+                if (response.ok) {
+                    this.closeAbsenceModal();
+                    await this.loadAbsences();
+                    this.renderCalendar();
+                } else {
+                    console.error('Réponse du serveur (non-JSON):', responseText);
+                    console.error('Erreur de parsing JSON:', e);
+                    alert('Erreur inattendue du serveur. Voir la console pour plus de détails.');
+                }
             }
         } catch (error) {
             console.error('Erreur lors de la soumission:', error);
             alert('Erreur lors de l\'enregistrement de l\'absence');
+        } finally {
+            // Réactiver le bouton de soumission en cas d'erreur
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Enregistrer';
+            }
+            
+            // Réinitialiser le flag de soumission
+            this._isSubmitting = false;
+            console.log('Form submission completed');
         }
     }
 

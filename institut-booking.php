@@ -888,7 +888,14 @@ function ib_ajax_save_absence() {
             $action = 'modification_absence';
         } else {
             // Nouvelle absence
-            $result = IB_Employee_Absences::add($data);
+            $result = IB_Employee_Absences::add(
+                $data['employee_id'],
+                $data['start_date'],
+                $data['end_date'],
+                $data['type'],
+                $data['reason'],
+                $data['status']
+            );
             $message = 'Absence ajoutée avec succès';
             $action = 'ajout_absence';
         }

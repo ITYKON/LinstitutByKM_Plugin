@@ -3,20 +3,12 @@
  * Script pour vérifier la table des absences
  */
 
-// Vérifier si on est dans WordPress
-if (!defined('ABSPATH')) {
-    // Si on n'est pas dans WordPress, on définit les constantes nécessaires
-    $wp_load_path = dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/wp-load.php';
-    if (file_exists($wp_load_path)) {
-        require_once($wp_load_path);
-    } else {
-        die('Impossible de charger WordPress');
-    }
-}
+// Charger WordPress
+require_once('../../../wp-load.php');
 
-// Vérifier les droits d'administration
+// Vérifier les capacités utilisateur
 if (!current_user_can('manage_options')) {
-    wp_die('Accès non autorisé');
+    wp_die('Accès non autorisé. Vous devez être administrateur pour accéder à cette page.');
 }
 
 // Récupérer le préfixe de la base de données

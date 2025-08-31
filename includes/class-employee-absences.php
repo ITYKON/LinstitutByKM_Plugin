@@ -67,13 +67,23 @@ class IB_Employee_Absences {
             $params[] = $employee_id;
         }
         
-        return $wpdb->get_results($wpdb->prepare("
+        $query = $wpdb->prepare("
             SELECT a.*, e.name as employee_name 
             FROM {$wpdb->prefix}ib_employee_absences a
             LEFT JOIN {$wpdb->prefix}ib_employees e ON a.employee_id = e.id
             {$where_clause}
             ORDER BY a.start_date ASC
-        ", $params));
+        ", $params);
+        
+        // Log de débogage
+        error_log('Requête SQL des absences: ' . $wpdb->remove_placeholder_escape($query));
+        
+        $results = $wpdb->get_results($query);
+        
+        // Log des résultats
+        error_log('Résultats de la requête: ' . print_r($results, true));
+        
+        return $results;
     }
 
     /**

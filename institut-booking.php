@@ -810,25 +810,182 @@ function ib_delete_notification() {
 add_action('wp_ajax_get_absences', 'ib_ajax_get_absences');
 add_action('wp_ajax_get_absence', 'ib_ajax_get_absence');
 add_action('wp_ajax_delete_absence', 'ib_ajax_delete_absence');
+add_action('wp_ajax_save_absence', 'ib_ajax_save_absence');
 
 // Action AJAX pour récupérer les praticiennes disponibles (côté client)
 add_action('wp_ajax_get_available_employees', 'ib_ajax_get_available_employees');
 add_action('wp_ajax_nopriv_get_available_employees', 'ib_ajax_get_available_employees');
 
-function ib_ajax_get_absences() {
-    check_ajax_referer('ib_absence_nonce', 'nonce');
-
-    $start_date = isset($_POST['start_date']) ? sanitize_text_field($_POST['start_date']) : '';
-    $end_date = isset($_POST['end_date']) ? sanitize_text_field($_POST['end_date']) : '';
-    $employee_id = isset($_POST['employee_id']) ? intval($_POST['employee_id']) : null;
-
-    if (!$start_date || !$end_date) {
-        wp_send_json_error('Dates manquantes');
-        return;
+function ib_ajax_save_absence() {
+    // Activer l'affichage des erreurs pour le débogage
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+    
+    error_log('Début de la fonction ib_ajax_save_absence');
+    error_log('Données reçues: ' . print_r($_POST, true));
+    
+    try {
+        // Vérifier le nonce
+        $nonce = isset($_POST['nonce']) ? $_POST['nonce'] : '';
+        error_log('Nonce reçu: ' . $nonce);
+        
+        if (!wp_verify_nonce($nonce, 'ib_absence_nonce')) {
+            $error = 'Nonce invalide';
+            error_log('Erreur: ' . $error);
+            wp_send_json_error($error);
+            return;
+        }
+        
+        // Vérifier les permissions
+        if (!current_user_can('manage_options')) {
+            $error = 'Permissions insuffisantes';
+            error_log('Erreur: ' . $error);
+            wp_send_json_error($error);
+            return;
+        }
+        
+        // Récupérer et valider les données
+        $absence_id = isset($_POST['absence_id']) ? intval($_POST['absence_id']) : 0;
+        $employee_id = isset($_POST['employee_id']) ? intval($_POST['employee_id']) : 0;
+        $start_date = isset($_POST['start_date']) ? sanitize_text_field($_POST['start_date']) : '';
+        $end_date = isset($_POST['end_date']) ? sanitize_text_field($_POST['end_date']) : '';
+        $type = isset($_POST['type']) ? sanitize_text_field($_POST['type']) : 'absence';
+        $reason = isset($_POST['reason']) ? sanitize_text_field($_POST['reason']) : '';
+        $status = 'approved'; // Par défaut, approuvé
+        
+        // Validation des champs obligatoires
+        if (!$employee_id || !$start_date || !$end_date) {
+            $error = 'Tous les champs obligatoires doivent être remplis';
+            error_log('Erreur: ' . $error);
+            wp_send_json_error($error);
+            return;
+        }
+        
+        // Validation des dates
+        if (strtotime($end_date) < strtotime($start_date)) {
+            $error = 'La date de fin doit être postérieure ou égale à la date de début';
+            error_log('Erreur: ' . $error);
+            wp_send_json_error($error);
+            return;
+        }
+        
+        // Préparer les données pour l'insertion/mise à jour
+        $data = [
+            'employee_id' => $employee_id,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+            'type' => $type,
+            'reason' => $reason,
+            'status' => $status,
+            'created_by' => get_current_user_id()
+        ];
+        
+        // Insérer ou mettre à jour l'absence
+        if ($absence_id > 0) {
+            // Mise à jour
+            $result = IB_Employee_Absences::update($absence_id, $data);
+            $message = 'Absence mise à jour avec succès';
+            $action = 'modification_absence';
+        } else {
+            // Nouvelle absence
+            $result = IB_Employee_Absences::add($data);
+            $message = 'Absence ajoutée avec succès';
+            $action = 'ajout_absence';
+        }
+        
+        if ($result === false) {
+            global $wpdb;
+            $error = 'Erreur lors de l\'enregistrement: ' . $wpdb->last_error;
+            error_log('Erreur: ' . $error);
+            wp_send_json_error($error);
+            return;
+        }
+        
+        // Journaliser l'action
+        IB_Logs::add(get_current_user_id(), $action, json_encode([
+            'absence_id' => $result,
+            'employee_id' => $employee_id,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+            'type' => $type
+        ]));
+        
+        // Récupérer l'absence mise à jour/nouvelle pour la renvoyer au client
+        $absence = IB_Employee_Absences::get_by_id($result);
+        
+        wp_send_json_success([
+            'message' => $message,
+            'absence' => $absence
+        ]);
+        
+    } catch (Exception $e) {
+        $error = 'Erreur: ' . $e->getMessage();
+        error_log($error);
+        wp_send_json_error($error);
     }
+}
 
-    $absences = IB_Employee_Absences::get_by_date_range($start_date, $end_date, $employee_id);
-    wp_send_json_success($absences);
+function ib_ajax_get_absences() {
+    // Activer l'affichage des erreurs pour le débogage
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+    
+    error_log('Début de la fonction ib_ajax_get_absences');
+    error_log('Données reçues: ' . print_r($_POST, true));
+    
+    try {
+        // Vérifier le nonce
+        $nonce = isset($_POST['nonce']) ? $_POST['nonce'] : '';
+        error_log('Nonce reçu: ' . $nonce);
+        
+        if (!wp_verify_nonce($nonce, 'ib_absence_nonce')) {
+            $error = 'Nonce invalide';
+            error_log('Erreur: ' . $error);
+            wp_send_json_error($error);
+            return;
+        }
+        
+        // Récupérer les paramètres
+        $start_date = isset($_POST['start_date']) ? sanitize_text_field($_POST['start_date']) : '';
+        $end_date = isset($_POST['end_date']) ? sanitize_text_field($_POST['end_date']) : '';
+        $employee_id = isset($_POST['employee_id']) && !empty($_POST['employee_id']) ? intval($_POST['employee_id']) : null;
+        
+        error_log("Paramètres: start_date=$start_date, end_date=$end_date, employee_id=" . ($employee_id ?? 'null'));
+
+        if (!$start_date || !$end_date) {
+            $error = 'Dates manquantes';
+            error_log('Erreur: ' . $error);
+            wp_send_json_error($error);
+            return;
+        }
+        
+        // Vérifier si l'utilisateur a les droits nécessaires
+        if (!current_user_can('manage_options')) {
+            $error = 'Permissions insuffisantes';
+            error_log('Erreur: ' . $error);
+            wp_send_json_error($error);
+            return;
+        }
+
+        error_log('Appel à IB_Employee_Absences::get_by_date_range');
+        $absences = IB_Employee_Absences::get_by_date_range($start_date, $end_date, $employee_id);
+        
+        if ($absences === false) {
+            global $wpdb;
+            $error = 'Erreur de base de données: ' . $wpdb->last_error;
+            error_log('Erreur: ' . $error);
+            wp_send_json_error($error);
+            return;
+        }
+        
+        error_log('Absences récupérées: ' . count($absences));
+        wp_send_json_success($absences);
+        
+    } catch (Exception $e) {
+        $error = 'Erreur: ' . $e->getMessage();
+        error_log($error);
+        wp_send_json_error($error);
+    }
 }
 
 function ib_ajax_get_absence() {

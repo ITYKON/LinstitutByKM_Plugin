@@ -472,4 +472,25 @@ function closeAddEmployeeModal() {
 }
 document.getElementById('btn-add-employee').onclick = openAddEmployeeModal;
 document.getElementById('ib-modal-bg-add-employee').onclick = closeAddEmployeeModal;
+
+// Script de débogage pour le calendrier
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded - Vérification du calendrier...');
+    
+    // Vérifier si l'élément du calendrier existe
+    const calendarEl = document.getElementById('absence-calendar');
+    console.log('Élément du calendrier:', calendarEl);
+    
+    // Vérifier si la classe AbsenceCalendar est disponible
+    console.log('Classe AbsenceCalendar:', typeof AbsenceCalendar);
+    
+    // Vérifier si le calendrier a été initialisé
+    console.log('Instance du calendrier:', window.absenceCalendar);
+    
+    // Essayer d'initialiser manuellement si nécessaire
+    if (calendarEl && typeof AbsenceCalendar !== 'undefined' && !window.absenceCalendar) {
+        console.log('Initialisation manuelle du calendrier...');
+        window.absenceCalendar = new AbsenceCalendar();
+    }
+});
 </script>

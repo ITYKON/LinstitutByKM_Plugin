@@ -3,6 +3,14 @@
  */
 class AbsenceCalendar {
     constructor() {
+        console.log('Initialisation du calendrier des absences...');
+        console.log('ib_absence_ajax:', window.ib_absence_ajax);
+        
+        if (!window.ib_absence_ajax) {
+            console.error('Erreur: La variable ib_absence_ajax n\'est pas définie. Vérifiez que le script est correctement localisé.');
+            return;
+        }
+        
         this.currentDate = new Date();
         this.selectedEmployeeId = null;
         this.absences = [];
@@ -36,24 +44,82 @@ class AbsenceCalendar {
             
             const formData = new FormData();
             formData.append('action', 'get_absences');
+            formData.append('nonce', ib_absence_ajax.nonce);
             formData.append('start_date', this.formatDate(startDate));
             formData.append('end_date', this.formatDate(endDate));
             if (this.selectedEmployeeId) {
                 formData.append('employee_id', this.selectedEmployeeId);
             }
 
-            const response = await fetch(ajaxurl, {
-                method: 'POST',
-                body: formData
+            // Afficher les informations de la requête
+            console.group('Envoi de la requête AJAX');
+            console.log('URL:', ib_absence_ajax.ajax_url);
+            console.log('Méthode: POST');
+            console.log('Headers:', {
+                'Content-Type': 'multipart/form-data',
+                'X-WP-Nonce': ib_absence_ajax.nonce
             });
+            
+            // Afficher les données du formulaire
+            const formDataObj = {};
+            for (let pair of formData.entries()) {
+                formDataObj[pair[0]] = pair[1];
+            }
+            console.log('Données du formulaire:', formDataObj);
+            console.groupEnd();
 
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    this.absences = data.data || [];
-                } else {
-                    console.error('Erreur lors du chargement des absences:', data.data);
+            try {
+                const response = await fetch(ib_absence_ajax.ajax_url, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin', // Important pour envoyer les cookies d'authentification
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-WP-Nonce': ib_absence_ajax.nonce
+                    }
+                });
+
+                // Afficher les informations de la réponse
+                console.group('Réponse AJAX');
+                console.log('Status:', response.status, response.statusText);
+                console.log('Headers:');
+                for (let [key, value] of response.headers.entries()) {
+                    console.log(`  ${key}: ${value}`);
                 }
+
+                const responseText = await response.text();
+                console.log('Réponse brute:', responseText);
+                
+                if (response.ok) {
+                    try {
+                        const data = JSON.parse(responseText);
+                        console.log('Données parsées:', data);
+                        
+                        if (data.success) {
+                            console.log('Absences chargées:', data.data);
+                            this.absences = data.data || [];
+                        } else {
+                            console.error('Erreur côté serveur:', data.data);
+                        }
+                    } catch (e) {
+                        console.error('Erreur lors de l\'analyse de la réponse JSON:', e);
+                        console.error('Réponse brute du serveur:', responseText);
+                    }
+                } else {
+                    console.error('Erreur HTTP:', response.status, response.statusText);
+                    
+                    // Afficher plus d'informations sur l'erreur 403
+                    if (response.status === 403) {
+                        console.error('Accès refusé (403) - Vérifiez que :');
+                        console.error('1. Vous êtes connecté en tant qu\'administrateur');
+                        console.error('2. Le nonce est valide et correspond à la session');
+                        console.error('3. Votre utilisateur a les permissions nécessaires');
+                    }
+                }
+                console.groupEnd();
+                
+            } catch (error) {
+                console.error('Erreur lors de l\'envoi de la requête:', error);
             }
         } catch (error) {
             console.error('Erreur lors du chargement des absences:', error);
@@ -162,11 +228,13 @@ class AbsenceCalendar {
             const typeClass = `type-${absence.type}`;
             const statusClass = `status-${absence.status}`;
             const employeeName = this.getEmployeeName(absence.employee_id);
+            const employeeColor = this.getEmployeeColor(absence.employee_id);
             
             return `
                 <div class="absence-item ${typeClass} ${statusClass}" 
                      onclick="absenceCalendar.editAbsence(${absence.id})" 
-                     title="${employeeName} - ${absence.type} (${absence.status})">
+                     title="${employeeName} - ${this.getTypeLabel(absence.type)} (${absence.status})"
+                     style="background: ${employeeColor}; color: white; border: none;">
                     ${employeeName.split(' ')[0]} - ${this.getTypeLabel(absence.type)}
                 </div>
             `;
@@ -222,6 +290,21 @@ class AbsenceCalendar {
         };
         return types[type] || type;
     }
+    
+    getEmployeeColor(employeeId) {
+        // Palette de couleurs pour les employés
+        const colors = [
+            '#4f8cff', '#00c48c', '#ffb300', '#ff4f64', '#7c3aed', 
+            '#ff6f00', '#00bcd4', '#8bc34a', '#e67e22', '#e84393', 
+            '#00b894', '#636e72', '#fdcb6e', '#0984e3', '#d35400', '#6c5ce7'
+        ];
+        
+        // Si l'ID est un nombre, on le convertit en index de couleur
+        const id = parseInt(employeeId);
+        const index = isNaN(id) ? 0 : id % colors.length;
+        
+        return colors[index];
+    }
 
     isToday(date) {
         const today = new Date();
@@ -229,7 +312,10 @@ class AbsenceCalendar {
     }
 
     formatDate(date) {
-        return date.toISOString().split('T')[0];
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     previousMonth() {
@@ -280,7 +366,7 @@ class AbsenceCalendar {
             formData.append('action', 'get_absence');
             formData.append('absence_id', absenceId);
 
-            const response = await fetch(ajaxurl, {
+            const response = await fetch(ib_absence_ajax.ajax_url, {
                 method: 'POST',
                 body: formData
             });
@@ -327,16 +413,29 @@ class AbsenceCalendar {
         }
 
         const formData = new FormData(e.target);
+        formData.append('action', 'save_absence');
+        formData.append('nonce', ib_absence_ajax.nonce);
         
         try {
-            const response = await fetch(window.location.href, {
+            const response = await fetch(ib_absence_ajax.ajax_url, {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-WP-Nonce': ib_absence_ajax.nonce
+                }
             });
 
-            if (response.ok) {
-                // Recharger la page pour voir les changements
-                window.location.reload();
+            const result = await response.json();
+            
+            if (result.success) {
+                // Fermer le modal et recharger les données
+                this.closeAbsenceModal();
+                await this.loadAbsences();
+                this.renderCalendar();
+            } else {
+                alert('Erreur: ' + (result.data?.message || 'Échec de l\'enregistrement'));
             }
         } catch (error) {
             console.error('Erreur lors de la soumission:', error);
@@ -356,7 +455,7 @@ class AbsenceCalendar {
             formData.append('action', 'delete_absence');
             formData.append('absence_id', absenceId);
 
-            const response = await fetch(ajaxurl, {
+            const response = await fetch(ib_absence_ajax.ajax_url, {
                 method: 'POST',
                 body: formData
             });

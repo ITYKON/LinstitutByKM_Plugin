@@ -161,10 +161,30 @@ class AbsenceCalendar {
                 console.log('Form submit handler called', handlerId);
                 e.preventDefault();
                 e.stopPropagation();
+                
+                // Valider les dates avant soumission
+                if (!this.validateAbsenceDates()) {
+                    return false;
+                }
+                
                 return this.handleFormSubmit(e);
             };
             
-            // Supprimer d'abord les écouteurs existants
+            // Gestionnaires pour la validation en temps réel des dates
+            const startDateInput = form.querySelector('input[name="start_date"]');
+            const endDateInput = form.querySelector('input[name="end_date"]');
+            
+            if (startDateInput && endDateInput) {
+                startDateInput.addEventListener('change', () => this.validateAbsenceDates());
+                endDateInput.addEventListener('change', () => this.validateAbsenceDates());
+                
+                // Définir la date minimale sur aujourd'hui
+                const today = new Date().toISOString().split('T')[0];
+                startDateInput.min = today;
+                endDateInput.min = today;
+            }
+            
+            // Supprimer l'ancien gestionnaire s'il existe
             if (this._formSubmitHandler) {
                 console.log('Removing existing form submit handler');
                 form.removeEventListener('submit', this._formSubmitHandler);
@@ -222,14 +242,16 @@ class AbsenceCalendar {
         for (let i = 0; i < 42; i++) {
             const isCurrentMonth = currentDate.getMonth() === month;
             const isToday = this.isToday(currentDate);
+            const isPastDay = currentDate < new Date().setHours(0, 0, 0, 0);
             const dayAbsences = this.getAbsencesForDate(currentDate);
 
             let dayClass = 'calendar-day';
             if (!isCurrentMonth) dayClass += ' other-month';
             if (isToday) dayClass += ' today';
+            if (isPastDay) dayClass += ' past-day';
 
             html += `
-                <div class="${dayClass}" data-date="${this.formatDate(currentDate)}" onclick="absenceCalendar.selectDate('${this.formatDate(currentDate)}')">
+                <div class="${dayClass}" data-date="${this.formatDate(currentDate)}" ${!isPastDay ? `onclick="absenceCalendar.selectDate('${this.formatDate(currentDate)}')"` : ''}>
                     <div class="calendar-day-number">${currentDate.getDate()}</div>
                     ${this.renderAbsencesForDay(dayAbsences)}
                 </div>
@@ -369,17 +391,63 @@ class AbsenceCalendar {
         const deleteBtn = document.getElementById('delete-absence-btn');
 
         if (modal && backdrop) {
-            // Reset form
+            // Reset form et messages d'erreur
             form.reset();
             form.querySelector('input[name="absence_id"]').value = '';
             deleteBtn.style.display = 'none';
             
-            // Set date if provided and is a string (not FormData)
-            if (dateStr && typeof dateStr === 'string') {
-                form.querySelector('input[name="start_date"]').value = dateStr;
-                form.querySelector('input[name="end_date"]').value = dateStr;
+            // Réinitialiser les styles d'erreur
+            const errorMessages = form.querySelectorAll('.past-date-message');
+            errorMessages.forEach(msg => msg.remove());
+            
+            const inputs = form.querySelectorAll('input[type="date"]');
+            inputs.forEach(input => input.classList.remove('past-date'));
+            
+            // Définir la date minimale sur aujourd'hui
+            const today = new Date().toISOString().split('T')[0];
+            const startDateInput = form.querySelector('input[name="start_date"]');
+            const endDateInput = form.querySelector('input[name="end_date"]');
+            
+            if (startDateInput) {
+                startDateInput.min = today;
+                startDateInput.value = ''; // Vider la valeur par défaut
+            }
+            
+            if (endDateInput) {
+                endDateInput.min = today;
+                endDateInput.value = ''; // Vider la valeur par défaut
+            }
+            
+            // Si une date est fournie (au clic sur le calendrier)
+            if (dateStr && typeof dateStr === 'string' && startDateInput) {
+                startDateInput.value = dateStr;
+                if (endDateInput) endDateInput.value = dateStr;
             }
 
+            // Ajouter la croix de fermeture si elle n'existe pas déjà
+            if (!document.querySelector('.ib-modal-close')) {
+                const closeButton = document.createElement('button');
+                closeButton.className = 'ib-modal-close';
+                closeButton.innerHTML = '&times;';
+                closeButton.onclick = (e) => {
+                    e.preventDefault();
+                    this.closeAbsenceModal();
+                };
+                modal.insertBefore(closeButton, modal.firstChild);
+            }
+
+            // Gestion du clic en dehors du modal
+            const handleOutsideClick = (e) => {
+                if (e.target === backdrop) {
+                    this.closeAbsenceModal();
+                }
+            };
+
+            // Ajouter l'écouteur d'événement
+            backdrop.addEventListener('click', handleOutsideClick);
+            this._outsideClickHandler = handleOutsideClick;
+
+            // Afficher le modal
             backdrop.style.display = 'block';
             modal.style.display = 'block';
         }
@@ -390,9 +458,66 @@ class AbsenceCalendar {
         const backdrop = document.getElementById('ib-modal-bg-absence');
         
         if (modal && backdrop) {
+            // Supprimer l'écouteur d'événement
+            if (this._outsideClickHandler) {
+                backdrop.removeEventListener('click', this._outsideClickHandler);
+                this._outsideClickHandler = null;
+            }
+            
             modal.style.display = 'none';
             backdrop.style.display = 'none';
         }
+    }
+    
+    // Valide les dates de congé
+    validateAbsenceDates() {
+        const form = document.getElementById('absence-form');
+        if (!form) return true;
+        
+        const startDateInput = form.querySelector('input[name="start_date"]');
+        const endDateInput = form.querySelector('input[name="end_date"]');
+        
+        // Supprimer les anciens messages d'erreur
+        const oldMessages = form.querySelectorAll('.past-date-message');
+        oldMessages.forEach(msg => msg.remove());
+        
+        if (!startDateInput || !endDateInput) return true;
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+        
+        // Vérifier si les dates sont valides
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            return false; // La validation native du navigateur s'en occupera
+        }
+        
+        // Créer l'élément de message pour la date de début
+        let startDateMessage = document.createElement('div');
+        startDateMessage.className = 'past-date-message';
+        
+        // Vérifier si la date de début est antérieure à aujourd'hui
+        if (startDate < today) {
+            startDateInput.classList.add('past-date');
+            startDateMessage.textContent = 'La date de début ne peut pas être antérieure à aujourd\'hui';
+            startDateInput.parentNode.insertBefore(startDateMessage, startDateInput.nextSibling);
+            return false;
+        }
+        
+        // Vérifier si la date de fin est antérieure à la date de début
+        if (endDate < startDate) {
+            endDateInput.classList.add('past-date');
+            startDateMessage.textContent = 'La date de fin ne peut pas être antérieure à la date de début';
+            startDateInput.parentNode.insertBefore(startDateMessage, startDateInput.nextSibling);
+            return false;
+        }
+        
+        // Tout est valide
+        startDateInput.classList.remove('past-date');
+        endDateInput.classList.remove('past-date');
+        return true;
     }
 
     async editAbsence(absenceId) {

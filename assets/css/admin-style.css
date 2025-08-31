@@ -3042,3 +3042,69 @@ select:invalid {
 }
 
 /* --- FIN CALENDRIER DES ABSENCES --- */
+
+/* Styles pour la validation des dates de congé */
+input[type="date"].past-date {
+  border-color: #ff6b6b !important;
+  background-color: #fff5f5;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.past-date-message {
+  color: #ff6b6b;
+  font-size: 0.85em;
+  margin: 5px 0 10px 0;
+  padding: 5px 10px;
+  background-color: #fff5f5;
+  border-left: 3px solid #ff6b6b;
+  border-radius: 0 4px 4px 0;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Style pour les jours passés dans le calendrier */
+.calendar-day.past-day {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  position: relative;
+}
+
+.calendar-day.past-day::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.7);
+  z-index: 1;
+}
+
+/* Désactivation des jours passés dans le sélecteur de date */
+input[type="date"]:invalid {
+  color: #999;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  cursor: pointer;
+}
+
+input[type="date"]:disabled::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

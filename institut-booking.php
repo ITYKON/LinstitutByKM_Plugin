@@ -63,6 +63,8 @@ require_once IB_PLUGIN_DIR . 'includes/notifications.php';
 require_once IB_PLUGIN_DIR . 'includes/sms.php';
 require_once IB_PLUGIN_DIR . 'includes/ajax-notifications-enhanced.php';
 require_once IB_PLUGIN_DIR . 'includes/notifications-refonte-integration.php';
+// Handler AJAX pour la vérification du téléphone
+require_once IB_PLUGIN_DIR . 'includes/ajax-check-phone.php';
 
 // Chargement des fichiers admin UNIQUEMENT dans les callbacks de menu (voir plus bas)
 
@@ -844,3 +846,10 @@ function ib_delete_notification()
 //         'nonce' => wp_create_nonce('ib_notif_bell')
 //     ));
 // });
+add_action('admin_enqueue_scripts', function() {
+    wp_enqueue_script('ib-bookings-admin', plugin_dir_url(__FILE__).'js/ib-bookings-admin.js', ['jquery'], null, true);
+    wp_localize_script('ib-bookings-admin', 'ib_vars', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'ajax_nonce' => wp_create_nonce('ib_ajax_nonce')
+    ]);
+});

@@ -52,6 +52,34 @@ if (!function_exists('ib_add_notification')) {
 }
 
 class IB_Bookings {
+    // Restaure une réservation archivée vers la table bookings
+    public static function restore_from_archive($archive_id) {
+        global $wpdb;
+        $archive = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}ib_bookings_archives WHERE id = %d", $archive_id));
+        if ($archive) {
+            $data = (array) $archive;
+            unset($data['id']);
+            unset($data['archived_at']);
+            $wpdb->insert($wpdb->prefix . 'ib_bookings', $data);
+            $wpdb->delete($wpdb->prefix . 'ib_bookings_archives', ['id' => $archive_id]);
+            return true;
+        }
+        return false;
+    }
+
+    // Supprime définitivement les archives de plus de 30 jours
+    public static function delete_old_archives() {
+        global $wpdb;
+        // Pour test : suppression après 5 minutes
+    $date_limit = gmdate('Y-m-d H:i:s', strtotime('-30 days'));
+        $result = $wpdb->query($wpdb->prepare(
+            "DELETE FROM {$wpdb->prefix}ib_bookings_archives WHERE archived_at < %s",
+            $date_limit
+        ));
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[IB_BOOKINGS] Suppression auto archives : ' . $result . ' lignes supprimées avant ' . $date_limit);
+        }
+    }
     public static function get_all() {
         global $wpdb;
         return $wpdb->get_results("SELECT * FROM {$wpdb->prefix}ib_bookings ORDER BY created_at DESC");
@@ -80,6 +108,15 @@ class IB_Bookings {
         $service_price = $service ? $service->price : 0;
         // Si un prix est passé explicitement, on l'utilise, sinon on prend le prix du service
         $final_price = isset($data['price']) ? floatval($data['price']) : $service_price;
+        // Normaliser start_time (toujours datetime) et calculer end_time
+        $start_datetime = $data['start_time'];
+        if (strpos($start_datetime, ' ') === false) {
+            // Si uniquement heure passée, on combine avec la date
+            $start_datetime = trim($date . ' ' . substr($data['start_time'], 0, 5) . ':00');
+        }
+        $duration_minutes = ($service && isset($service->duration)) ? intval($service->duration) : 30;
+        $start_ts = strtotime($start_datetime);
+        $end_datetime = date('Y-m-d H:i:s', $start_ts + $duration_minutes * 60);
         $wpdb->insert("{$wpdb->prefix}ib_bookings", [
             'service_id' => intval($data['service_id']),
             'employee_id' => intval($data['employee_id']),
@@ -87,13 +124,17 @@ class IB_Bookings {
             'client_name' => sanitize_text_field($data['client_name']),
             'client_email' => sanitize_email($data['client_email']),
             'client_phone' => sanitize_text_field($client_phone),
-            'date' => sanitize_text_field($data['date']),
-            'start_time' => sanitize_text_field($data['start_time']),
+            'date' => sanitize_text_field($date),
+            'start_time' => sanitize_text_field($start_datetime),
+            'end_time' => sanitize_text_field($end_datetime),
             'extras' => isset($data['extras']) ? (is_array($data['extras']) ? maybe_serialize($data['extras']) : $data['extras']) : null,
             'status' => isset($data['status']) ? $data['status'] : 'en_attente',
             'created_at' => current_time('mysql'),
             'price' => $final_price,
         ]);
+        // Mettre à jour la valeur normalisée pour usages en aval
+        $data['start_time'] = $start_datetime;
+        $data['end_time'] = $end_datetime;
         $employee = IB_Employees::get_by_id($data['employee_id']);
         $admin_id = 1;
         $booking_id = $wpdb->insert_id; // Récupérer et conserver l'ID de la réservation insérée
@@ -221,7 +262,11 @@ class IB_Bookings {
             $service = IB_Services::get_by_id($check_service_id);
             $duration = $service && isset($service->duration) ? intval($service->duration) : 30;
 
-            $start = strtotime($check_date . ' ' . $check_time);
+            $normalized_time = $check_time;
+            if (strpos($normalized_time, ' ') === false) {
+                $normalized_time = $check_date . ' ' . substr($normalized_time, 0, 5) . ':00';
+            }
+            $start = strtotime($normalized_time);
             $end = $start + $duration * 60;
 
             foreach ($conflict_rows as $row) {
@@ -235,6 +280,22 @@ class IB_Bookings {
                     return false; // Retourner false en cas de conflit
                 }
             }
+        }
+
+        // Normaliser start_time et end_time à l'écriture
+        if (isset($fields['date']) || isset($fields['start_time']) || isset($fields['service_id'])) {
+            $final_date = isset($fields['date']) ? $fields['date'] : $booking->date;
+            $final_time = isset($fields['start_time']) ? $fields['start_time'] : $booking->start_time;
+            if (strpos($final_time, ' ') === false) {
+                $final_time = $final_date . ' ' . substr($final_time, 0, 5) . ':00';
+            }
+            $final_service_id = isset($fields['service_id']) ? $fields['service_id'] : $booking->service_id;
+            $svc = IB_Services::get_by_id($final_service_id);
+            $final_duration = ($svc && isset($svc->duration)) ? intval($svc->duration) : 30;
+            $final_end = date('Y-m-d H:i:s', strtotime($final_time) + $final_duration * 60);
+            $fields['start_time'] = $final_time;
+            $fields['end_time'] = $final_end;
+            $fields['date'] = $final_date; // s'assurer de la cohérence
         }
 
         if (!empty($fields)) {
@@ -290,8 +351,26 @@ class IB_Bookings {
     public static function delete($id) {
         global $wpdb;
         $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}ib_bookings WHERE id = %d", $id));
-        $wpdb->delete("{$wpdb->prefix}ib_bookings", ['id' => intval($id)]);
         if ($booking) {
+            // Préparer les données à archiver en ne gardant que les colonnes existantes dans la table d'archives
+            $archive_table = $wpdb->prefix . 'ib_bookings_archives';
+            $columns = $wpdb->get_col("DESC $archive_table", 0);
+            $archive_data = array();
+            foreach ($columns as $col) {
+                if ($col === 'id') continue; // auto-increment
+                if ($col === 'archived_at') {
+                    // Forcer le format DATETIME UTC pour archived_at
+                    $archive_data['archived_at'] = gmdate('Y-m-d H:i:s');
+                } elseif (isset($booking->$col)) {
+                    $archive_data[$col] = $booking->$col;
+                } else {
+                    $archive_data[$col] = null;
+                }
+            }
+            $wpdb->insert($archive_table, $archive_data);
+            // Supprimer la réservation originale
+            $wpdb->delete("{$wpdb->prefix}ib_bookings", ['id' => intval($id)]);
+            // Email d'annulation
             $service = IB_Services::get_by_id($booking->service_id);
             $employee = IB_Employees::get_by_id($booking->employee_id);
             IB_Email::send_auto('cancel', [
@@ -413,10 +492,17 @@ add_action('wp_ajax_ib_update_booking_event', function() {
             wp_send_json(['success' => false, 'message' => __('Conflit avec une autre réservation.', 'institut-booking')], 409);
         }
     }
-    // Mettre à jour la réservation
+    // Mettre à jour la réservation (normaliser start_time et calculer end_time)
+    $final_time = (strpos($time, ' ') === false) ? ($date . ' ' . substr($time, 0, 5) . ':00') : $time;
+    $svc_for_update = $service_id ? $service_id : $booking->service_id;
+    $svc_obj = IB_Services::get_by_id($svc_for_update);
+    $dur_minutes = ($svc_obj && isset($svc_obj->duration)) ? intval($svc_obj->duration) : 30;
+    $final_end = date('Y-m-d H:i:s', strtotime($final_time) + $dur_minutes * 60);
+
     $update_data = [
         'date' => $date,
-        'start_time' => $time
+        'start_time' => $final_time,
+        'end_time' => $final_end
     ];
     if ($employee_id) $update_data['employee_id'] = $employee_id;
     if ($service_id) $update_data['service_id'] = $service_id;

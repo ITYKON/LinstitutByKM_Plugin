@@ -4144,7 +4144,7 @@ body,
   .category-accordion-title {
     font-size: 1.1rem;
     margin-bottom: 0.8rem;
-    padding: 0;
+    padding: 0px 15px;
   }
 
   .accordion-header {
@@ -5525,7 +5525,7 @@ input[type="checkbox"] {
     gap: 0.6rem !important;
     max-height: 70vh !important;
     overflow-y: auto !important;
-    padding: 0.8rem !important;
+    padding: 0rem 3rem !important;
   }
 
   .slots-col .slot-btn {
@@ -6018,7 +6018,7 @@ input[type="checkbox"] {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 24vh;
+    min-height: 30vh;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -6039,7 +6039,7 @@ input[type="checkbox"] {
   .booking-step-infos-modern h2:first-child,
   .booking-step-date-modern h2:first-child {
     margin-top: 0 !important;
-    margin-bottom: 0.8rem !important;
+    margin-bottom: 2rem !important;
     padding-top: 0 !important;
   }
 
@@ -6978,7 +6978,7 @@ input[type="checkbox"] {
 /* 1. Centrage et largeur du ticket sur mobile */
 @media (max-width: 600px) {
   .booking-ticket-modern {
-    margin: 1rem auto !important;
+    margin: 0.1rem auto !important;
     width: calc(100% - 2rem) !important;
     max-width: 540px !important;
     box-sizing: border-box !important;

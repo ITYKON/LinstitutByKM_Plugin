@@ -25,11 +25,34 @@ if (isset($_POST['add_booking'])) {
     $start_time = $date && $time ? $date . ' ' . $time . ':00' : '';
     $status = sanitize_text_field($_POST['status'] ?? '');
     $extras = isset($_POST['extras']) ? maybe_serialize($_POST['extras']) : '';
-    // Récupérer le prix du service
-    $service = IB_Services::get_by_id($service_id);
-    $service_price = $service ? $service->price : 0;
+  // Récupérer le prix du service ou le prix saisi manuellement
+  $service = IB_Services::get_by_id($service_id);
+  $service_price = $service ? $service->price : 0;
+  $manual_price = isset($_POST['price']) && $_POST['price'] !== '' ? floatval($_POST['price']) : null;
+  $final_price = ($manual_price !== null) ? $manual_price : $service_price;
     if (!$client_name || !$service_id || !$employee_id || !$date || !$time || !$status) {
         echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Veuillez remplir tous les champs obligatoires.</p></div>';
+  } else {
+    $result = IB_Bookings::add([
+      'client_name' => $client_name,
+      'client_email' => $client_email,
+      'client_phone' => $client_phone,
+      'service_id' => $service_id,
+      'employee_id' => $employee_id,
+      'date' => $date,
+      'start_time' => $start_time,
+      'status' => $status,
+      'extras' => $extras,
+      'price' => $final_price
+    ]);
+    if ($result) {
+      IB_Logs::add(get_current_user_id(), 'ajout_reservation', json_encode(['booking_id' => $result, 'client_name' => $client_name]));
+
+      // Envoyer l'email de remerciement au client
+      require_once plugin_dir_path(__FILE__) . '../includes/notifications.php';
+      IB_Notifications::send_thank_you($result);
+
+      echo '<div class="notice notice-success" style="margin-bottom:1.5em;"><p>Réservation ajoutée avec succès.</p></div>';
     } else {
         $result = IB_Bookings::add([
             'client_name' => $client_name,
@@ -52,6 +75,7 @@ if (isset($_POST['add_booking'])) {
             echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Erreur lors de l\'ajout de la réservation.</p></div>';
         }
     }
+  }
 }
 // Traitement édition réservation
 if (isset($_POST['update_booking'])) {
@@ -206,19 +230,21 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
 
       <!-- MODAL AJOUT RESERVATION -->
       <div id="ib-add-booking-modal-bg" class="ib-modal-bg" style="display:none;"></div>
-      <div id="ib-add-booking-modal" class="ib-modal" style="display:none;max-width:600px;">
+      <div id="ib-add-booking-modal" class="ib-modal" style="display:none;max-width:600px;position:relative;">
+        <button type="button" id="ib-close-add-booking-modal-top" style="position:absolute;top:18px;right:18px;background:none;border:none;font-size:2em;color:#e9aebc;cursor:pointer;z-index:10;" title="Fermer">&times;</button>
         <div class="ib-form-title" style="color:#e9aebc;"><i class="dashicons dashicons-calendar-alt"></i> <span>Ajouter une réservation</span></div>
         <form method="post" class="ib-booking-form-admin">
-          <label for="add-booking-client-name">Client</label>
-          <input id="add-booking-client-name" name="client_name" required>
-          <label for="add-booking-client-email">Email</label>
-          <input id="add-booking-client-email" name="client_email" type="email" >
           <div style="width:260px;max-width:100%;margin-bottom:1.2em;">
             <label for="add-booking-client-phone">Téléphone</label>
             <div style="display:flex;align-items:center;">
               <input id="add-booking-client-phone" name="client_phone" type="tel" required placeholder="Ex: 555123456" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;">
             </div>
           </div>
+          <label for="add-booking-client-name">Client</label>
+          <input id="add-booking-client-name" name="client_name" required>
+          <label for="add-booking-client-email">Email</label>
+          <input id="add-booking-client-email" name="client_email" type="email" >
+          
           <label for="add-booking-service">Service</label>
           <select id="add-booking-service" name="service_id" required>
                 <option value="">Choisir</option>
@@ -265,8 +291,9 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
       <?php if ($edit_booking): ?>
         <!-- Modal édition réservation modernisée -->
         <div id="ib-modal-bg-booking" class="ib-modal-bg ib-invisible" style="display:block;"></div>
-        <div id="ib-modal-edit-booking" class="ib-modal ib-invisible" style="display:block;">
-          <div class="ib-form-title" style="color:#e9aebc;"><i class="dashicons dashicons-calendar-alt"></i> <span>Modifier la réservation</span></div>
+        <div id="ib-modal-edit-booking" class="ib-modal ib-invisible" style="display:block;position:relative;">
+          <button type="button" id="ib-close-edit-booking-modal-top" style="position:absolute;top:18px;right:18px;background:none;border:none;font-size:2em;color:#e9aebc;cursor:pointer;z-index:10;" title="Fermer">&times;</button>
+          <div class="ib-form-title" style="color:#e9aebc; margin: 10px;"><i class="dashicons dashicons-calendar-alt"></i> <span>Modifier la réservation</span></div>
           <form method="post" autocomplete="off">
             <input type="hidden" name="booking_id" value="<?php echo $edit_booking->id; ?>">
             <div class="ib-form-grid">
@@ -381,41 +408,21 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
             <option value="<?php echo $s->id; ?>"><?php echo esc_html($s->name); ?></option>
           <?php endforeach; ?>
         </select>
-        
-        <!-- Bouton de détection des conflits -->
-        <button id="ib-detect-conflicts" type="button" style="background: #e9aebc;color: #ffffffff;border:none;border-radius:10px;padding:0.6em 1.2em;font-size:1.07em;box-shadow:0 2px 8px #f1e0e4ff;cursor:pointer;font-weight:500;">
-          🔍 Détecter les conflits
-        </button>
       </div>
       
-      <!-- Section des conflits détectés -->
-      <div id="ib-conflicts-section" style="display:none;margin-bottom:1.5em;padding:1.5em;background:#F4F1EA;border-radius:12px;border-left:4px solid #A48D78;">
-        <h3 style="color:#8A7356;margin:0 0 1em 0;font-size:1.2em;">
-          ⚠️ Conflits de réservations détectés
-        </h3>
-        <div id="ib-conflicts-list"></div>
-        <div style="margin-top:1em;">
-          <button id="ib-fix-all-conflicts" type="button" style="background:#CBB9A4;color:#5B4C3A;border:none;border-radius:8px;padding:0.5em 1em;font-size:0.9em;cursor:pointer;margin-right:0.5em;">
-            ⚡ Corriger tous les conflits
-          </button>
-          <button id="ib-hide-conflicts" type="button" style="background:#E6DAC8;color:#8A7356;border:none;border-radius:8px;padding:0.5em 1em;font-size:0.9em;cursor:pointer;">
-            Masquer
-          </button>
-        </div>
-      </div>
       <div style="overflow-x:auto;">
         <table class="ib-table-bookings ib-invisible" style="width:100%;background:#fff;border-radius:14px;box-shadow:0 2px 16px #e9aebc22;margin-bottom:2em;">
           <thead style="background:#fbeff2;">
             <tr>
-              <th style="color:#e9aebc;cursor:pointer;" data-sort="client">Client <span class="sort-arrow"></span></th>
+              <th style="color:#e9aebc;cursor:pointer;" data-sort="client">Cliente <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="email">Email <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="phone">Téléphone <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="service">Service <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="employee">Praticienne <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="date">Date <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="heure">Heure <span class="sort-arrow"></span></th>
-              <th style="cursor:pointer;" data-sort="statut">Statut <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;" data-sort="price">Prix <span class="sort-arrow"></span></th>
+              <th style="cursor:pointer;" data-sort="statut">Statut <span class="sort-arrow"></span></th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -439,6 +446,12 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
                 }
                 echo esc_html($heure);
               ?></td>
+              <td style="font-weight:700;color:#7ec6b8;text-align:center;">
+                <?php
+                  $prix = isset($booking->price) ? $booking->price : 0;
+                  echo rtrim(rtrim(number_format($prix, 2, ',', ' '), '0'), ',') . ' DA';
+                ?>
+              </td>
               <td>
                 <form method="post" style="display:inline;">
                   <input type="hidden" name="change_status_booking_id" value="<?php echo $booking->id; ?>">
@@ -451,12 +464,6 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
                     <option value="no_show" <?php if($booking->status==='no_show') echo 'selected'; ?> style="background:#fbeee6;color: #bfa600 border:#bfa600;">No show</option>
                   </select>
                 </form>
-              </td>
-              <td style="font-weight:700;color:#7ec6b8;text-align:center;">
-                <?php
-                  $prix = isset($booking->price) ? $booking->price : 0;
-                  echo rtrim(rtrim(number_format($prix, 2, ',', ' '), '0'), ',') . ' DA';
-                ?>
               </td>
               <td class="ib-action-btns" style="white-space:nowrap;display:flex;gap:0.5em;align-items:center;">
                 <a href="admin.php?page=institut-booking-bookings&action=edit&id=<?php echo $booking->id; ?>" class="ib-icon-btn edit" title="Éditer">
@@ -1385,7 +1392,7 @@ jQuery(function($){
   });
 
   // Ferme la modal d'ajout
-  $('#ib-close-add-booking-modal, #ib-add-booking-modal-bg').on('click', function(){
+  $('#ib-close-add-booking-modal, #ib-add-booking-modal-bg, #ib-close-add-booking-modal-top').on('click', function(){
     $('#ib-add-booking-modal-bg, #ib-add-booking-modal').fadeOut(120);
     // Réinitialiser le formulaire et nettoyer les dropdowns
     setTimeout(function() {
@@ -1394,9 +1401,24 @@ jQuery(function($){
       $('#add-booking-client-phone').css('width', '100%');
     }, 150);
   });
+
+  // Bouton fermer pour la modal d'édition
+  $('#ib-close-edit-booking-modal-top, #ib-modal-bg-booking').on('click', function(){
+    $('#ib-modal-bg-booking, #ib-modal-edit-booking').fadeOut(120);
+    setTimeout(function() {
+      $('#ib-modal-edit-booking form')[0].reset();
+    }, 150);
+  });
   // Masquer la modal après ajout réussi
   if ($('.notice-success:contains("Réservation ajoutée")').length) {
-    $('#ib-add-booking-modal-bg, #ib-add-booking-modal').hide();
+    setTimeout(function() {
+      $('#ib-add-booking-modal-bg, #ib-add-booking-modal').fadeOut(200);
+      setTimeout(function() {
+        $('.ib-booking-form-admin')[0].reset();
+        $('.custom-country-dropdown').remove();
+        $('#add-booking-client-phone').css('width', '100%');
+      }, 250);
+    }, 600); // délai pour laisser voir le message de succès
   }
   // Validation simplifiée du formulaire d'ajout
   $('.ib-booking-form-admin').on('submit', function(e) {
@@ -1425,6 +1447,16 @@ jQuery(function($){
       }
     }
   });
+
+  // Fermer la modal d'édition si succès après rechargement
+  if ($('.notice-success:contains("Réservation modifiée")').length && $('#ib-modal-edit-booking').is(':visible')) {
+    setTimeout(function() {
+      $('#ib-modal-bg-booking, #ib-modal-edit-booking').fadeOut(200);
+      setTimeout(function() {
+        $('#ib-modal-edit-booking form')[0].reset();
+      }, 250);
+    }, 600);
+  }
   
   // Vérification de conflit de créneau en temps réel (ajout réservation)
   var service = $('#add-booking-service');
@@ -1634,147 +1666,6 @@ document.addEventListener('visibilitychange', function() {
 });
 
 jQuery(function($) {
-  // Détection des conflits
-  $('#ib-detect-conflicts').on('click', function() {
-    var btn = $(this);
-    var originalText = btn.text();
-    btn.text('🔍 Analyse en cours...').prop('disabled', true);
-    
-    $.post(ajaxurl, {
-      action: 'ib_detect_booking_conflicts',
-      nonce: '<?php echo wp_create_nonce('ib_detect_conflicts'); ?>'
-    }, function(response) {
-      btn.text(originalText).prop('disabled', false);
-      
-      if (response.success) {
-        if (response.data && response.data.length > 0) {
-          displayConflicts(response.data);
-          $('#ib-conflicts-section').fadeIn(300);
-        } else {
-          alert('✅ Aucun conflit détecté. Toutes les réservations sont cohérentes.');
-        }
-      } else {
-        alert('❌ Erreur lors de la détection des conflits: ' + (response.data || 'Erreur inconnue'));
-      }
-    }).fail(function() {
-      btn.text(originalText).prop('disabled', false);
-      alert('❌ Erreur de connexion lors de la détection des conflits.');
-    });
-  });
-  
-  // Masquer la section des conflits
-  $('#ib-hide-conflicts').on('click', function() {
-    $('#ib-conflicts-section').fadeOut(300);
-  });
-  
-  // Corriger tous les conflits
-  $('#ib-fix-all-conflicts').on('click', function() {
-    if (!confirm('⚠️ Êtes-vous sûr de vouloir corriger TOUS les conflits ?\n\nCette action supprimera les réservations en conflit les plus récentes.\n\nRecommandation : Sauvegardez votre base de données avant de continuer.')) {
-      return;
-    }
-    
-    var btn = $(this);
-    var originalText = btn.text();
-    btn.text('⚡ Correction en cours...').prop('disabled', true);
-    
-    $.post(ajaxurl, {
-      action: 'ib_fix_all_conflicts',
-      nonce: '<?php echo wp_create_nonce('ib_fix_conflicts'); ?>'
-    }, function(response) {
-      btn.text(originalText).prop('disabled', false);
-      
-      if (response.success) {
-        alert('✅ ' + response.data + ' conflit(s) corrigé(s) avec succès.\n\nLa page va se recharger pour afficher les changements.');
-        location.reload();
-      } else {
-        alert('❌ Erreur lors de la correction des conflits: ' + (response.data || 'Erreur inconnue'));
-      }
-    }).fail(function() {
-      btn.text(originalText).prop('disabled', false);
-      alert('❌ Erreur de connexion lors de la correction des conflits.');
-    });
-  });
-  
-  // Afficher les conflits détectés
-  function displayConflicts(conflicts) {
-    var html = '<div style="margin-bottom:1em;color:#8A7356;font-weight:500;">' + conflicts.length + ' conflit(s) détecté(s)</div>';
-    
-    conflicts.forEach(function(conflict) {
-      html += '<div style="background:#FAF6F2;padding:1em;border-radius:8px;margin-bottom:0.8em;border-left:3px solid #CBB9A4;">';
-      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1em;margin-bottom:0.8em;">';
-      
-      // Réservation 1
-      html += '<div style="background:#E6DAC8;padding:0.8em;border-radius:6px;">';
-      html += '<strong style="color:#8A7356;">Réservation #' + conflict.booking1_id + '</strong><br>';
-      html += '<span style="color:#A48D78;">Client:</span> ' + conflict.client1_name + '<br>';
-      html += '<span style="color:#A48D78;">Service:</span> ' + conflict.service1_name + '<br>';
-      html += '<span style="color:#A48D78;">Praticienne:</span> ' + conflict.employee1_name + '<br>';
-      html += '<span style="color:#A48D78;">Début:</span> ' + conflict.start1 + '<br>';
-      html += '<span style="color:#A48D78;">Fin:</span> ' + conflict.end1 + '<br>';
-      html += '<span style="color:#A48D78;">Statut:</span> ' + conflict.status1;
-      html += '</div>';
-      
-      // Réservation 2
-      html += '<div style="background:#E6DAC8;padding:0.8em;border-radius:6px;">';
-      html += '<strong style="color:#8A7356;">Réservation #' + conflict.booking2_id + '</strong><br>';
-      html += '<span style="color:#A48D78;">Client:</span> ' + conflict.client2_name + '<br>';
-      html += '<span style="color:#A48D78;">Service:</span> ' + conflict.service2_name + '<br>';
-      html += '<span style="color:#A48D78;">Praticienne:</span> ' + conflict.employee2_name + '<br>';
-      html += '<span style="color:#A48D78;">Début:</span> ' + conflict.start2 + '<br>';
-      html += '<span style="color:#A48D78;">Fin:</span> ' + conflict.end2 + '<br>';
-      html += '<span style="color:#A48D78;">Statut:</span> ' + conflict.status2;
-      html += '</div>';
-      
-      html += '</div>';
-      
-      // Bouton de correction individuelle
-      html += '<div style="text-align:right;">';
-      html += '<button class="ib-fix-single-conflict" data-booking1="' + conflict.booking1_id + '" data-booking2="' + conflict.booking2_id + '" style="background:#CBB9A4;color:#5B4C3A;border:none;border-radius:6px;padding:0.4em 0.8em;font-size:0.85em;cursor:pointer;">';
-      html += 'Supprimer #' + conflict.booking2_id + ' (plus récente)';
-      html += '</button>';
-      html += '</div>';
-      
-      html += '</div>';
-    });
-    
-    $('#ib-conflicts-list').html(html);
-  }
-  
-  // Correction d'un conflit individuel
-  $(document).on('click', '.ib-fix-single-conflict', function() {
-    var btn = $(this);
-    var booking1Id = btn.data('booking1');
-    var booking2Id = btn.data('booking2');
-    
-    if (!confirm('Supprimer la réservation #' + booking2Id + ' (la plus récente) ?')) {
-      return;
-    }
-    
-    btn.text('Suppression...').prop('disabled', true);
-    
-    $.post(ajaxurl, {
-      action: 'ib_fix_single_conflict',
-      booking1_id: booking1Id,
-      booking2_id: booking2Id,
-      nonce: '<?php echo wp_create_nonce('ib_fix_conflicts'); ?>'
-    }, function(response) {
-      if (response.success) {
-        btn.closest('div[style*="background:#FAF6F2"]').fadeOut(300, function() {
-          $(this).remove();
-          // Si plus de conflits, masquer la section
-          if ($('#ib-conflicts-list > div[style*="background:#FAF6F2"]').length === 0) {
-            $('#ib-conflicts-section').fadeOut(300);
-          }
-        });
-      } else {
-        alert('❌ Erreur lors de la correction: ' + (response.data || 'Erreur inconnue'));
-        btn.text('Supprimer #' + booking2Id + ' (plus récente)').prop('disabled', false);
-      }
-    }).fail(function() {
-      alert('❌ Erreur de connexion lors de la correction.');
-      btn.text('Supprimer #' + booking2Id + ' (plus récente)').prop('disabled', false);
-    });
-  });
 });
 </script>
 

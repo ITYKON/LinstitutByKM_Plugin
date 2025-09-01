@@ -21,9 +21,9 @@ class AbsenceCalendar {
     this.init();
   }
 
-  init() {
+  async init() {
     this.loadEmployees();
-    this.loadAbsences();
+    await this.loadAbsences();
     this.bindEvents();
     this.bindFormSubmitOnce();
     this.renderCalendar();
@@ -111,12 +111,15 @@ class AbsenceCalendar {
             if (data.success) {
               console.log("Absences chargées:", data.data);
               this.absences = data.data || [];
+              return true; // Indique que le chargement a réussi
             } else {
               console.error("Erreur côté serveur:", data.data);
+              return false;
             }
           } catch (e) {
             console.error("Erreur lors de l'analyse de la réponse JSON:", e);
             console.error("Réponse brute du serveur:", responseText);
+            return false;
           }
         } else {
           console.error("Erreur HTTP:", response.status, response.statusText);
@@ -128,13 +131,15 @@ class AbsenceCalendar {
             console.error("2. Le nonce est valide et correspond à la session");
             console.error("3. Votre utilisateur a les permissions nécessaires");
           }
+          return false;
         }
-        console.groupEnd();
       } catch (error) {
         console.error("Erreur lors de l'envoi de la requête:", error);
+        return false;
       }
     } catch (error) {
       console.error("Erreur lors du chargement des absences:", error);
+      return false;
     }
   }
 
@@ -282,9 +287,8 @@ class AbsenceCalendar {
     }
 
     html += `
-            </div>
-            ${this.renderLegend()}
-        `;
+      </div>
+    `;
 
     calendarContainer.innerHTML = html;
   }
@@ -323,7 +327,7 @@ class AbsenceCalendar {
       { key: "formation", label: "Formation" },
       { key: "personnel", label: "Congé personnel" },
       { key: "maternite", label: "Congé maternité" },
-      { key: "paternite", label: "Congé paternité" },
+      
     ];
 
     let html = '<div class="absence-legend">';
@@ -360,7 +364,7 @@ class AbsenceCalendar {
       formation: "Formation",
       personnel: "Personnel",
       maternite: "Maternité",
-      paternite: "Paternité",
+      
     };
     return types[type] || type;
   }

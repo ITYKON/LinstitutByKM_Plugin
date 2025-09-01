@@ -447,15 +447,20 @@ class AbsenceCalendar {
       const today = new Date().toISOString().split("T")[0];
       const startDateInput = form.querySelector('input[name="start_date"]');
       const endDateInput = form.querySelector('input[name="end_date"]');
+      const statusSelect = form.querySelector('select[name="status"]');
 
       if (startDateInput) {
         startDateInput.min = today;
-        startDateInput.value = ""; // Vider la valeur par défaut
+        startDateInput.value = "";
       }
-
       if (endDateInput) {
         endDateInput.min = today;
-        endDateInput.value = ""; // Vider la valeur par défaut
+        endDateInput.value = "";
+      }
+
+      // Ne jamais écraser la valeur du statut, laisser la valeur par défaut du formulaire HTML
+      if (statusSelect) {
+        statusSelect.value = statusSelect.options[0].value;
       }
 
       // Si une date est fournie (au clic sur le calendrier)

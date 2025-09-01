@@ -849,9 +849,9 @@ function ib_ajax_save_absence() {
         $employee_id = isset($_POST['employee_id']) ? intval($_POST['employee_id']) : 0;
         $start_date = isset($_POST['start_date']) ? sanitize_text_field($_POST['start_date']) : '';
         $end_date = isset($_POST['end_date']) ? sanitize_text_field($_POST['end_date']) : '';
-        $type = isset($_POST['type']) ? sanitize_text_field($_POST['type']) : 'absence';
-        $reason = isset($_POST['reason']) ? sanitize_text_field($_POST['reason']) : '';
-        $status = 'approved'; // Par défaut, approuvé
+    $type = isset($_POST['type']) ? sanitize_text_field($_POST['type']) : 'absence';
+    $reason = isset($_POST['reason']) ? sanitize_text_field($_POST['reason']) : '';
+    $status = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : 'approved';
         
         // Validation des champs obligatoires
         if (!$employee_id || !$start_date || !$end_date) {

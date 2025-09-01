@@ -12,7 +12,6 @@ window.bookingState = window.bookingState || {
     email: "",
     phone: "",
   },
-  cart: []                 // liste des prestations
 };
 
 // Fonction pour gérer le scroll et la navigation entre les étapes
@@ -90,15 +89,12 @@ window.goToStep = function (step) {
   scrollToProgressBar();
 
   // Mettre à jour le titre de l'étape si nécessaire
-  // --- NESr ---
   const stepTitles = {
     1: "Choisissez votre prestation",
     2: "Choisissez votre praticienne",
     3: "Date & Heure",
-    4: "panier",
-    5: "informations",
-    6: "Confirmation",
-
+    4: "Vos informations",
+    5: "Confirmation",
   };
 
   // Ajouter une classe pour l'étape actuelle au body pour le CSS
@@ -178,8 +174,7 @@ window.setStep = function (step) {
   if (!window.bookingState) return;
 
   const stepNumber = parseInt(step);
-  // Vérifier que le numéro d'étape est valide 5 -> 6
-  if (isNaN(stepNumber) || stepNumber < 1 || stepNumber > 6) return;
+  if (isNaN(stepNumber) || stepNumber < 1 || stepNumber > 5) return;
 
   window.bookingState.step = stepNumber;
 
@@ -209,7 +204,7 @@ try {
 }
 
 // Fonction pour ajuster la position de la barre de progression sous la navigation
-window.adjustProgressBarPosition = function () {
+window.adjustProgressBarPosition = function() {
   const progressBar = document.querySelector(".planity-progress-bar");
   if (!progressBar) return;
 
@@ -262,7 +257,7 @@ setTimeout(() => {
 window.addEventListener('resize', window.adjustProgressBarPosition);
 
 // Fonction utilitaire pour le scroll automatique vers la barre de progression
-window.scrollToProgressBar = function (callback, delay = 300) {
+window.scrollToProgressBar = function(callback, delay = 300) {
   const progressBar = document.querySelector(".planity-progress-bar") || document.querySelector(".ib-stepper-main");
   if (progressBar) {
     const isMobile = window.innerWidth <= 768;
@@ -385,7 +380,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
       if (step === 1) {
         // Sauvegarder le numéro de téléphone actuel
         const currentPhone = bookingState.client?.phone || '';
-
+        
         // Réinitialiser l'état
         bookingState.selectedService = null;
         bookingState.selectedEmployee = null;
@@ -405,7 +400,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         window.bookingState.selectedSlot = null;
 
         localStorage.removeItem("bookingState");
-
+        
         // Réinitialiser le sélecteur de pays si disponible
         if (window.simpleCountrySelector) {
           setTimeout(() => {
@@ -513,13 +508,12 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           renderCategoryButtons();
           renderServicesGrid();
           break;
-        case 2:
-          inner = `<div class='booking-main-content'>
-          <h2 class='text-center mb-6'>Choisissez votre praticienne</h2>
-          <div class="grid" id="employees-grid"></div></div>`;
-          content.innerHTML = inner;
-          renderEmployeesGrid();
-          break;
+case 2:
+
+  inner = `<div class='booking-main-content'><h2 class='text-center mb-6'>Choisissez votre praticienne</h2><div class="grid" id="employees-grid"></div></div>`;
+  content.innerHTML = inner;
+  renderEmployeesGrid();
+  break;
         case 3:
           inner = `<div class='booking-main-content'>
         <div class="booking-step-date-modern">
@@ -541,112 +535,6 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           renderModernSlotsList();
           break;
         case 4:
-          // --- 1) Vérifier si on doit ajouter la sélection courante au panier ---
-          if (bookingState.selectedService && bookingState.selectedEmployee && bookingState.selectedDate && bookingState.selectedSlot) {
-            bookingState.cart = bookingState.cart || []; // sécurité
-
-            bookingState.cart.push({
-              service: bookingState.selectedService,
-              employee: bookingState.selectedEmployee,
-              date: bookingState.selectedDate,
-              slot: bookingState.selectedSlot
-            });
-
-            // Reset pour éviter d'ajouter plusieurs fois la même
-            bookingState.selectedService = null;
-            bookingState.selectedEmployee = null;
-            bookingState.selectedDate = null;
-            bookingState.selectedSlot = null;
-          }
-
-          // --- 2) Construire le contenu du panier ---
-          inner = `
-<div class='booking-main-content'>
-  <div class="cart-container bg-white shadow-lg rounded-2xl p-6">
-    <h2 class="text-2xl font-bold text-pink-400 mb-6 text-center">Mon panier de prestations</h2>
-
-    <!-- Liste des prestations en horizontal -->
-    <div id="cart-list" class="flex flex-wrap gap-6 justify-center">
-      ${bookingState.cart && bookingState.cart.length > 0
-              ? bookingState.cart.map((item, index) => `
-            <div class="cart-item border rounded-xl p-4 shadow bg-gray-50 w-72 relative">
-
-              <!-- Lien Supprimer (gauche en haut) -->
-              <a href="#" data-index="${index}" 
-                 class="delete-link absolute top-2 left-2 text-red-500 text-sm underline">
-                 Supprimer
-              </a>
-
-              <!-- Détails de la prestation -->
-              <p><strong>Prestation :</strong> ${item.service.name}</p>
-
-              <!-- Sélecteur d'employé -->
-              <p class="mt-2">
-                <strong>Praticienne :</strong> ${item.employee && item.employee.name ? item.employee.name : ''}
-              </p>
-
-              <!-- Date et créneau -->
-              <p class="mt-2"><strong>Date :</strong> ${item.date}</p>
-              <p><strong>Heure :</strong> ${item.slot}</p>
-
-            </div>
-          `).join("")
-              : `<p class="text-center text-gray-500">Aucune prestation dans le panier.</p>`
-            }
-    </div>
-
-    <!-- Bouton Ajouter prestation -->
-    <div class="flex justify-center mt-6">
-      <button id="add-service-btn" class="btn-modern">
-        ➕ Ajouter une prestation
-      </button>
-    </div>
-  </div>
-</div>
-`;
-
-
-          content.innerHTML = inner;
-
-          // Gestion de la suppression avec confirmation
-          document.querySelectorAll(".delete-link").forEach(link => {
-            link.addEventListener("click", function (e) {
-              e.preventDefault();
-              const index = this.getAttribute("data-index");
-
-              if (confirm("Êtes-vous sûr de vouloir supprimer cette prestation ?")) {
-                bookingState.cart.splice(index, 1); // suppression de l’élément
-                renderStepContent(); // re-render pour mettre à jour l’affichage
-              }
-            });
-          });
-
-          // Gestion du changement d'employé (select)
-          document.querySelectorAll(".employee-select").forEach(select => {
-            select.addEventListener("change", function () {
-              const index = this.getAttribute("data-index");
-              const newEmployeeId = parseInt(this.value);
-
-              // Mise à jour du panier avec le nouvel employé choisi
-              const employee = bookingState.employees.find(emp => emp.id === newEmployeeId);
-              if (employee) {
-                bookingState.cart[index].employee = employee;
-              }
-            });
-          });
-
-          // --- 5) Gestion ajout prestation ---
-          const addServiceBtn = document.getElementById("add-service-btn");
-          if (addServiceBtn) {
-            addServiceBtn.addEventListener("click", function () {
-              bookingState.step = 1; // Retour à l'étape choix prestation
-              renderStepContent();
-            });
-          }
-          break;
-
-
-        case 5:
           inner = `<div class='booking-main-content'>
         <div class="booking-step-infos-modern bg-white rounded-2xl shadow-xl p-8 max-w-lg mx-auto">
           <h2 class="text-2xl font-bold text-pink-400 mb-6 text-center">Vos informations</h2>
@@ -657,8 +545,9 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#7B6F5B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.5" r="3.5"/><path d="M3 17c0-2.5 3.5-4 7-4s7 1.5 7 4"/></svg>
                 </span> Prénom
               </label>
-              <input id="client-firstname" class="booking-input-modern" type="text" placeholder="Votre prénom" required value="${bookingState.client.firstname || ""
-            }" />
+              <input id="client-firstname" class="booking-input-modern" type="text" placeholder="Votre prénom" required value="${
+                bookingState.client.firstname || ""
+              }" />
             </div>
             <div class="input-group-modern">
               <label for="client-lastname" class="booking-label-modern" style="display:flex;align-items:center;gap:0.5em;margin-bottom:0.3em;font-size:1em;">
@@ -666,8 +555,9 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#7B6F5B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.5" r="3.5"/><path d="M3 17c0-2.5 3.5-4 7-4s7 1.5 7 4"/></svg>
                 </span> Nom
               </label>
-              <input id="client-lastname" class="booking-input-modern" type="text" placeholder="Votre nom" required value="${bookingState.client.lastname || ""
-            }" />
+              <input id="client-lastname" class="booking-input-modern" type="text" placeholder="Votre nom" required value="${
+                bookingState.client.lastname || ""
+              }" />
             </div>
             <div class="input-group-modern">
               <label for="client-email" class="booking-label-modern" style="display:flex;align-items:center;gap:0.5em;margin-bottom:0.3em;font-size:1em;">
@@ -675,14 +565,16 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#7B6F5B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="10" rx="2"/><path d="M3 5l7 6l7-6"/></svg>
                 </span> Email <span style="color:#dc2626">*</span>
               </label>
-              <input id="client-email" class="booking-input-modern" type="email" placeholder="Votre email" required value="${bookingState.client.email || ""
-            }" />
+              <input id="client-email" class="booking-input-modern" type="email" placeholder="Votre email" required value="${
+                bookingState.client.email || ""
+              }" />
             </div>
             <div id="phone-field-container" class="phone-field-with-country" style="margin-bottom:0.5em;">
               <label for="client-phone" style="color:#606060 !important ;font-size:1.04em;margin-bottom:0.4em;display:block;">Téléphone</label>
               <div id="simple-country-selector-container"></div>
-              <input id="client-phone" type="hidden" value="${bookingState.client.phone || ""
-            }"/>
+              <input id="client-phone" type="hidden" value="${
+                bookingState.client.phone || ""
+              }"/>
               <div id="phone-error" class="error-message" style="color: #dc2626; font-size: 0.85em; margin-top: 0.5em; display: none; padding: 5px; background-color: #fef2f2; border-radius: 4px;">
                 <span style="display: flex; align-items: center; gap: 5px;">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -793,7 +685,6 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                 const showPrivacyBtn = document.getElementById("show-privacy");
                 if (showPrivacyBtn) {
                   showPrivacyBtn.onclick = function (e) {
-
                     e.preventDefault();
                     modal.style.display = "flex";
                   };
@@ -810,115 +701,10 @@ window.scrollToProgressBar = function (callback, delay = 300) {
               // Le sélecteur Planity se charge automatiquement via planity-phone-selector.js
               // Appliquer la validation moderne
               setupModernValidation(form);
-              // Ajouter l'événement de soumission du formulaire pour plusieurs prestation : nes
-              form.addEventListener("submit", function (e) {
-                e.preventDefault();
-
-                // Récupérer les infos du client
-                bookingState.client = {
-                  firstname: document.getElementById("client-firstname").value,
-                  lastname: document.getElementById("client-lastname").value,
-                  email: document.getElementById("client-email").value,
-                  phone: document.getElementById("client-phone").value,
-                };
-
-                // Construire la réservation complète
-                const reservationData = {
-                  client: bookingState.client,
-                  prestations: bookingState.cart // ✅ toutes les prestations
-                };
-
-                console.log("🚀 Envoi réservation", reservationData);
-
-                // 👉 Ici, tu envoies reservationData en AJAX/fetch à ton serveur PHP
-                // Exemple :
-                fetch("/wp-json/booking/v1/create", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(reservationData)
-                })
-                  .then(res => res.json())
-                  .then(data => {
-                    console.log("Réservation OK", data);
-                    bookingState.step = 6; // passer à l’étape confirmation
-                    renderStepContent();
-                  })
-                  .catch(err => {
-                    console.error("Erreur réservation", err);
-                    alert("Erreur lors de la réservation !");
-                  });
-              });
-
             }
           }, 100);
-
           break;
-        case 6:
-          // ------------------------------------
-          let prestationsHtml = "";
-          if (bookingState.cart && bookingState.cart.length > 0) {
-            prestationsHtml = bookingState.cart.map(item => `
-      <div class="ticket-service border rounded-lg p-3 bg-white shadow-md mb-4">
-        <p><span class="ticket-label font-semibold">Prestation :</span> ${item.service?.name || "-"}</p>
-        <p><span class="ticket-label font-semibold">Praticienne :</span> ${item.employee?.name || "-"}</p>
-        <p><span class="ticket-label font-semibold">Date :</span> ${item.date || "-"}</p>
-        <p><span class="ticket-label font-semibold">Créneau :</span> ${item.slot || "-"}</p>
-      </div>
-    `).join("");
-          } else {
-            prestationsHtml = "<p>Aucune prestation réservée.</p>";
-          }
-          inner = `
-    <div class="confirmation-container bg-gray-50 p-6 rounded-xl shadow-lg">
-      <h2 class="text-2xl font-bold text-green-600 mb-4">✅ Réservation Confirmée !</h2>
-      <p class="mb-6 text-gray-700">Merci pour votre réservation. Voici votre ticket de confirmation :</p>
-
-      <div class="ticket bg-white p-4 rounded-lg shadow-md border border-gray-200">
-        <h3 class="text-xl font-semibold mb-3">Détails Client</h3>
-        <p><span class="ticket-label font-semibold">Nom :</span> ${bookingState.client?.lastname || "-"}</p>
-        <p><span class="ticket-label font-semibold">Prénom :</span> ${bookingState.client?.firstname || "-"}</p>
-        <p><span class="ticket-label font-semibold">Email :</span> ${bookingState.client?.email || "-"}</p>
-        <p><span class="ticket-label font-semibold">Téléphone :</span> ${bookingState.client?.phone || "-"}</p>
-
-        <hr class="my-4">
-
-        <h3 class="text-xl font-semibold mb-3">Prestations Réservées</h3>
-        ${prestationsHtml}
-      </div>
-
-      <div class="mt-6 flex gap-4">
-        <button id="new-booking" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition">
-          🔄 Nouvelle réservation
-        </button>
-        <button id="download-ticket" class="px-4 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition">
-          ⬇️ Télécharger Ticket
-        </button>
-      </div>
-    </div>
-  `;
-
-          // Bouton pour nouvelle réservation
-          setTimeout(() => {
-            document.getElementById("new-booking").addEventListener("click", () => {
-              bookingState = {
-                step: 1,
-                selectedService: null,
-                selectedEmployee: null,
-                selectedDate: null,
-                selectedSlot: null,
-                client: null,
-                cart: []
-              };
-              renderStepContent();
-            });
-
-            // Bouton pour télécharger le ticket (optionnel)
-            document.getElementById("download-ticket").addEventListener("click", () => {
-              window.print(); // 👉 pour le moment juste impression PDF
-            });
-          }, 50);
-          content.innerHTML = inner;
-          // ------------------------------------
+        case 5:
           let prixHtml = "-";
           if (bookingState.selectedService) {
             if (bookingState.selectedService.variable_price == 1) {
@@ -950,43 +736,50 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           <div class="ticket-details">
             <div>
               <span class="ticket-label">Service</span>
-              <span class="ticket-value">${bookingState.selectedService?.name || "-"
-            }</span>
+              <span class="ticket-value">${
+                bookingState.selectedService?.name || "-"
+              }</span>
             </div>
             <div>
               <span class="ticket-label">Praticienne</span>
-              <span class="ticket-value">${bookingState.selectedEmployee?.name || "-"
-            }</span>
+              <span class="ticket-value">${
+                bookingState.selectedEmployee?.name || "-"
+              }</span>
             </div>
             <div>
               <span class="ticket-label">Date</span>
-              <span class="ticket-value">${bookingState.selectedDate ?
-              new Date(bookingState.selectedDate).toLocaleDateString('fr-FR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-              }) : "-"
-            }</span>
+              <span class="ticket-value">${
+                bookingState.selectedDate ? 
+                new Date(bookingState.selectedDate).toLocaleDateString('fr-FR', {
+                  day: '2-digit',
+                  month: '2-digit', 
+                  year: 'numeric'
+                }) : "-"
+              }</span>
             </div>
             <div>
               <span class="ticket-label">Créneau</span>
-              <span class="ticket-value">${bookingState.selectedSlot || "-"
-            }</span>
+              <span class="ticket-value">${
+                bookingState.selectedSlot || "-"
+              }</span>
             </div>
             <div>
               <span class="ticket-label">Client</span>
-              <span class="ticket-value">${bookingState.client?.firstname || "-"
-            } ${bookingState.client?.lastname || "-"}</span>
+              <span class="ticket-value">${
+                bookingState.client?.firstname || "-"
+              } ${bookingState.client?.lastname || "-"}</span>
             </div>
             <div>
               <span class="ticket-label">Email</span>
-              <span class="ticket-value">${bookingState.client?.email || "-"
-            }</span>
+              <span class="ticket-value">${
+                bookingState.client?.email || "-"
+              }</span>
             </div>
             <div>
               <span class="ticket-label">Téléphone</span>
-              <span class="ticket-value">${bookingState.client?.phone || "-"
-            }</span>
+              <span class="ticket-value">${
+                bookingState.client?.phone || "-"
+              }</span>
             </div>
             <div>
               <span class="ticket-label">Prix</span>
@@ -1128,8 +921,9 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                     tempContainer.innerHTML = `
                       <div style="width: 100%; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: ${containerPadding}px; font-family: Arial, sans-serif; color: #000000; max-height: 800px; overflow: hidden;">
                         <div style="text-align: center; margin-bottom: 10px;">
-                          <div style="width: ${iconSize}px; height: ${iconSize}px; background: #374151; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: white; font-size: ${iconSize * 0.4
-                      }px; font-weight: bold;">✓</div>
+                          <div style="width: ${iconSize}px; height: ${iconSize}px; background: #374151; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: white; font-size: ${
+                      iconSize * 0.4
+                    }px; font-weight: bold;">✓</div>
                         </div>
                         <div style="background: #374151; color: #ffffff; padding: 8px 15px; border-radius: 6px; font-weight: 600; text-align: center; margin: 10px 0; font-size: ${titleFontSize}px;">Réservation confirmée</div>
                         <div style="text-align: center; color: #374151; margin: 10px 0; font-size: ${fontSize}px; line-height: 1.3;">Merci pour votre réservation !<br>Un email de confirmation vous a été envoyé.</div>
@@ -1144,8 +938,8 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                           <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span style="font-weight: 600; color: #374151; font-size: ${fontSize}px;">Prix</span><span style="color: #111827; font-weight: 600; font-size: ${fontSize}px;">${getPrice()}</span></div>
                         </div>
                         <div style="text-align: center; color: #6b7280; font-size: 10px; margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb;">Ticket généré le ${new Date().toLocaleDateString(
-                        "fr-FR"
-                      )} à ${new Date().toLocaleTimeString("fr-FR")}</div>
+                          "fr-FR"
+                        )} à ${new Date().toLocaleTimeString("fr-FR")}</div>
                       </div>
                     `;
 
@@ -1239,7 +1033,8 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                             }
 
                             pdf.save(
-                              `ticket-reservation-${new Date().toISOString().split("T")[0]
+                              `ticket-reservation-${
+                                new Date().toISOString().split("T")[0]
                               }.pdf`
                             );
 
@@ -1262,7 +1057,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                             if (btn) btn.style.display = "block";
                             showBookingNotification(
                               "Erreur lors de la génération du PDF: " +
-                              error.message
+                                error.message
                             );
                           });
                       } catch (error) {
@@ -1273,7 +1068,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                         if (btn) btn.style.display = "block";
                         showBookingNotification(
                           "Erreur lors de la génération du PDF: " +
-                          error.message
+                            error.message
                         );
                       }
                     }, 500);
@@ -1372,7 +1167,6 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         back.textContent = "← Précédent";
         back.setAttribute("data-action", "back");
         back.onclick = () => {
-          // Utiliser la fonction utilitaire pour le scroll automatique
           window.scrollToProgressBar(() => {
             goToStep(bookingState.step - 1);
           }, 200);
@@ -1380,68 +1174,17 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         actions.appendChild(back);
       }
 
-      if (bookingState.step < 5) {
-        const next = document.createElement("button");
-        next.className = "next btn-next";
-        next.setAttribute("data-action", "next");
+      // SUPPRESSION DES BOUTONS NEXT : on ne crée plus de bouton "next" pour passer à l'étape suivante
+      // L'utilisateur passe à l'étape suivante uniquement en cliquant sur une prestation, praticienne, créneau, etc.
 
-        // Texte du bouton selon l'étape
-        const buttonTexts = {
-          1: "Choisir la praticienne →",
-          2: "Choisir la date →",
-          3: "Mon panier →",
-          4: "Mes informations →",
-          5: "Confirmer la réservation",
-        };
-
-        next.innerHTML = buttonTexts[bookingState.step] || "Suivant →";
-        actions.appendChild(next);
-        next.onclick = () => {
-          if (bookingState.step === 1 && !bookingState.selectedService) {
-            showBookingNotification("Sélectionnez un service.");
-            return;
-          }
-          if (bookingState.step === 2 && !bookingState.selectedEmployee) {
-            showBookingNotification("Sélectionnez une praticienne.");
-            return;
-          }
-          if (
-            bookingState.step === 3 &&
-            (!bookingState.selectedDate || !bookingState.selectedSlot)
-          ) {
-            showBookingNotification("Sélectionnez une date et un créneau.");
-            return;
-          }
-          if (bookingState.step === 4 && !bookingState.selectedCategory) {
-            showBookingNotification("Sélectionnez un nouveau service.");
-            return;
-          }
-          if (
-            bookingState.step === 5 &&
-            (!bookingState.client.firstname ||
-              !bookingState.client.lastname ||
-              !bookingState.client.phone)
-          ) {
-            showBookingNotification("Merci de remplir tous les champs.");
-            return;
-          }
-
-          // Utiliser la fonction utilitaire pour le scroll automatique
-          window.scrollToProgressBar(() => {
-            goToStep(bookingState.step + 1);
-          }, 200);
-        };
-        actions.appendChild(next);
-      } else if (bookingState.step === 5) {
+      // On garde le bouton "Nouvelle réservation" à la fin (étape 5)
+      if (bookingState.step === 5) {
         const restart = document.createElement("button");
         restart.className = "next btn-next";
         restart.textContent = "Nouvelle réservation";
         restart.setAttribute("data-action", "restart");
         restart.onclick = () => {
-          // Réinitialiser l'état de réservation dans le localStorage
           localStorage.removeItem("bookingState");
-
-          // Rafraîchir la page pour réinitialiser complètement le formulaire
           window.location.reload();
         };
         actions.appendChild(restart);
@@ -1556,28 +1299,40 @@ window.scrollToProgressBar = function (callback, delay = 300) {
       const container = document.getElementById("category-buttons");
       container.innerHTML = "";
 
-      // Utilise la bonne propriété pour les catégories
-      const cats = [
-        "ALL",
-        ...Array.from(
-          new Set(
-            bookingState.services.map((s) => s.category_name).filter(Boolean)
-          )
-        ),
-      ];
-      console.log("Catégories générées:", cats);
+      // Extraire les catégories uniques
+      const uniqueCategories = [];
+      const seen = new Set();
+      
+      bookingState.services.forEach(service => {
+        const category = service.category_name?.trim();
+        if (category && !seen.has(category)) {
+          seen.add(category);
+          uniqueCategories.push(category);
+        }
+      });
+      
+      // Trier par ordre alphabétique en ignorant la casse, les accents et la ponctuation
+      uniqueCategories.sort((a, b) => 
+        a.localeCompare(b, 'fr', {
+          sensitivity: 'base',
+          ignorePunctuation: true,
+          numeric: true
+        })
+      );
+      
+      // Ajouter 'ALL' au début et supprimer les doublons
+      const cats = ["ALL", ...uniqueCategories];
+      console.log("Catégories générées (avant affichage):", cats);
 
-      // Créer les boutons pour desktop
+      // Créer le conteneur des boutons de catégorie pour desktop
       const buttonsContainer = document.createElement("div");
-      buttonsContainer.className = "category-buttons-desktop";
+      buttonsContainer.className = "booking-categories";
 
       cats.forEach((cat) => {
         const btn = document.createElement("button");
         btn.textContent = cat;
         btn.title = cat;
-        btn.className =
-          "booking-category-btn" +
-          (cat === bookingState.selectedCategory ? " active" : "");
+        btn.className = "booking-category-btn" + (cat === bookingState.selectedCategory ? " active" : "");
         btn.onclick = () => {
           bookingState.selectedCategory = cat;
           renderServicesGrid();
@@ -1588,7 +1343,12 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           }
         };
         buttonsContainer.appendChild(btn);
+        console.log("Bouton ajouté:", cat);
       });
+      
+      // Vérifier l'ordre des boutons après leur création
+      const buttonTexts = Array.from(buttonsContainer.children).map(btn => btn.textContent);
+      console.log("Catégories triées pour l'affichage:", buttonTexts);
 
       // Créer l'accordéon pour mobile
       const accordionContainer = document.createElement("div");
@@ -1609,9 +1369,21 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         servicesByCategory[category].push(service);
       });
 
+      // Trier les noms de catégories par ordre alphabétique en ignorant la casse et les accents
+      const sortedCategories = Object.keys(servicesByCategory).sort((a, b) => 
+        a.localeCompare(b, 'fr', {sensitivity: 'base'})
+      );
+      
       // Créer un accordéon pour chaque catégorie
-      Object.keys(servicesByCategory).forEach((categoryName) => {
-        const categoryServices = servicesByCategory[categoryName];
+      sortedCategories.forEach((categoryName) => {
+        // Trier les services de cette catégorie par ordre alphabétique
+        const categoryServices = servicesByCategory[categoryName].sort((a, b) => 
+          a.name.localeCompare(b.name, 'fr', {
+            sensitivity: 'base',
+            ignorePunctuation: true,
+            numeric: true
+          })
+        );
 
         const accordionItem = document.createElement("div");
         accordionItem.className = "accordion-item";
@@ -1707,7 +1479,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         // Gestion du clic sur l'en-tête
         accordionHeader.onclick = () => {
           const isOpen = accordionItem.classList.contains("open");
-
+          
           // Toggle l'état de l'accordéon cliqué
           if (isOpen) {
             accordionItem.classList.remove("open");
@@ -1715,12 +1487,12 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           } else {
             accordionItem.classList.add("open");
             accordionHeader.querySelector(".accordion-arrow").textContent = "▲";
-
+            
             // Faire défiler jusqu'au contenu de l'accordéon
             setTimeout(() => {
               const content = accordionItem.querySelector('.accordion-content');
               if (content) {
-                content.scrollIntoView({
+                content.scrollIntoView({ 
                   behavior: 'smooth',
                   block: 'nearest',
                   inline: 'start'
@@ -1753,10 +1525,10 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         bookingState.selectedCategory === "ALL"
           ? bookingState.services
           : bookingState.services.filter(
-            (s) =>
-              (s.category_name || "").trim() ===
-              (bookingState.selectedCategory || "").trim()
-          );
+              (s) =>
+                (s.category_name || "").trim() ===
+                (bookingState.selectedCategory || "").trim()
+            );
       console.log("Services à afficher:", filtered);
       if (filtered.length === 0) {
         grid.innerHTML =
@@ -1764,7 +1536,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         return;
       }
 
-      // Grouper les services par catégorie
+      // Grouper les services par catégorie et les trier par ordre alphabétique
       const servicesByCategory = {};
       filtered.forEach((service) => {
         const categoryName = service.category_name || "Sans catégorie";
@@ -1773,14 +1545,27 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         }
         servicesByCategory[categoryName].push(service);
       });
+      
+      // Trier les services dans chaque catégorie par nom
+      Object.keys(servicesByCategory).forEach(category => {
+        servicesByCategory[category].sort((a, b) => 
+          a.name.localeCompare(b.name, 'fr', {sensitivity: 'base'})
+        );
+      });
+
+      // Trier les noms de catégories par ordre alphabétique
+      const sortedCategories = Object.keys(servicesByCategory).sort((a, b) => 
+        a.localeCompare(b, 'fr', {sensitivity: 'base', ignorePunctuation: true})
+      );
 
       // Afficher chaque catégorie avec ses services
-      Object.keys(servicesByCategory).forEach((categoryName) => {
+      sortedCategories.forEach((categoryName) => {
         const services = servicesByCategory[categoryName];
         const maxServicesShown = 5; // Limite d'affichage par catégorie
         const servicesToShow = services.slice(0, maxServicesShown);
         const remainingServices = services.length - maxServicesShown;
 
+// ...
         // Créer l'en-tête de catégorie
         const categoryHeader = document.createElement("div");
         categoryHeader.className = "category-header-planity";
@@ -1856,12 +1641,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
 
     function createServiceItem(srv) {
       const serviceItem = document.createElement("div");
-      serviceItem.className =
-        "service-item-planity" +
-        (bookingState.selectedService &&
-          bookingState.selectedService.id === srv.id
-          ? " selected"
-          : "");
+      serviceItem.className = "service-item-planity";
 
       // Correction affichage prix
       let priceText = "";
@@ -1895,8 +1675,8 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         </div>
         <div class="service-meta-planity">
           <span class="service-duration-planity">${formatDuration(
-        srv.duration || 30
-      )}</span>
+            srv.duration || 30
+          )}</span>
           <button class="service-choose-btn" type="button">Choisir</button>
         </div>
       `;
@@ -1937,29 +1717,50 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           '<div style="padding:2em;text-align:center;color:#bfa2c7;">Aucune praticienne pour ce service</div>';
         return;
       }
+
+      // Ajouter la carte "Sans préférence"
+      const noPreferenceCard = document.createElement("div");
+      noPreferenceCard.className = "employee-card-modern";
+      noPreferenceCard.onclick = () => {
+        bookingState.selectedEmployee = null; // null indique qu'aucune préférence n'est choisie
+        renderEmployeesGrid();
+        goToStep(3);
+      };
+      noPreferenceCard.innerHTML = `
+        <span><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-4 8-4 8-4s8 0 8 4"/>
+        </svg></span>
+        <div class="mt-3 text-center">
+          <div class="font-bold text-black-400 text-base mb-1">Sans préférence</div>
+        </div>
+      `;
+      grid.appendChild(noPreferenceCard);
+
+      // Ajouter les cartes des praticiennes
       filtered.forEach((emp) => {
         const card = document.createElement("div");
         card.className =
           "employee-card-modern" +
           (bookingState.selectedEmployee &&
-            bookingState.selectedEmployee.id === emp.id
+          bookingState.selectedEmployee.id === emp.id
             ? " selected"
             : "");
-        card.onclick = () => {
+        card.onclick = (e) => {
+          e.stopPropagation();
           bookingState.selectedEmployee = emp;
           renderEmployeesGrid();
-          goToStep(3); // Passe automatiquement à l'étape suivante après sélection
+          goToStep(3);
         };
         let imgHtml = emp.photo
           ? `<img src="${emp.photo}" alt="${emp.name}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;">`
           : `<span><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4"/></svg></span>`;
         card.innerHTML = `
-      ${imgHtml}
-      <div class="mt-3 text-center">
-        <div class="font-bold text-brown-400 text-base mb-1">${emp.name}</div>
-       
-      </div>
-    `;
+          ${imgHtml}
+          <div class="mt-3 text-center">
+            <div class="font-bold text-black-400 text-base mb-1">${emp.name}</div>
+          </div>
+        `;
         grid.appendChild(card);
       });
     }
@@ -1973,11 +1774,29 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         selectedEmployee: bookingState.selectedEmployee,
       });
 
-      if (!bookingState.selectedService || !bookingState.selectedEmployee) {
-        console.log("❌ Préstation ou employé non sélectionné");
+      if (!bookingState.selectedService) {
+        console.log("❌ Aucune prestation sélectionnée");
         window.availableDays = {};
         if (cb) cb();
         return;
+      }
+      
+      // Si pas de préférence de praticienne, on en sélectionne une au hasard
+      let selectedEmployee = bookingState.selectedEmployee;
+      if (!selectedEmployee) {
+        const employeeIds = (bookingState.selectedService.employee_ids || []).map(Number);
+        const availableEmployees = bookingState.employees.filter(e => employeeIds.includes(Number(e.id)));
+        if (availableEmployees.length > 0) {
+          selectedEmployee = availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
+          console.log("🎲 Praticienne sélectionnée aléatoirement:", selectedEmployee);
+          // Mettre à jour le bookingState avec la praticienne sélectionnée
+          bookingState.selectedEmployee = selectedEmployee;
+        } else {
+          console.log("❌ Aucune praticienne disponible pour ce service");
+          window.availableDays = {};
+          if (cb) cb();
+          return;
+        }
       }
 
       // Check if jQuery is available
@@ -2044,18 +1863,18 @@ window.scrollToProgressBar = function (callback, delay = 300) {
       const cal = document.getElementById("calendar-days");
       const header = document.getElementById("calendar-header");
       const monthNames = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
+        "Janvier",
+        "Février",
+        "Mars",
+        "Avril",
+        "Mai",
+        "Juin",
+        "Juillet",
+        "Août",
+        "Septembre",
+        "Octobre",
+        "Novembre",
+        "Décembre",
       ];
       const weekDays = ["L", "M", "M", "J", "V", "S", "D"];
       if (!window.calendarState)
@@ -2071,8 +1890,8 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           header.innerHTML = `
     <button id='prev-month'>&lt;</button>
     <span style='font-weight:600;font-size:1.1em;display:inline-block;min-width:120px;text-align:center;'>${monthNames[
-              window.calendarState.month
-            ].toUpperCase()} ${window.calendarState.year}</span>
+      window.calendarState.month
+    ].toUpperCase()} ${window.calendarState.year}</span>
     <button id='next-month'>&gt;</button>
   `;
           const prevMonthBtn = document.getElementById("prev-month");
@@ -2130,8 +1949,9 @@ window.scrollToProgressBar = function (callback, delay = 300) {
             let btnClass = "calendly-day";
             if (!hasSlot || isPast || isSunday) btnClass += " disabled";
             if (bookingState.selectedDate === dateStr) btnClass += " selected";
-            html += `<button class='${btnClass}' data-date='${dateStr}' ${!hasSlot || isPast || isSunday ? "disabled" : ""
-              }>${d}</button>`;
+            html += `<button class='${btnClass}' data-date='${dateStr}' ${
+              !hasSlot || isPast || isSunday ? "disabled" : ""
+            }>${d}</button>`;
           }
           html += "</div>";
           cal.innerHTML = html;
@@ -2151,7 +1971,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                   const headerOffset = 120; // Adjust this value based on your header height
                   const elementPosition = slotsSection.getBoundingClientRect().top;
                   const offsetPosition = window.pageYOffset + elementPosition - headerOffset;
-
+                  
                   // Smooth scroll to the calculated position
                   window.scrollTo({
                     top: offsetPosition,
@@ -2178,16 +1998,46 @@ window.scrollToProgressBar = function (callback, delay = 300) {
 
     function renderModernSlotsList() {
       const slotsList = document.getElementById("slots-list");
+      
+      // Ensure bookingState is properly initialized
+      if (!bookingState) {
+        console.error("bookingState is not defined");
+        return;
+      }
+      
+      // Initialize selectedEmployee if not exists
+      if (!bookingState.selectedEmployee) {
+        bookingState.selectedEmployee = null;
+      }
+      
       // Afficher un message si aucune date sélectionnée
       if (!bookingState.selectedDate) {
         slotsList.innerHTML =
           '<div class="no-slots">Sélectionnez une date</div>';
         return;
       }
-      if (!bookingState.selectedEmployee || !bookingState.selectedService) {
+      
+      // Vérifier si un service est sélectionné
+      if (!bookingState.selectedService) {
         slotsList.innerHTML =
-          '<div class="no-slots">Veuillez sélectionner un service et une praticienne</div>';
+          '<div class="no-slots">Veuillez sélectionner un service</div>';
         return;
+      }
+      
+      // Si pas de praticienne sélectionnée, en choisir une au hasard
+      if (!bookingState.selectedEmployee) {
+        const employeeIds = (bookingState.selectedService.employee_ids || []).map(Number);
+        const availableEmployees = bookingState.employees ? 
+          bookingState.employees.filter(e => employeeIds.includes(Number(e.id))) : [];
+          
+        if (availableEmployees.length > 0) {
+          bookingState.selectedEmployee = availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
+          console.log("🎲 Praticienne sélectionnée aléatoirement pour l'affichage des créneaux:", bookingState.selectedEmployee);
+        } else {
+          slotsList.innerHTML =
+            '<div class="no-slots">Aucune praticienne disponible pour ce service</div>';
+          return;
+        }
       }
       console.log("Déclenchement AJAX get_available_slots", bookingState); // DEBUG
       let html = "";
@@ -2223,8 +2073,9 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                   );
                   const endTimeStr = endTime.toTimeString().substring(0, 5);
 
-                  html += `<button class='slot-btn slot-btn-planity' ${isSelected ? "disabled" : ""
-                    } onclick='window.selectSlot("${slot}")'>
+                  html += `<button class='slot-btn slot-btn-planity' ${
+                    isSelected ? "disabled" : ""
+                  } onclick='window.selectSlot("${slot}")'>
                     <div class="slot-time-main">${slot}</div>
                     <div class="slot-time-end">→ ${endTimeStr}</div>
                   </button>`;
@@ -2237,8 +2088,9 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                 html +=
                   '<div style="margin-bottom:1em;"><b>Morning</b><div style="margin-top:0.5em;display:flex;flex-wrap:wrap;gap:0.5em;">';
                 response.data.morning.forEach((slot) => {
-                  html += `<button class='slot-btn' style='padding:0.7em 1.2em;border-radius:18px;border:1.5px solid #f8f8f8;background:#f8f8f8;color:#606060;font-weight:600;cursor:pointer;transition:transform 0.13s;' ${bookingState.selectedSlot === slot ? "disabled" : ""
-                    } onclick='window.selectSlot("${slot}")'>${slot} <span style='font-size:0.9em;color:#bbb;font-weight:400;'>Disponible</span></button>`;
+                  html += `<button class='slot-btn' style='padding:0.7em 1.2em;border-radius:18px;border:1.5px solid #f8f8f8;background:#f8f8f8;color:#606060;font-weight:600;cursor:pointer;transition:transform 0.13s;' ${
+                    bookingState.selectedSlot === slot ? "disabled" : ""
+                  } onclick='window.selectSlot("${slot}")'>${slot} <span style='font-size:0.9em;color:#bbb;font-weight:400;'>Disponible</span></button>`;
                 });
                 html += "</div></div>";
               }
@@ -2246,8 +2098,9 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                 html +=
                   '<div style="margin-bottom:1em;"><b>Afternoon</b><div style="margin-top:0.5em;display:flex;flex-wrap:wrap;gap:0.5em;">';
                 response.data.afternoon.forEach((slot) => {
-                  html += `<button class='slot-btn' style='padding:0.7em 1.2em;border-radius:18px;border:1.5px solid #f8f8f8;background:#f8f8f8;color:#606060;font-weight:600;cursor:pointer;transition:transform 0.13s;' ${bookingState.selectedSlot === slot ? "disabled" : ""
-                    } onclick='window.selectSlot("${slot}")'>${slot} <span style='font-size:0.9em;color:#bbb;font-weight:400;'>Disponible</span></button>`;
+                  html += `<button class='slot-btn' style='padding:0.7em 1.2em;border-radius:18px;border:1.5px solid #f8f8f8;background:#f8f8f8;color:#606060;font-weight:600;cursor:pointer;transition:transform 0.13s;' ${
+                    bookingState.selectedSlot === slot ? "disabled" : ""
+                  } onclick='window.selectSlot("${slot}")'>${slot} <span style='font-size:0.9em;color:#bbb;font-weight:400;'>Disponible</span></button>`;
                 });
                 html += "</div></div>";
               }
@@ -2255,8 +2108,9 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                 html +=
                   '<div style="margin-bottom:1em;"><b>Evening</b><div style="margin-top:0.5em;display:flex;flex-wrap:wrap;gap:0.5em;">';
                 response.data.evening.forEach((slot) => {
-                  html += `<button class='slot-btn' style='padding:0.7em 1.2em;border-radius:18px;border:1.5px solid #f8f8f8;background:#f8f8f8;color:#606060;font-weight:600;cursor:pointer;transition:transform 0.13s;' ${bookingState.selectedSlot === slot ? "disabled" : ""
-                    } onclick='window.selectSlot("${slot}")'>${slot} <span style='font-size:0.9em;color:#bbb;font-weight:400;'>Disponible</span></button>`;
+                  html += `<button class='slot-btn' style='padding:0.7em 1.2em;border-radius:18px;border:1.5px solid #f8f8f8;background:#f8f8f8;color:#606060;font-weight:600;cursor:pointer;transition:transform 0.13s;' ${
+                    bookingState.selectedSlot === slot ? "disabled" : ""
+                  } onclick='window.selectSlot("${slot}")'>${slot} <span style='font-size:0.9em;color:#bbb;font-weight:400;'>Disponible</span></button>`;
                 });
                 html += "</div></div>";
               }
@@ -2304,8 +2158,8 @@ window.scrollToProgressBar = function (callback, delay = 300) {
       const iconSvg = isSuccess
         ? '<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>'
         : isError
-          ? '<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
-          : '<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>';
+        ? '<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
+        : '<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>';
 
       modal.innerHTML = `<div style='background:${bgColor};border:2px solid ${borderColor};border-radius:16px;box-shadow:0 25px 50px rgba(0,0,0,0.25);padding:2.5em 2em;max-width:380px;width:90vw;text-align:center;position:relative;transform:scale(0.9);opacity:0;transition:all 0.3s ease;'>
     <div style='margin-bottom:1.5em;'>
@@ -2376,12 +2230,12 @@ window.scrollToProgressBar = function (callback, delay = 300) {
 
     function showError(input, message) {
       // Cas spécial pour le champ téléphone
-      const isPhoneInput = input.id === 'client-phone' ||
-        (input.classList && input.classList.contains('simple-phone-input'));
-
+      const isPhoneInput = input.id === 'client-phone' || 
+                         (input.classList && input.classList.contains('simple-phone-input'));
+      
       let targetInput = input;
       let parentElement = input.parentNode;
-
+      
       // Si c'est le champ téléphone caché, on cible le conteneur parent
       if (isPhoneInput && input.type === 'hidden') {
         const phoneContainer = document.querySelector('.phone-field-with-country');
@@ -2394,7 +2248,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           }
         }
       }
-
+      
       let error = parentElement.querySelector(".ib-error-msg");
       if (!error) {
         error = document.createElement("span");
@@ -2409,7 +2263,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
       }
       error.textContent = message;
       targetInput.classList.add("ib-error");
-
+      
       // Ajouter une bordure rouge au conteneur du sélecteur de pays si c'est le champ téléphone
       if (isPhoneInput) {
         const selectorContainer = document.querySelector('.simple-phone-container');
@@ -2420,12 +2274,12 @@ window.scrollToProgressBar = function (callback, delay = 300) {
     }
     function clearError(input) {
       // Gestion spéciale pour le champ téléphone
-      const isPhoneInput = input.id === 'client-phone' ||
-        (input.classList && input.classList.contains('simple-phone-input'));
-
+      const isPhoneInput = input.id === 'client-phone' || 
+                         (input.classList && input.classList.contains('simple-phone-input'));
+      
       let parentElement = input.parentNode;
       let targetInput = input;
-
+      
       if (isPhoneInput) {
         const phoneContainer = document.querySelector('.phone-field-with-country');
         if (phoneContainer) {
@@ -2442,7 +2296,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           selectorContainer.style.borderColor = '#d1d5db'; // Couleur de bordure par défaut
         }
       }
-
+      
       let error = parentElement.querySelector(".ib-error-msg");
       if (error) error.remove();
       targetInput.classList.remove("ib-error");
@@ -2486,35 +2340,35 @@ window.scrollToProgressBar = function (callback, delay = 300) {
     function validatePhoneLength(number, countryCode) {
       // Garder uniquement les chiffres pour la validation de longueur
       const cleanNumber = number.replace(/[^0-9]/g, '');
-
+      
       // Si le numéro commence par le code pays, on l'enlève pour la validation
       let numberWithoutCountry = cleanNumber;
       if (countryCode && cleanNumber.startsWith(countryCode)) {
         numberWithoutCountry = cleanNumber.substring(countryCode.length);
       }
-
+      
       // Validation minimale de 9 chiffres pour tous les pays
       if (numberWithoutCountry.length < 9) {
         console.log('[DEBUG] Numéro trop court:', numberWithoutCountry.length, 'chiffres (minimum 9 requis)');
         return false;
       }
-
+      
       // Validation spécifique par pays si nécessaire
-      switch (countryCode) {
+      switch(countryCode) {
         case '33': // France
           // 9 chiffres (sans le 0) ou 10 chiffres (avec le 0)
           return [9, 10].includes(numberWithoutCountry.length);
-
+          
         case '213': // Algérie
         case '212': // Maroc
           // 9 chiffres (sans le 0) ou 10 chiffres (avec le 0)
           return [9, 10].includes(numberWithoutCountry.length);
-
+          
         case '216': // Tunisie
           // 8 chiffres (sans le 0) ou 9 chiffres (avec le 0)
           // On garde cette règle spécifique mais on applique le minimum de 9 chiffres
           return numberWithoutCountry.length >= 9 && [8, 9].includes(numberWithoutCountry.length);
-
+          
         default:
           // Pour les autres pays: minimum 9 chiffres, maximum 13 chiffres (sans le code pays)
           return numberWithoutCountry.length >= 9 && numberWithoutCountry.length <= 13;
@@ -2523,16 +2377,16 @@ window.scrollToProgressBar = function (callback, delay = 300) {
 
     function isValidPhoneNumber(str) {
       if (!str || typeof str !== 'string') return false;
-
+      
       console.log('[DEBUG] Validation du numéro:', str);
-
+      
       // Nettoyer le numéro (supprimer tous les caractères non numériques sauf le +)
       const cleaned = cleanPhoneNumber(str);
       if (!cleaned) {
         console.log('[DEBUG] Numéro vide après nettoyage');
         return false;
       }
-
+      
       // Récupérer le code pays
       let country = "";
       if (window.getPlanityCountryCode) {
@@ -2544,21 +2398,21 @@ window.scrollToProgressBar = function (callback, delay = 300) {
       } else {
         console.log('[DEBUG] Aucun code pays détecté');
       }
-
+      
       // Si on a un code pays, on valide en conséquence
       if (country) {
         // Validation de la longueur en fonction du pays
         const isValidLength = validatePhoneLength(cleaned, country);
         console.log('[DEBUG] Longueur valide pour', country, ':', isValidLength);
-
+        
         if (!isValidLength) {
           console.log('[DEBUG] Longueur invalide pour le pays', country, 'numéro', cleaned);
           return false;
         }
-
+        
         // Préparer le numéro pour validation (sans code pays)
         let numberWithoutCountry = cleaned;
-
+        
         // Supprimer le code pays s'il est présent au début
         if (cleaned.startsWith(country)) {
           numberWithoutCountry = cleaned.substring(country.length);
@@ -2570,50 +2424,50 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           // Si le numéro commence par + mais pas par le code pays, on le supprime
           numberWithoutCountry = cleaned.substring(1);
         }
-
+        
         // Supprimer les espaces et caractères spéciaux restants
         numberWithoutCountry = numberWithoutCountry.replace(/[^0-9]/g, '');
-
+        
         console.log('[DEBUG] Numéro sans code pays:', numberWithoutCountry);
-
+        
         // Validation spécifique par pays
-        switch (country) {
+        switch(country) {
           case '33': // France
             // Format accepté : 6 ou 7 suivi de 8 chiffres (avec ou sans 0 initial)
-            const frValid = /^[67]\d{8}$/.test(numberWithoutCountry) ||
-              /^0[67]\d{8}$/.test(numberWithoutCountry);
+            const frValid = /^[67]\d{8}$/.test(numberWithoutCountry) || 
+                          /^0[67]\d{8}$/.test(numberWithoutCountry);
             console.log('[DEBUG] Validation France:', frValid);
             return frValid;
-
+            
           case '213': // Algérie
           case '212': // Maroc
             // Format accepté : 5, 6 ou 7 suivi de 8 chiffres (avec ou sans 0 initial)
-            const dzmaValid = /^[5-7]\d{8}$/.test(numberWithoutCountry) ||
-              /^0[5-7]\d{8}$/.test(numberWithoutCountry);
+            const dzmaValid = /^[5-7]\d{8}$/.test(numberWithoutCountry) || 
+                            /^0[5-7]\d{8}$/.test(numberWithoutCountry);
             console.log('[DEBUG] Validation Algérie/Maroc:', dzmaValid);
             return dzmaValid;
-
+            
           case '216': // Tunisie
             // Format accepté : 8 chiffres (avec ou sans 0 initial)
-            const tnValid = /^\d{8}$/.test(numberWithoutCountry) ||
-              /^0\d{8}$/.test(numberWithoutCountry);
+            const tnValid = /^\d{8}$/.test(numberWithoutCountry) || 
+                          /^0\d{8}$/.test(numberWithoutCountry);
             console.log('[DEBUG] Validation Tunisie:', tnValid);
             return tnValid;
-
+            
           default:
             // Pour les autres pays: entre 6 et 13 chiffres
-            const defaultValid = numberWithoutCountry.length >= 6 &&
-              numberWithoutCountry.length <= 13;
+            const defaultValid = numberWithoutCountry.length >= 6 && 
+                               numberWithoutCountry.length <= 13;
             console.log('[DEBUG] Validation autre pays:', defaultValid);
             return defaultValid;
         }
       }
-
+      
       // Si pas de code pays, on fait une validation générique
       const digitsOnly = cleaned.replace(/[^0-9]/g, '');
       const genericValid = digitsOnly.length >= 6 && digitsOnly.length <= 15;
       console.log('[DEBUG] Validation générique:', genericValid);
-
+      
       return genericValid;
     }
 
@@ -2639,7 +2493,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           console.error("❌ [ERREUR] L'élément input est null ou undefined pour le type:", type);
           return false;
         }
-
+        
         let valid = true;
         // Vérifier que input.value existe avant de l'utiliser
         let value = input && input.value ? input.value : "";
@@ -2649,7 +2503,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
             showError(
               input,
               (type === "firstname" ? "Prénom" : "Nom") +
-              " invalide (lettres uniquement)"
+                " invalide (lettres uniquement)"
             );
           } else {
             clearError(input);
@@ -2723,9 +2577,9 @@ window.scrollToProgressBar = function (callback, delay = 300) {
             valid = false;
             if (touched.phone) {
               // Toujours utiliser l'input caché comme référence pour le téléphone
-              const phoneInput = document.getElementById('client-phone') ||
-                (window.simpleCountrySelector?.container?.querySelector(".simple-phone-input"));
-
+              const phoneInput = document.getElementById('client-phone') || 
+                               (window.simpleCountrySelector?.container?.querySelector(".simple-phone-input"));
+             
             }
             console.log("🔍 [DEBUG] Téléphone vide - invalide");
           } else {
@@ -2783,7 +2637,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
             });
 
             valid = validIntl && validCustom;
-
+            
             console.log('[DEBUG] Validation du téléphone:', {
               phoneValue,
               valid,
@@ -2792,22 +2646,22 @@ window.scrollToProgressBar = function (callback, delay = 300) {
               touched: touched.phone,
               hasError: !valid && touched.phone
             });
-
+            
             // Afficher directement un message d'erreur si la validation échoue
             if (!valid && touched.phone) {
               console.log('[DEBUG] Affichage du message d\'erreur');
               // Récupérer ou créer le conteneur d'erreur
               console.log('[DEBUG] Recherche du conteneur d\'erreur...');
-
+              
               // Trouver le conteneur parent du champ téléphone
               const phoneFieldContainer = document.querySelector('.phone-field-with-country');
               if (!phoneFieldContainer) {
                 console.error('[ERREUR] Conteneur du champ téléphone introuvable');
                 return;
               }
-
+              
               let errorContainer = phoneFieldContainer.nextElementSibling;
-
+              
               // Vérifier si le prochain élément est déjà notre conteneur d'erreur
               if (!errorContainer || !errorContainer.classList.contains('phone-error-container')) {
                 console.log('[DEBUG] Création d\'un nouveau conteneur d\'erreur');
@@ -2819,7 +2673,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                 errorContainer.style.borderLeft = '4px solid #dc2626';
                 errorContainer.style.borderRadius = '4px';
                 errorContainer.style.display = 'block';
-
+                
                 // Ajouter le message d'erreur
                 errorContainer.innerHTML = `
                   <div style="display: flex; align-items: center; color: #dc2626; font-size: 0.9em;">
@@ -2831,7 +2685,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                     <span>Numéro de téléphone invalide</span>
                   </div>
                 `;
-
+                
                 // Insérer après le champ téléphone
                 console.log('[DEBUG] Recherche du champ téléphone...');
                 const phoneField = document.querySelector('.phone-field-with-country');
@@ -2863,7 +2717,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
 
       function validateAll() {
         let valid = true;
-
+        
         // Vérifier que tous les champs d'entrée sont valides avant de les utiliser
         const inputs = {
           firstname: firstnameInput,
@@ -2871,13 +2725,13 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           email: emailInput,
           phone: phoneInput
         };
-
+        
         // Valider chaque champ s'il existe
         const firstnameValid = inputs.firstname ? validateField(inputs.firstname, "firstname") : false;
         const lastnameValid = inputs.lastname ? validateField(inputs.lastname, "lastname") : false;
         const emailValid = inputs.email ? validateField(inputs.email, "email") : false;
         const phoneValid = inputs.phone ? validateField(inputs.phone, "phone") : false;
-
+        
         // Journaliser si des champs sont manquants
         Object.entries(inputs).forEach(([name, input]) => {
           if (!input) {
@@ -2888,7 +2742,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         // Vérifier la case de politique de confidentialité
         const privacyCheckbox = document.getElementById("client-privacy");
         const privacyValid = privacyCheckbox ? privacyCheckbox.checked : false;
-
+        
         // Si la case est cochée et que l'email est vide, on le marque comme touché pour afficher l'erreur
         if (privacyCheckbox && privacyCheckbox.checked && emailInput && emailInput.value.trim() === '') {
           touched.email = true;
@@ -2927,12 +2781,12 @@ window.scrollToProgressBar = function (callback, delay = 300) {
             validateField(input, type);
             validateAll();
           });
-
+          
           input.addEventListener("input", function () {
             if (touched[type]) validateField(input, type);
             validateAll();
           });
-
+          
           console.log(` [Écouteurs d'événements ajoutés pour le champ ${type}`);
         } else {
           console.error(` [Impossible d'ajouter les écouteurs d'événements pour le champ ${type}: input non trouvé`);
@@ -2940,7 +2794,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
       });
 
       // Valider l'email avant de passer au champ téléphone
-      phoneInput.addEventListener("focus", function () {
+      phoneInput.addEventListener("focus", function() {
         if (emailInput) {
           // Si l'email n'a pas encore été touché, on le marque comme touché
           if (!touched.email) {
@@ -2981,12 +2835,12 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         });
 
         // Nettoyage supplémentaire sur le collage (paste) et la validation
-        phoneInput.addEventListener('paste', function (e) {
+        phoneInput.addEventListener('paste', function(e) {
           console.log(" [Collage détecté dans le champ téléphone");
           // Récupère les données collées
           const pastedData = (e.clipboardData || window.clipboardData).getData('text');
           console.log(" [Données collées:", pastedData);
-
+          
           // Vérifie si des caractères non autorisés sont présents
           if (/[^0-9\s\-\.]/.test(pastedData)) {
             console.log(" [Données collées non autorisées, collage bloqué");
@@ -2997,12 +2851,12 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         });
 
         // Nettoyage de la valeur lors de la perte de focus
-        phoneInput.addEventListener('blur', function () {
+        phoneInput.addEventListener('blur', function() {
           console.log(" [Perte de focus du champ téléphone, nettoyage en cours...");
           // Supprime tous les caractères non numériques sauf les espaces, tirets et points
           const oldValue = this.value;
           this.value = this.value.replace(/[^0-9\s\-\.]/g, '');
-
+          
           if (oldValue !== this.value) {
             console.log(" [Valeur nettoyée:", this.value);
           }
@@ -3057,7 +2911,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           });
 
           // Nettoyage supplémentaire sur le collage (paste) pour le champ personnalisé
-          customPhoneInput.addEventListener('paste', function (e) {
+          customPhoneInput.addEventListener('paste', function(e) {
             const pastedData = (e.clipboardData || window.clipboardData).getData('text');
             if (/[^0-9\s\-\.]/.test(pastedData)) {
               e.preventDefault();
@@ -3066,7 +2920,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           });
 
           // Nettoyage de la valeur lors de la perte de focus pour le champ personnalisé
-          customPhoneInput.addEventListener('blur', function () {
+          customPhoneInput.addEventListener('blur', function() {
             this.value = this.value.replace(/[^0-9\s\-\.]/g, '');
           });
         }
@@ -3133,8 +2987,8 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         bookingState.client.phone = window.getPlanityPhoneNumber
           ? window.getPlanityPhoneNumber()
           : window.iti
-            ? window.iti.getNumber()
-            : "";
+          ? window.iti.getNumber()
+          : "";
         updateBookingState();
         submitBtn.disabled = true;
         jQuery.ajax({
@@ -3177,9 +3031,9 @@ window.scrollToProgressBar = function (callback, delay = 300) {
               );
               showBookingNotification(
                 "Erreur lors de la réservation : " +
-                (response.data && response.data.message
-                  ? response.data.message
-                  : "Erreur inconnue")
+                  (response.data && response.data.message
+                    ? response.data.message
+                    : "Erreur inconnue")
               );
               if (submitBtn) submitBtn.disabled = false; // Réactive le bouton si erreur
             }
@@ -3410,24 +3264,24 @@ window.scrollToProgressBar = function (callback, delay = 300) {
   // Fonction utilitaire pour nettoyer et formater un numéro de téléphone en temps réel
   function formatPhoneInput(input) {
     if (!input) return '';
-
+    
     // Récupérer la position du curseur
     const start = input.selectionStart;
     const end = input.selectionEnd;
-
+    
     // Récupérer la valeur actuelle
     let value = input.value;
-
+    
     // Nettoyer la valeur (conserver uniquement les chiffres et le + initial)
     const cleaned = cleanPhoneNumber(value);
-
+    
     // Mettre à jour la valeur nettoyée
     input.value = cleaned;
-
+    
     // Restaurer la position du curseur en tenant compte des caractères supprimés
     const diff = value.length - cleaned.length;
     input.setSelectionRange(Math.max(0, start - diff), Math.max(0, end - diff));
-
+    
     return cleaned;
   }
 
@@ -3545,7 +3399,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         phoneInput.setAttribute('inputmode', 'tel');
         phoneInput.setAttribute('pattern', '[0-9+]*');
         phoneInput.setAttribute('autocomplete', 'tel');
-
+        
         // Fonction pour obtenir la longueur maximale selon le pays
         function getMaxPhoneLength() {
           let country = "";
@@ -3554,7 +3408,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           } else if (window.iti && window.iti.getSelectedCountryData) {
             country = window.iti.getSelectedCountryData().dialCode;
           }
-
+          
           // Longueur maximale en fonction du pays (uniquement pour le numéro, sans le code pays)
           const maxLengths = {
             '33': 10,   // France: 9 ou 10 chiffres (avec/sans 0 initial)
@@ -3562,35 +3416,35 @@ window.scrollToProgressBar = function (callback, delay = 300) {
             '212': 10,  // Maroc: 9 ou 10 chiffres
             '216': 9    // Tunisie: 8 ou 9 chiffres
           };
-
+          
           // Par défaut: 13 chiffres max (uniquement pour le numéro, sans le code pays)
           return maxLengths[country] || 13;
         }
 
         // Empêcher la saisie de caractères non numériques et limiter la longueur
-        phoneInput.addEventListener('keydown', function (e) {
+        phoneInput.addEventListener('keydown', function(e) {
           const currentValue = this.value;
           const selection = window.getSelection().toString();
-
+          
           // Autoriser : backspace, delete, tab, escape, enter, home, end, flèches
-          if ([8, 9, 13, 27, 35, 36, 37, 38, 39, 40].includes(e.keyCode) ||
-            // Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-            (e.ctrlKey === true && [65, 67, 86, 88].includes(e.keyCode))) {
+          if ([8, 9, 13, 27, 35, 36, 37, 38, 39, 40].includes(e.keyCode) || 
+              // Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+              (e.ctrlKey === true && [65, 67, 86, 88].includes(e.keyCode))) {
             return;
           }
-
+          
           // Si la touche est suppr ou backspace, laisser faire
           if (e.keyCode === 46 || e.keyCode === 8) {
             return;
           }
-
+          
           // Vérifier la longueur maximale
           const maxLength = getMaxPhoneLength();
           if (currentValue.length >= maxLength && !selection) {
             e.preventDefault();
             return false;
           }
-
+          
           // Autoriser uniquement les chiffres et le signe +
           if (!/^[0-9+]$/.test(e.key)) {
             e.preventDefault();
@@ -3602,40 +3456,40 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         phoneInput.addEventListener("input", function (e) {
           // Nettoyer et formater le numéro
           const cleanedValue = formatPhoneInput(this);
-
+          
           // Mettre à jour le champ caché avec la valeur nettoyée
           const hiddenInput = document.querySelector("#client-phone");
           if (hiddenInput) {
             hiddenInput.value = window.getPhoneNumber ? window.getPhoneNumber() : cleanedValue;
           }
-
+          
           // La validation complète se fera uniquement au blur
         });
-
+        
         // Gérer l'événement blur pour la validation finale
-        phoneInput.addEventListener("blur", function () {
+        phoneInput.addEventListener("blur", function() {
           const cleanedValue = cleanPhoneNumber(this.value);
           const isValid = isValidPhoneNumber(cleanedValue);
-
-
+          
+          
         });
-
+        
         // Prévenir le collage de texte non valide
-        phoneInput.addEventListener('paste', function (e) {
+        phoneInput.addEventListener('paste', function(e) {
           e.preventDefault();
           const pastedText = (e.clipboardData || window.clipboardData).getData('text');
           const cleaned = cleanPhoneNumber(pastedText);
-
+          
           // Insérer le texte nettoyé à la position du curseur
           const start = this.selectionStart;
           const end = this.selectionEnd;
           const newValue = this.value.substring(0, start) + cleaned + this.value.substring(end);
-
+          
           // Mettre à jour la valeur et positionner le curseur
           this.value = newValue;
           const newCursorPos = start + cleaned.length;
           this.setSelectionRange(newCursorPos, newCursorPos);
-
+          
           // Déclencher l'événement input pour la validation
           this.dispatchEvent(new Event('input'));
         });
@@ -3745,8 +3599,8 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                 : [];
               const newTelInputs = node.querySelectorAll
                 ? node.querySelectorAll(
-                  'input[type="tel"]:not(.simple-phone-input)'
-                )
+                    'input[type="tel"]:not(.simple-phone-input)'
+                  )
                 : [];
 
               [...newItiSelectors, ...newTelInputs].forEach((selector) => {
@@ -3768,7 +3622,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
       console.error("❌ Erreur lors de l'initialisation du sélecteur:", error);
     }
   } // Fin de la fonction initSimpleCountrySelector
-
+  
   // Démarrer l'initialisation
   initBookingWhenReady();
 })(); // Fin de la fonction auto-exécutée

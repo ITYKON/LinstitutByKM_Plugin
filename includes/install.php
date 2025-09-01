@@ -4,14 +4,21 @@ if (!defined('ABSPATH')) exit;
 /**
  * Installation du plugin
  */
-function ib_install_plugin() {
+
+// $charset_collate = $wpdb->get_charset_collate();
+function ib_install_plugin()
+{
     global $wpdb;
-    
-    // Inclusion du fichier nécessaire pour dbDelta
+     // Inclusion du fichier nécessaire pour dbDelta
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    
+
     $charset_collate = $wpdb->get_charset_collate();
 
+
+
+
+
+   
     // Table des catégories
     $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}ib_categories (
         id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -48,6 +55,7 @@ function ib_install_plugin() {
         phone varchar(20) NOT NULL,
         created_at datetime NOT NULL,
         updated_at datetime NOT NULL,
+        bookings_count int(11) NOT NULL DEFAULT 0,
         PRIMARY KEY  (id),
         UNIQUE KEY email (email)
     ) $charset_collate;";
@@ -106,6 +114,35 @@ function ib_install_plugin() {
         KEY service_id (service_id),
         KEY date (date),
         KEY status (status)
+    ) $charset_collate;";
+    dbDelta($sql);
+
+     // Table des archives de réservations (APRÈS la table bookings)
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}ib_bookings_archives (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        client_id bigint(20) NOT NULL,
+        employee_id bigint(20) NOT NULL,
+        service_id bigint(20) NOT NULL,
+        client_name varchar(255) DEFAULT NULL,
+        client_email varchar(255) DEFAULT NULL,
+        client_phone varchar(20) DEFAULT NULL,
+        date date NOT NULL,
+        start_time datetime NOT NULL,
+        end_time datetime NOT NULL,
+        status varchar(20) NOT NULL,
+        price decimal(10,2) NOT NULL,
+        notes text,
+        extras text,
+        created_at datetime NOT NULL,
+        updated_at datetime NOT NULL,
+        archived_at datetime NOT NULL,
+        PRIMARY KEY  (id),
+        KEY client_id (client_id),
+        KEY employee_id (employee_id),
+        KEY service_id (service_id),
+        KEY date (date),
+        KEY status (status),
+        KEY archived_at (archived_at)
     ) $charset_collate;";
     dbDelta($sql);
 
@@ -251,7 +288,53 @@ function ib_install_plugin() {
             'updated_at' => current_time('mysql')
         ]);
     }
+    // --------------------------------------------
+    /**
+ * NOUVELLE FONCTION : Mise à jour de la structure de base de données
+ * Cette fonction s'exécute à chaque chargement pour créer les tables manquantes
+ */
+function ib_update_database_structure()
+{
+    global $wpdb;
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    
+    $charset_collate = $wpdb->get_charset_collate();
+    
+    // Vérifier et créer la table ib_bookings_archives si elle n'existe pas
+    $table_archives = $wpdb->prefix . 'ib_bookings_archives';
+    $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_archives'");
+    
+    if (!$table_exists) {
+        $sql = "CREATE TABLE $table_archives (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            client_id bigint(20) NOT NULL,
+            employee_id bigint(20) NOT NULL,
+            service_id bigint(20) NOT NULL,
+            client_name varchar(255) DEFAULT NULL,
+            client_email varchar(255) DEFAULT NULL,
+            client_phone varchar(20) DEFAULT NULL,
+            date date NOT NULL,
+            start_time datetime NOT NULL,
+            end_time datetime NOT NULL,
+            status varchar(20) NOT NULL,
+            price decimal(10,2) NOT NULL,
+            notes text,
+            extras text,
+            created_at datetime NOT NULL,
+            updated_at datetime NOT NULL,
+            archived_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY client_id (client_id),
+            KEY employee_id (employee_id),
+            KEY service_id (service_id),
+            KEY date (date),
+            KEY status (status),
+            KEY archived_at (archived_at)
+        ) $charset_collate;";
+        dbDelta($sql);
+    }
 
+    // --------------------------------------------
     // Correction automatique colonne 'image' manquante
     $table_services = $wpdb->prefix . 'ib_services';
     $col_image = $wpdb->get_results("SHOW COLUMNS FROM $table_services LIKE 'image'");
@@ -323,7 +406,8 @@ function ib_install_plugin() {
 /**
  * Désinstallation du plugin
  */
-function ib_uninstall_plugin() {
+function ib_uninstall_plugin()
+{
     global $wpdb;
     $tables = [
         'ib_services',
@@ -331,14 +415,18 @@ function ib_uninstall_plugin() {
         'ib_employees',
         'ib_extras',
         'ib_bookings',
+        'ib_bookings_archives',
         'ib_coupons',
         'ib_feedback',
         'ib_logs',
         'ib_tokens',
-        'ib_categories'
+        'ib_categories',
+        'ib_service_employees',
+        'ib_notifications'
     ];
     foreach ($tables as $table) {
         $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}$table");
     }
 }
 register_uninstall_hook(__FILE__, 'ib_uninstall_plugin');
+}

@@ -51,16 +51,6 @@ function ib_ajax_get_updated_bookings() {
               WHERE 1=1";
 
     $params = [];
-
-    // ----- category
-    global $wpdb;
-
-// Récupère toutes les catégories
-$categories = $wpdb->get_results("SELECT id, name FROM wp_categories");
-    if (!empty($filters['category'])) {
-        $query .= " AND b.category_id = %d";
-        $params[] = intval($filters['category']);
-    }
     
     // Appliquer les filtres
     if (!empty($filters['status'])) {

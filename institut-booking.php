@@ -227,7 +227,13 @@ function ib_admin_assets($hook) {
             wp_enqueue_script('ib-absence-calendar', IB_PLUGIN_URL . 'assets/js/absence-calendar.js', ['jquery'], '1.0-' . time(), true);
             wp_localize_script('ib-absence-calendar', 'ib_absence_ajax', [
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('ib_absence_nonce')
+                'nonce' => wp_create_nonce('ib_absence_nonce'),
+                'statuses' => [
+                    'pending' => 'En attente',
+                    'approved' => 'Approuvé',
+                    'rejected' => 'Rejeté',
+                    'cancelled' => 'Annulé'
+                ]
             ]);
         }
     }
@@ -1029,6 +1035,51 @@ function ib_ajax_delete_absence() {
         wp_send_json_success('Absence supprimée avec succès');
     } else {
         wp_send_json_error('Erreur lors de la suppression');
+    }
+}
+
+// Met à jour le statut d'une absence
+add_action('wp_ajax_update_absence_status', 'ib_ajax_update_absence_status');
+function ib_ajax_update_absence_status() {
+    // Vérifier le nonce
+    check_ajax_referer('ib_absence_nonce', 'nonce');
+    
+    $absence_id = isset($_POST['absence_id']) ? intval($_POST['absence_id']) : 0;
+    $status = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : '';
+    
+    if (!$absence_id || !$status) {
+        wp_send_json_error('Paramètres manquants');
+        return;
+    }
+    
+    // Vérifier que l'utilisateur a les droits nécessaires
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Permissions insuffisantes');
+        return;
+    }
+    
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'ib_employee_absences';
+    
+    // Mettre à jour le statut dans la base de données
+    $result = $wpdb->update(
+        $table_name,
+        array('status' => $status),
+        array('id' => $absence_id),
+        array('%s'),
+        array('%d')
+    );
+    
+    if ($result !== false) {
+        // Journaliser la mise à jour
+        IB_Logs::add(get_current_user_id(), 'update_absence_status', json_encode([
+            'absence_id' => $absence_id,
+            'new_status' => $status
+        ]));
+        
+        wp_send_json_success('Statut mis à jour avec succès');
+    } else {
+        wp_send_json_error('Erreur lors de la mise à jour du statut');
     }
 }
 

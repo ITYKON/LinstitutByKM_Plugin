@@ -301,11 +301,11 @@ class AbsenceCalendar {
 
         return `
                 <div class="absence-item ${typeClass} ${statusClass}" 
-                     onclick="absenceCalendar.editAbsence(${absence.id})" 
+                     onclick="event.stopPropagation(); absenceCalendar.showAbsenceDetails(${JSON.stringify(absence).replace(/"/g, '&quot;')})" 
                      title="${employeeName} - ${this.getTypeLabel(
           absence.type
         )} (${absence.status})"
-                     style="background: ${employeeColor}; color: white; border: none;">
+                     style="background: ${employeeColor}; color: white; border: none; cursor: pointer;">
                     ${employeeName.split(" ")[0]} - ${this.getTypeLabel(
           absence.type
         )}
@@ -747,6 +747,194 @@ class AbsenceCalendar {
       console.error("Erreur lors de la suppression:", error);
       alert("Erreur lors de la suppression de l'absence");
     }
+  }
+
+  // Affiche les détails d'une absence dans un modal
+  showAbsenceDetails(absence) {
+    const modal = document.getElementById('absence-details-modal');
+    const content = document.getElementById('absence-details-content');
+    
+    if (!modal || !content) {
+      console.error('Éléments du modal non trouvés');
+      return;
+    }
+    
+    // Formater les dates
+    const startDate = new Date(absence.start_date);
+    const endDate = new Date(absence.end_date);
+    const formattedStartDate = startDate.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    
+    const formattedEndDate = endDate.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    
+    // Récupérer les informations supplémentaires
+    const employeeName = this.getEmployeeName(absence.employee_id);
+    const typeLabel = this.getTypeLabel(absence.type);
+    const statusLabel = ib_absence_ajax.statuses[absence.status] || absence.status;
+    
+    // Récupérer la couleur de l'employé
+    const employeeColor = this.getEmployeeColor(absence.employee_id);
+    
+    // Générer le contenu HTML du modal
+    content.innerHTML = `
+      <div class="absence-details-header" style="border-left: 5px solid ${employeeColor};">
+        <h3>Détails de l'absence</h3>
+        <button id="absence-details-close" class="close-button">&times;</button>
+      </div>
+      
+      <div class="absence-details-body">
+        <div class="detail-row">
+          <span class="detail-label">Employé :</span>
+          <span class="detail-value" style="display: flex; align-items: center; gap: 8px;">
+            <span class="employee-color-indicator" style="background: ${employeeColor};"></span>
+            ${employeeName}
+          </span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Type :</span>
+          <span class="detail-value">${typeLabel}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Du :</span>
+          <span class="detail-value">${formattedStartDate}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Au :</span>
+          <span class="detail-value">${formattedEndDate}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Statut :</span>
+          <span class="status-badge status-${absence.status}">${statusLabel}</span>
+        </div>
+        
+        ${absence.notes ? `
+          <div class="detail-row">
+            <span class="detail-label">Notes :</span>
+            <div class="detail-value">${absence.notes}</div>
+          </div>
+        ` : ''}
+        
+        <div class="detail-actions">
+          <button class="button button-primary edit-absence" data-id="${absence.id}">
+            <span class="dashicons dashicons-edit"></span> Modifier
+          </button>
+          
+          <div class="status-update">
+            <select id="update-status-${absence.id}" class="status-select">
+              ${Object.entries(ib_absence_ajax.statuses).map(([value, label]) => 
+                `<option value="${value}" ${value === absence.status ? 'selected' : ''}>${label}</option>`
+              ).join('')}
+            </select>
+            <button class="button update-status" data-id="${absence.id}">
+              <span class="dashicons dashicons-update"></span> Mettre à jour
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Afficher le modal
+    modal.style.display = 'flex';
+    
+    // Gérer la fermeture du modal
+    const closeButton = content.querySelector('#absence-details-close');
+    if (closeButton) {
+      closeButton.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+    
+    // Gérer le clic en dehors du modal pour le fermer
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+    
+    // Gérer la mise à jour du statut
+    const updateButton = content.querySelector('.update-status');
+    if (updateButton) {
+      updateButton.addEventListener('click', () => {
+        const newStatus = document.getElementById(`update-status-${absence.id}`).value;
+        this.updateAbsenceStatus(absence.id, newStatus);
+      });
+    }
+    
+    // Gérer l'édition de l'absence
+    const editButton = content.querySelector('.edit-absence');
+    if (editButton) {
+      editButton.addEventListener('click', () => {
+        this.editAbsence(absence.id);
+        modal.style.display = 'none';
+      });
+    }
+  }
+  
+  // Met à jour le statut d'une absence via AJAX
+  async updateAbsenceStatus(absenceId, newStatus) {
+    try {
+      const formData = new FormData();
+      formData.append('action', 'update_absence_status');
+      formData.append('nonce', ib_absence_ajax.nonce);
+      formData.append('absence_id', absenceId);
+      formData.append('status', newStatus);
+      
+      const response = await fetch(ib_absence_ajax.ajax_url, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Mettre à jour l'affichage
+        await this.loadAbsences();
+        this.renderCalendar();
+        
+        // Mettre à jour le statut dans le modal
+        const statusBadge = document.querySelector(`#absence-details-modal .status-badge`);
+        if (statusBadge) {
+          statusBadge.className = `status-badge status-${newStatus}`;
+          statusBadge.textContent = ib_absence_ajax.statuses[newStatus] || newStatus;
+        }
+        
+        // Mettre à jour le sélecteur de statut
+        const statusSelect = document.querySelector(`#update-status-${absenceId}`);
+        if (statusSelect) {
+          statusSelect.value = newStatus;
+        }
+        
+        // Afficher un message de succès
+        alert('Le statut a été mis à jour avec succès.');
+      } else {
+        throw new Error(result.data?.message || 'Erreur inconnue');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du statut:', error);
+      alert('Erreur lors de la mise à jour du statut: ' + error.message);
+    }
+  }
+
+  // Ouvre le formulaire d'édition d'une absence
+  editAbsence(absenceId) {
+    // Implémentez la logique pour ouvrir le formulaire d'édition
+    // avec les données de l'absence spécifiée
+    console.log('Édition de l\'absence:', absenceId);
+    // Pour l'instant, on ouvre simplement le modal d'ajout
+    this.openAbsenceModal(absenceId);
   }
 }
 

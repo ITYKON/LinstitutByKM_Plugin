@@ -460,6 +460,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
         </div>
 
     </div>
+    
+    <!-- Inclusion du modal de détails d'absence -->
+    <?php include_once plugin_dir_path(__FILE__) . '../templates/absence-details-modal.php'; ?>
+    
 </div>
 <script>
 function openAddEmployeeModal() {

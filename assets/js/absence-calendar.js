@@ -828,18 +828,14 @@ class AbsenceCalendar {
         ` : ''}
         
         <div class="detail-actions">
-          <button class="button button-primary edit-absence" data-id="${absence.id}">
-            <span class="dashicons dashicons-edit"></span> Modifier
-          </button>
-          
           <div class="status-update">
             <select id="update-status-${absence.id}" class="status-select">
               ${Object.entries(ib_absence_ajax.statuses).map(([value, label]) => 
                 `<option value="${value}" ${value === absence.status ? 'selected' : ''}>${label}</option>`
               ).join('')}
             </select>
-            <button class="button update-status" data-id="${absence.id}">
-              <span class="dashicons dashicons-update"></span> Mettre à jour
+            <button class="ib-btn accent update-status" data-id="${absence.id}" style="background: #e9aebc; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease; height: 38px; min-width: 100px; font-size: 0.9em; font-weight: 500; white-space: nowrap;">
+              <span class="dashicons dashicons-update" style="font-size: 14px; width: 14px; height: 14px;"></span> Mettre à jour
             </button>
           </div>
         </div>

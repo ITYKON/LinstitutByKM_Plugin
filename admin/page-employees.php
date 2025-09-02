@@ -24,6 +24,8 @@ if (isset($_POST['add_employee'])) {
             echo '<div class="notice notice-success" style="margin-bottom:1.5em;"><p>Employé ajouté avec succès.</p></div>';
         }
     }
+}
+
 // Traitement édition employé
 if (isset($_POST['update_employee'])) {
     $id = intval($_POST['employee_id']);
@@ -91,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Erreur : conflit avec une autre absence ou problème d\'insertion.</p></div>';
                 }
-            }
+            // ...existing code...
             } // Fermeture du else if pour la validation des dates
         } else {
             echo '<div class="notice notice-error" style="margin-bottom:1.5em;"><p>Veuillez remplir tous les champs obligatoires.</p></div>';
@@ -378,7 +380,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
                     </div>
                 </div>
                 <div class="ib-form-group" style="margin-top:1.2em;display:flex;gap:1em;">
-                    <button class="ib-btn accent" type="submit" name="update_employee">Enregistrer</button>
+                    <button class="ib-btn accent" type="submit" name="update_employee" value="1">Enregistrer</button>
                     <button type="button" class="ib-btn cancel" onclick="window.location.href='admin.php?page=institut-booking-employees'">Annuler</button>
                 </div>
             </form>

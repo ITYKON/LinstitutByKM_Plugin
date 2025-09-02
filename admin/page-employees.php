@@ -434,7 +434,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
                         <option value="formation">Formation</option>
                         <option value="personnel">Congé personnel</option>
                         <option value="maternite">Congé maternité</option>
-                        <option value="paternite">Congé paternité</option>
+                        // ...existing code...
                     </select>
                     <label for="absence_type">Type d'absence</label>
                 </div>

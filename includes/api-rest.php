@@ -95,8 +95,9 @@ function ib_get_slots() {
 
     // Récupère les réservations existantes pour cet employé, ce service, ce jour
     global $wpdb;
+    // On ne bloque que les créneaux des réservations confirmées
     $booked = $wpdb->get_col($wpdb->prepare(
-        "SELECT time FROM {$wpdb->prefix}ib_bookings WHERE employee_id=%d AND service_id=%d AND date=%s",
+        "SELECT time FROM {$wpdb->prefix}ib_bookings WHERE employee_id=%d AND service_id=%d AND date=%s AND status='confirmee'",
         $employee_id, $service_id, $date
     ));
     // Filtre les créneaux déjà réservés

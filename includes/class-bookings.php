@@ -306,23 +306,21 @@ class IB_Bookings {
             $service = IB_Services::get_by_id($booking->service_id);
             $employee = IB_Employees::get_by_id($booking->employee_id);
             $link = admin_url('admin.php?page=institut-booking-bookings');
+            
+            // Supprimer les notifications existantes pour cette réservation
+            global $wpdb;
+            $wpdb->delete(
+                $wpdb->prefix . 'ib_notifications',
+                [
+                    'type' => 'reservation',
+                    'message' => ['LIKE' => '%Réservation #' . $booking->id . '%']
+                ],
+                ['%s', '%s']
+            );
+            
             if ($fields['status'] === 'confirmee') {
                 $message = 'Réservation confirmée : ' . esc_html($service ? $service->name : 'Service') . ' pour ' . esc_html($booking->client_name) . ' le ' . esc_html($booking->date) . ' (' . esc_html($employee ? $employee->name : 'Employé') . ')';
-                
-                // Supprimer les notifications existantes pour cette réservation
-                global $wpdb;
-                $wpdb->delete(
-                    $wpdb->prefix . 'ib_notifications',
-                    [
-                        'type' => 'reservation',
-                        'message' => ['LIKE' => '%Réservation #' . $booking->id . '%']
-                    ],
-                    ['%s', '%s']
-                );
-                
-                // Ne pas ajouter de nouvelle notification pour les confirmations
-                // ib_add_notification('booking_confirmed', $message, 'admin', $link, 'unread');
-                
+                ib_add_notification('booking_confirmed', $message, 'admin', $link, 'unread');
                 // Envoi d'un email de confirmation au client
                 IB_Email::send_auto('confirm', [
                     'service' => $service ? $service->name : '',
@@ -332,18 +330,36 @@ class IB_Bookings {
                     'client_email' => $booking->client_email,
                     'employee' => $employee ? $employee->name : '',
                 ]);
+                // Le créneau est maintenant bloqué pour les autres réservations
+                
             } elseif ($fields['status'] === 'annulee') {
+                // Ne pas supprimer la réservation, juste notifier et envoyer l'email
                 $message = 'Réservation annulée : ' . esc_html($service ? $service->name : 'Service') . ' pour ' . esc_html($booking->client_name) . ' le ' . esc_html($booking->date) . ' (' . esc_html($employee ? $employee->name : 'Employé') . ')';
                 ib_add_notification('booking_cancelled', $message, 'admin', $link, 'unread');
+                IB_Email::send_auto('cancel', [
+                    'service' => $service ? $service->name : '',
+                    'date' => $booking->date,
+                    'time' => $booking->start_time,
+                    'client' => $booking->client_name,
+                    'client_email' => $booking->client_email,
+                    'employee' => $employee ? $employee->name : '',
+                ]);
+                // Le créneau est maintenant libéré pour d'autres réservations
+                
             } elseif ($fields['status'] === 'en_attente') {
                 $message = 'Réservation remise en attente : ' . esc_html($service ? $service->name : 'Service') . ' pour ' . esc_html($booking->client_name) . ' le ' . esc_html($booking->date) . ' (' . esc_html($employee ? $employee->name : 'Employé') . ')';
                 ib_add_notification('booking_pending', $message, 'admin', $link, 'unread');
+                // Le créneau est libéré car la réservation n'est plus confirmée
+                
             } elseif ($fields['status'] === 'complete') {
                 $message = 'Réservation complétée : ' . esc_html($service ? $service->name : 'Service') . ' pour ' . esc_html($booking->client_name) . ' le ' . esc_html($booking->date) . ' (' . esc_html($employee ? $employee->name : 'Employé') . ')';
                 ib_add_notification('booking_completed', $message, 'admin', $link, 'unread');
+                // Le créneau reste bloqué car la réservation est complétée
+                
             } elseif ($fields['status'] === 'no_show') {
                 $message = 'No show : ' . esc_html($service ? $service->name : 'Service') . ' pour ' . esc_html($booking->client_name) . ' le ' . esc_html($booking->date) . ' (' . esc_html($employee ? $employee->name : 'Employé') . ')';
                 ib_add_notification('booking_no_show', $message, 'admin', $link, 'unread');
+                // Le créneau reste bloqué pour les no-shows
             }
         }
     }
@@ -368,11 +384,24 @@ class IB_Bookings {
                 }
             }
             $wpdb->insert($archive_table, $archive_data);
-            // Supprimer la réservation originale
-            $wpdb->delete("{$wpdb->prefix}ib_bookings", ['id' => intval($id)]);
-            // Email d'annulation
+            
+            // Récupérer les informations avant suppression pour la notification
             $service = IB_Services::get_by_id($booking->service_id);
             $employee = IB_Employees::get_by_id($booking->employee_id);
+            
+            // Supprimer la réservation originale
+            $wpdb->delete("{$wpdb->prefix}ib_bookings", ['id' => intval($id)]);
+            
+            // Notification de suppression
+            if ($service && $employee) {
+                $message = 'Réservation supprimée : ' . esc_html($service->name) . ' pour ' . 
+                          esc_html($booking->client_name) . ' le ' . esc_html($booking->date) . 
+                          ' (' . esc_html($employee->name) . ')';
+                $link = admin_url('admin.php?page=institut-booking-bookings');
+                ib_add_notification('booking_deleted', $message, 'admin', $link, 'unread');
+            }
+            
+            // Email d'annulation
             IB_Email::send_auto('cancel', [
                 'service' => $service ? $service->name : '',
                 'date' => $booking->date,
@@ -381,6 +410,9 @@ class IB_Bookings {
                 'client_email' => $booking->client_email,
                 'employee' => $employee ? $employee->name : '',
             ]);
+            
+            // Le créneau est automatiquement libéré car la réservation est supprimée
+            // et la méthode has_conflict ne prendra plus cette réservation en compte
         }
     }
 
@@ -395,8 +427,9 @@ class IB_Bookings {
         $start = strtotime($date . ' ' . $start_time);
         $end = $start + $duration * 60;
         // Chercher tout rendez-vous qui chevauche cette plage pour cet employé
+        // On ne bloque le créneau que pour les réservations confirmées ou complétées
         $rows = $wpdb->get_results($wpdb->prepare(
-            "SELECT start_time, service_id FROM {$wpdb->prefix}ib_bookings WHERE employee_id = %d AND date = %s",
+            "SELECT start_time, service_id, status FROM {$wpdb->prefix}ib_bookings WHERE employee_id = %d AND date = %s AND status IN ('confirmee', 'complete')",
             $employee_id, $date
         ));
         foreach ($rows as $row) {

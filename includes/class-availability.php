@@ -157,7 +157,7 @@ class IB_Availability {
         global $wpdb;
         $existing_bookings = $wpdb->get_results($wpdb->prepare(
             "SELECT start_time, service_id FROM {$wpdb->prefix}ib_bookings
-             WHERE employee_id = %d AND date = %s AND status != 'cancelled'
+             WHERE employee_id = %d AND date = %s AND status NOT IN ('cancelled', 'annulee')
              ORDER BY start_time ASC",
             $employee_id, $date
         ));

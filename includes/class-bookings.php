@@ -117,7 +117,10 @@ class IB_Bookings {
         $duration_minutes = ($service && isset($service->duration)) ? intval($service->duration) : 30;
         $start_ts = strtotime($start_datetime);
         $end_datetime = date('Y-m-d H:i:s', $start_ts + $duration_minutes * 60);
-        $wpdb->insert("{$wpdb->prefix}ib_bookings", [
+        // Génère un token d'annulation unique
+        $cancel_token = bin2hex(random_bytes(32));
+        
+        $booking_data = [
             'service_id' => intval($data['service_id']),
             'employee_id' => intval($data['employee_id']),
             'client_id' => isset($data['client_id']) ? intval($data['client_id']) : 0,
@@ -131,7 +134,10 @@ class IB_Bookings {
             'status' => isset($data['status']) ? $data['status'] : 'en_attente',
             'created_at' => current_time('mysql'),
             'price' => $final_price,
-        ]);
+            'cancel_token' => $cancel_token,
+        ];
+        
+        $wpdb->insert("{$wpdb->prefix}ib_bookings", $booking_data);
         // Mettre à jour la valeur normalisée pour usages en aval
         $data['start_time'] = $start_datetime;
         $data['end_time'] = $end_datetime;
@@ -322,6 +328,17 @@ class IB_Bookings {
                 $message = 'Réservation confirmée : ' . esc_html($service ? $service->name : 'Service') . ' pour ' . esc_html($booking->client_name) . ' le ' . esc_html($booking->date) . ' (' . esc_html($employee ? $employee->name : 'Employé') . ')';
                 ib_add_notification('booking_confirmed', $message, 'admin', $link, 'unread');
                 // Envoi d'un email de confirmation au client
+                // Récupérer le token d'annulation ou en générer un nouveau
+                $cancel_token = $booking->cancel_token;
+                if (empty($cancel_token)) {
+                    $cancel_token = bin2hex(random_bytes(32));
+                    $wpdb->update(
+                        "{$wpdb->prefix}ib_bookings",
+                        ['cancel_token' => $cancel_token],
+                        ['id' => $booking->id]
+                    );
+                }
+                
                 IB_Email::send_auto('confirm', [
                     'service' => $service ? $service->name : '',
                     'date' => $booking->date,
@@ -329,6 +346,8 @@ class IB_Bookings {
                     'client' => $booking->client_name,
                     'client_email' => $booking->client_email,
                     'employee' => $employee ? $employee->name : '',
+                    'cancel_token' => $cancel_token,
+                    'booking_id' => $booking->id,
                 ]);
                 // Le créneau est maintenant bloqué pour les autres réservations
                 

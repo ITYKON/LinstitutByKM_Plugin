@@ -2115,7 +2115,7 @@ body {
     .planity-cover-image
   ) {
   background: #f8fafc !important;
-  color: #1f2937 !important;
+  /* color: #1f2937 !important; */
   border-color: #e5e7eb !important;
 }
 

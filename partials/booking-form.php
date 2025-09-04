@@ -457,8 +457,20 @@ waitForjQuery();
   line-height: 1.2 !important;
 }
 
+
+/* Afficher le prix sur desktop et tablette, masquer seulement sur mobile */
 .service-item-planity .service-price-planity {
-  display: none !important;
+  display: block !important;
+  font-size: 0.95rem !important;
+  color: #a48d78 !important;
+  font-weight: 600 !important;
+  margin: 0 0 0.2rem 0 !important;
+}
+
+@media (max-width: 768px) {
+  .service-item-planity .service-price-planity {
+    display: none !important;
+  }
 }
 
 .service-item-planity .service-duration-planity {

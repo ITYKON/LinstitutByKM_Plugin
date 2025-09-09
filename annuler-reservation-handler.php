@@ -16,15 +16,16 @@ if ($booking_id && $token) {
         if (hash_equals($expected_token, $token)) {
             // Annuler la réservation
             $wpdb->update("{$wpdb->prefix}ib_bookings", ['status' => 'annulee'], ['id' => $booking_id]);
-            // Afficher le message de confirmation avec un design moderne
+            // Afficher le message de confirmation avec un style minimaliste Planity
             echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Réservation annulée</title>';
             echo '<style>
-                body { background: #f7f7f7; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-                .notif-annul { max-width: 480px; margin: 60px auto; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px #0002; padding: 40px 32px; text-align: center; }
-                .notif-icon { display:inline-flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:50%; background:#dc3545; color:#fff; font-size:2.5em; margin-bottom:20px; }
-                .notif-title { color: #A8977B; font-size: 2em; font-weight: 700; margin-bottom: 10px; }
-                .notif-text { color: #222; font-size: 1.15em; margin-bottom: 10px; }
-                .notif-btn { display:inline-block; margin-top:20px; padding:12px 32px; background:#A8977B; color:#fff; border-radius:8px; font-weight:600; text-decoration:none; font-size:1em; border:none; cursor:pointer; }
+                body { background: #fafafa; font-family: "Segoe UI", Arial, sans-serif; margin:0; }
+                .notif-annul { max-width: 420px; margin: 60px auto; background: #fff; border-radius: 14px; box-shadow: 0 2px 16px #0001; padding: 36px 28px; text-align: center; }
+                .notif-icon { display:inline-flex; align-items:center; justify-content:center; width:60px; height:60px; border-radius:50%; background:#fff; border:2px solid #dc3545; color:#dc3545; font-size:2.2em; margin-bottom:18px; }
+                .notif-title { color: #222; font-size: 1.7em; font-weight: 600; margin-bottom: 12px; letter-spacing: -1px; }
+                .notif-text { color: #222; font-size: 1.08em; margin-bottom: 14px; line-height:1.5; }
+                .notif-btn { display:inline-block; margin-top:22px; padding:11px 28px; background:#dc3545; color:#fff; border-radius:7px; font-weight:500; text-decoration:none; font-size:1em; border:none; cursor:pointer; transition:background 0.2s; }
+                .notif-btn:hover { background:#b71c1c; }
             </style></head><body>';
             echo '<div class="notif-annul">';
             echo '<div class="notif-icon">&#10006;</div>';

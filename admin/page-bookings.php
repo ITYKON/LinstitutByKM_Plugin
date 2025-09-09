@@ -15,7 +15,9 @@ require_once plugin_dir_path(__FILE__) . '../includes/class-service-employees.ph
 require_once plugin_dir_path(__FILE__) . '../includes/class-logs.php';
 // Traitement ajout réservation
 if (isset($_POST['add_booking'])) {
-    $client_name = sanitize_text_field($_POST['client_name'] ?? '');
+  $client_lastname = sanitize_text_field($_POST['client_lastname'] ?? '');
+  $client_firstname = sanitize_text_field($_POST['client_firstname'] ?? '');
+  $client_name = trim($client_lastname . ' ' . $client_firstname);
     $client_email = sanitize_email($_POST['client_email'] ?? '');
     $client_phone = sanitize_text_field($_POST['client_phone'] ?? '');
     $service_id = intval($_POST['service_id'] ?? 0);
@@ -240,8 +242,10 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
               <input id="add-booking-client-phone" name="client_phone" type="tel" required placeholder="Ex: 555123456" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;">
             </div>
           </div>
-          <label for="add-booking-client-name">Client</label>
-          <input id="add-booking-client-name" name="client_name" required>
+          <label for="add-booking-client-lastname">Nom</label>
+          <input id="add-booking-client-lastname" name="client_lastname" required>
+          <label for="add-booking-client-firstname">Prénom</label>
+          <input id="add-booking-client-firstname" name="client_firstname" required>
           <label for="add-booking-client-email">Email</label>
           <input id="add-booking-client-email" name="client_email" type="email" >
           

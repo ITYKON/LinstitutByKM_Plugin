@@ -402,10 +402,10 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
           <?php endforeach; ?>
           <?php if(!$has_employe): ?><option disabled>Aucune Praticienne disponible</option><?php endif; ?>
         </select>
-        <select id="ib-booking-filter-service" style="border-radius:10px;border:1.5px solid #fbeff3;padding:0.5em 1em;font-size:1.07em;color:#b95c8a ;background:#fbeff3;">
-          <option value="">Tous services</option>
+        <select id="ib-booking-filter-service" style="border-radius:10px;border:1.5px solid #fbeff3;padding:0.5em 1em;font-size:1.07em;color:#b95c8a;background:#fbeff3;width:140px;min-width:100px;max-width:160px;">
+          <option value="" style="background:#fbeff3;color:#b95c8a;">Tous services</option>
           <?php foreach($services as $s): ?>
-            <option value="<?php echo $s->id; ?>"><?php echo esc_html($s->name); ?></option>
+            <option value="<?php echo $s->id; ?>" style="background:#fbeff3;color:#b95c8a;"><?php echo esc_html($s->name); ?></option>
           <?php endforeach; ?>
         </select>
       </div>
@@ -414,39 +414,45 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
         <table class="ib-table-bookings ib-invisible" style="width:100%;background:#fff;border-radius:14px;box-shadow:0 2px 16px #e9aebc22;margin-bottom:2em;">
           <thead style="background:#fbeff2;">
             <tr>
-              <th style="color:#e9aebc;cursor:pointer;" data-sort="client">Cliente <span class="sort-arrow"></span></th>
-              <th style="cursor:pointer;" data-sort="email">Email <span class="sort-arrow"></span></th>
-              <th style="cursor:pointer;" data-sort="phone">Téléphone <span class="sort-arrow"></span></th>
-              <th style="cursor:pointer;" data-sort="service">Service <span class="sort-arrow"></span></th>
-              <th style="cursor:pointer;" data-sort="employee">Praticienne <span class="sort-arrow"></span></th>
-              <th style="cursor:pointer;" data-sort="date">Date <span class="sort-arrow"></span></th>
-              <th style="cursor:pointer;" data-sort="heure">Heure <span class="sort-arrow"></span></th>
-              <th style="cursor:pointer;" data-sort="price">Prix <span class="sort-arrow"></span></th>
-              <th style="cursor:pointer;" data-sort="statut">Statut <span class="sort-arrow"></span></th>
-              <th>Actions</th>
+              <th style="color:#e9aebc;cursor:pointer;min-width:140px;max-width:180px;white-space:normal;" data-sort="client">Cliente <span class="sort-arrow"></span></th>
+              <th style="cursor:pointer;min-width:110px;max-width:140px;white-space:nowrap;" data-sort="phone">Téléphone <span class="sort-arrow"></span></th>
+              <th style="cursor:pointer;min-width:120px;max-width:160px;white-space:normal;" data-sort="service">Service <span class="sort-arrow"></span></th>
+              <th style="cursor:pointer;min-width:110px;max-width:140px;white-space:normal;" data-sort="employee">Praticienne <span class="sort-arrow"></span></th>
+              <th style="cursor:pointer;min-width:110px;max-width:140px;white-space:nowrap;" data-sort="date">Date & Heure <span class="sort-arrow"></span></th>
+              <th style="cursor:pointer;min-width:90px;max-width:110px;white-space:nowrap;" data-sort="price">Prix <span class="sort-arrow"></span></th>
+              <th style="cursor:pointer;min-width:100px;max-width:120px;white-space:nowrap;" data-sort="statut">Statut <span class="sort-arrow"></span></th>
+              <th style="min-width:80px;max-width:100px;">Actions</th>
             </tr>
           </thead>
           <tbody>
             <?php foreach($bookings as $booking): ?>
             <tr>
-              <td data-srv-id="<?php echo $booking->service_id; ?>"><?php echo esc_html($booking->client_name); ?></td>
-              <td><?php echo esc_html($booking->client_email); ?></td>
-              <td><?php echo esc_html($booking->client_phone); ?></td>
               <td data-srv-id="<?php echo $booking->service_id; ?>">
+                <div style="font-weight:600;color:#b95c8a;line-height:1.2;"> <?php echo esc_html($booking->client_name); ?> </div>
+                <?php if (!empty($booking->client_email)): ?>
+                  <div style="font-size:0.97em;color:#b95c8a;margin-top:2px;"> <?php echo esc_html($booking->client_email); ?> </div>
+                <?php endif; ?>
+              </td>
+              <td style="min-width:110px;max-width:140px;white-space:nowrap;color:#b95c8a;"><?php echo esc_html($booking->client_phone); ?></td>
+              <td data-srv-id="<?php echo $booking->service_id; ?>" style="min-width:120px;max-width:160px;white-space:normal;color:#b95c8a;">
                 <?php echo isset($services_by_id[$booking->service_id]) ? esc_html($services_by_id[$booking->service_id]->name) : '-'; ?>
               </td>
-              <td data-emp-id="<?php echo $booking->employee_id; ?>">
+              <td data-emp-id="<?php echo $booking->employee_id; ?>" style="min-width:110px;max-width:140px;white-space:normal;color:#b95c8a;">
                 <?php echo isset($employees_by_id[$booking->employee_id]) ? esc_html($employees_by_id[$booking->employee_id]->name) : '-'; ?>
               </td>
-              <td data-date="<?php echo esc_attr($booking->date); ?>"><?php echo esc_html($booking->date); ?></td>
-              <td><?php 
-                $heure = '';
-                if (!empty($booking->start_time)) {
-                  $heure = date('H:i', strtotime($booking->start_time));
-                }
-                echo esc_html($heure);
-              ?></td>
-              <td style="font-weight:700;color:#7ec6b8;text-align:center;">
+              <td data-date="<?php echo esc_attr($booking->date); ?>" style="min-width:110px;max-width:140px;white-space:normal;color:#b95c8a;">
+                <div style="font-weight:600;color:#b95c8a;line-height:1.1;"> <?php echo esc_html($booking->date); ?> </div>
+                <?php 
+                  $heure = '';
+                  if (!empty($booking->start_time)) {
+                    $heure = date('H:i', strtotime($booking->start_time));
+                  }
+                  if ($heure) {
+                    echo '<div style="font-size:1em;color:#b95c8a;margin-top:2px;">' . esc_html($heure) . '</div>';
+                  }
+                ?>
+              </td>
+              <td style="font-weight:700;color:#b95c8a;text-align:center;">
                 <?php
                   $prix = isset($booking->price) ? $booking->price : 0;
                   echo rtrim(rtrim(number_format($prix, 2, ',', ' '), '0'), ',') . ' DA';
@@ -457,11 +463,11 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
                   <input type="hidden" name="change_status_booking_id" value="<?php echo $booking->id; ?>">
                  
                   <select name="new_status" class="ib-input ib-status-select ib-status-<?php echo $booking->status; ?>" style="min-width:110px; background:#fff; color:#b95c8a; font-weight:600; border-radius:10px; border:1.5px solid #e9aebc; box-shadow:0 2px 8px #e9aebc11; padding:0.3em 0.7em;" onchange="this.form.submit()">
-                    <option value="en_attente" <?php if($booking->status==='en_attente') echo 'selected'; ?> style="background:#fffbe6;color: #bfa600, border:#bfa600;">En attente</option>
-                    <option value="confirmee" <?php if($booking->status==='confirmee') echo 'selected'; ?> style="background:#e6ffed;color: #23c18fff, border:#1ca97c;">Confirmée</option>
-                    <option value="annulee" <?php if($booking->status==='annulee') echo 'selected'; ?> style="background:#ffeaea;color: #e05c5c border:#e05c5c;">Annulée</option>
-                    <option value="complete" <?php if($booking->status==='complete') echo 'selected'; ?> style="background:#e0e7ff;color: #6a63e9ff border:#4f46e5;">Complété</option>
-                    <option value="no_show" <?php if($booking->status==='no_show') echo 'selected'; ?> style="background:#fbeee6;color: #bfa600 border:#bfa600;">No show</option>
+                    <option value="en_attente" <?php if($booking->status==='en_attente') echo 'selected'; ?> style="background:#fffbe6;color:#bfa600;">En attente</option>
+                    <option value="confirmee" <?php if($booking->status==='confirmee') echo 'selected'; ?> style="background:#e6ffed;color:#1ca97c;">Confirmée</option>
+                    <option value="annulee" <?php if($booking->status==='annulee') echo 'selected'; ?> style="background:#ffeaea;color:#e05c5c;">Annulée</option>
+                    <option value="complete" <?php if($booking->status==='complete') echo 'selected'; ?> style="background:#e0e7ff;color:#4f46e5;">Complété</option>
+                    <option value="no_show" <?php if($booking->status==='no_show') echo 'selected'; ?> style="background:#fbeee6;color:#bfa600;">No show</option>
                   </select>
                 </form>
               </td>
@@ -485,9 +491,12 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
 <style>
 body.ib-hide { display: none !important; opacity: 0; }
 body { transition: opacity 0.3s; }
-.ib-table-bookings { background: #fff; border-radius: 14px; box-shadow: 0 2px 16px #e9aebc22; color: #b95c8a; font-size: 1.07em; }
-.ib-table-bookings th { background: #fbeff2; color: #e9aebc; font-weight: 700; }
-.ib-table-bookings td { border-bottom: 1px solid #fbeff3; padding: 0.7em 1em; }
+.ib-table-bookings { background: #f8f9fa; border-radius: 14px; box-shadow: 0 2px 16px #e9aebc22; color: #b95c8a; font-size: 1.07em; }
+.ib-table-bookings th { background: #fbeff2; color: #b95c8a; font-weight: 700; border-bottom: 2px solid #e9aebc33; }
+.ib-table-bookings td { border-bottom: 1px solid #fbeff3; padding: 0.7em 1em; background: #fff; color: #b95c8a; }
+.ib-table-bookings tr { transition: background 0.18s; }
+.ib-table-bookings tr:hover { background: #fbeff2; }
+.ib-table-bookings td, .ib-table-bookings th { vertical-align: middle; }
 .ib-btn.accent { background: linear-gradient(90deg,#e9aebc 0%,#fbeff3 100%); color: #fff; border: none; border-radius: 16px; font-weight: 700; font-size: 1.13em; padding: 1em 0; box-shadow: 0 2px 12px #e9aebc22; transition: background 0.2s, box-shadow 0.2s; }
 .ib-btn.accent:hover { background: linear-gradient(90deg,#fbeff3 0%,#e9aebc 100%); color: #b95c8a; box-shadow: 0 4px 24px #e9aebc33; }
 

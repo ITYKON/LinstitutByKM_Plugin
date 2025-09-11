@@ -85,8 +85,14 @@ add_action('wp_ajax_lookup_client', function() {
     if (!$phone) {
         wp_send_json_error(['message' => 'Numéro de téléphone manquant']);
     }
+    // Normalisation : on enlève tout sauf les chiffres
+    $phone_digits = preg_replace('/[^0-9]/', '', $phone);
+    // On prend les 9 derniers chiffres (numéro mobile algérien sans indicatif)
+    $local_phone = substr($phone_digits, -9);
+    // Recherche tous les clients dont le numéro se termine par ces 9 chiffres
     $clients = $wpdb->get_results($wpdb->prepare(
-        "SELECT id, name, email, phone FROM {$wpdb->prefix}ib_clients WHERE phone = %s", $phone
+        "SELECT id, name, email, phone FROM {$wpdb->prefix}ib_clients WHERE RIGHT(REGEXP_REPLACE(phone, '[^0-9]', ''), 9) = %s",
+        $local_phone
     ));
     if ($clients && count($clients) > 0) {
         if (count($clients) === 1) {

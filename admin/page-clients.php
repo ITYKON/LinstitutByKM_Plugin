@@ -46,9 +46,11 @@ if (isset($_GET['search_name']) && $_GET['search_name'] !== '') {
   });
 }
 if (isset($_GET['search_phone']) && $_GET['search_phone'] !== '') {
-  $search_phone = trim($_GET['search_phone']);
-  $clients = array_filter($clients, function($c) use ($search_phone) {
-    return strpos($c->phone, $search_phone) !== false;
+  $search_phone = preg_replace('/[^0-9]/', '', $_GET['search_phone']);
+  $search_local = substr($search_phone, -9);
+  $clients = array_filter($clients, function($c) use ($search_local) {
+    $client_digits = preg_replace('/[^0-9]/', '', $c->phone);
+    return substr($client_digits, -9) === $search_local;
   });
 }
 $edit_client = null;

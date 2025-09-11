@@ -238,9 +238,10 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
         <form method="post" class="ib-booking-form-admin">
           <div style="width:260px;max-width:100%;margin-bottom:1.2em;">
             <label for="add-booking-client-phone">Téléphone</label>
-            <div style="display:flex;align-items:center;">
-              <input id="add-booking-client-phone" name="client_phone" type="tel" required placeholder="Ex: 555123456" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;">
-            </div>
+              <div style="display:flex;align-items:center;">
+                <input id="add-booking-client-phone" name="client_phone" type="tel" required placeholder="Ex: 555123456" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;">
+              </div>
+              <div id="ib-booking-client-lookup-msg" style="margin-bottom:10px;display:none;"></div>
           </div>
           <label for="add-booking-client-lastname">Nom</label>
           <input id="add-booking-client-lastname" name="client_lastname" required>

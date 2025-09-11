@@ -1,0 +1,63 @@
+/* Client Lookup Styles */
+.client-lookup-message {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.4;
+    transition: all 0.3s ease;
+}
+
+.client-lookup-message .loading {
+    color: #666;
+    font-style: italic;
+}
+
+.client-lookup-message .client-found {
+    background-color: #e8f5e9;
+    border-left: 4px solid #4caf50;
+    padding: 10px 15px;
+}
+
+.client-lookup-message .client-found-text {
+    display: block;
+    font-weight: 600;
+    color: #2e7d32;
+    margin-bottom: 5px;
+}
+
+.client-lookup-message .client-found-link {
+    color: #1b5e20;
+    text-decoration: underline;
+    cursor: pointer;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.client-lookup-message .client-found-link:hover {
+    color: #003300;
+}
+
+.client-lookup-message .client-not-found {
+    background-color: #fff3e0;
+    border-left: 4px solid #ff9800;
+    padding: 10px 15px;
+    color: #e65100;
+}
+
+.client-lookup-message .error {
+    background-color: #ffebee;
+    border-left: 4px solid #f44336;
+    padding: 10px 15px;
+    color: #c62828;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.client-lookup-message > div {
+    animation: fadeIn 0.3s ease-out;
+}

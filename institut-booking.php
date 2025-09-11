@@ -67,6 +67,48 @@ require_once IB_PLUGIN_DIR . 'includes/ajax-notifications-enhanced.php';
 require_once IB_PLUGIN_DIR . 'includes/notifications-refonte-integration.php';
 
 // Chargement des fichiers admin UNIQUEMENT dans les callbacks de menu (voir plus bas)
+// Enqueue admin script and pass nonce for booking page
+add_action('admin_enqueue_scripts', function($hook) {
+    // Correction : charger sur toutes les pages admin
+    wp_enqueue_script('ib-admin-booking', plugin_dir_url(__FILE__) . 'admin-booking.js', ['jquery'], null, true);
+    wp_localize_script('ib-admin-booking', 'ibBookingAjax', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce'    => wp_create_nonce('booking_lookup_nonce')
+    ]);
+});
+
+// AJAX handler pour recherche client par téléphone
+add_action('wp_ajax_lookup_client', function() {
+    check_ajax_referer('booking_lookup_nonce', 'nonce');
+    global $wpdb;
+    $phone = isset($_POST['phone']) ? sanitize_text_field($_POST['phone']) : '';
+    if (!$phone) {
+        wp_send_json_error(['message' => 'Numéro de téléphone manquant']);
+    }
+    $client = $wpdb->get_row($wpdb->prepare(
+        "SELECT name, email, phone FROM {$wpdb->prefix}ib_clients WHERE phone = %s", $phone
+    ));
+    if ($client) {
+        // Séparation nom/prénom si possible
+        $nom = '';
+        $prenom = '';
+        if (strpos($client->name, ' ') !== false) {
+            $parts = explode(' ', $client->name, 2);
+            $nom = $parts[0];
+            $prenom = $parts[1];
+        } else {
+            $nom = $client->name;
+        }
+        wp_send_json_success([
+            'nom'    => $nom,
+            'prenom' => $prenom,
+            'email'  => $client->email,
+            'message'=> "Cliente trouvée : {$client->name}"
+        ]);
+    } else {
+        wp_send_json_error(['message' => "Cette cliente n'existe pas, veuillez remplir ses informations"]);
+    }
+});
 
 // Enregistrement des menus admin
 function ib_admin_menu()

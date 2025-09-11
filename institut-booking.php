@@ -85,26 +85,54 @@ add_action('wp_ajax_lookup_client', function() {
     if (!$phone) {
         wp_send_json_error(['message' => 'Numéro de téléphone manquant']);
     }
-    $client = $wpdb->get_row($wpdb->prepare(
-        "SELECT name, email, phone FROM {$wpdb->prefix}ib_clients WHERE phone = %s", $phone
+    $clients = $wpdb->get_results($wpdb->prepare(
+        "SELECT id, name, email, phone FROM {$wpdb->prefix}ib_clients WHERE phone = %s", $phone
     ));
-    if ($client) {
-        // Séparation nom/prénom si possible
-        $nom = '';
-        $prenom = '';
-        if (strpos($client->name, ' ') !== false) {
-            $parts = explode(' ', $client->name, 2);
-            $nom = $parts[0];
-            $prenom = $parts[1];
+    if ($clients && count($clients) > 0) {
+        if (count($clients) === 1) {
+            $client = $clients[0];
+            $nom = '';
+            $prenom = '';
+            if (strpos($client->name, ' ') !== false) {
+                $parts = explode(' ', $client->name, 2);
+                $nom = $parts[0];
+                $prenom = $parts[1];
+            } else {
+                $nom = $client->name;
+            }
+            wp_send_json_success([
+                'multiple' => false,
+                'nom'    => $nom,
+                'prenom' => $prenom,
+                'email'  => $client->email,
+                'message'=> "Cliente trouvée : {$client->name}"
+            ]);
         } else {
-            $nom = $client->name;
+            // Plusieurs clientes avec le même numéro
+            $list = array_map(function($c) {
+                $nom = '';
+                $prenom = '';
+                if (strpos($c->name, ' ') !== false) {
+                    $parts = explode(' ', $c->name, 2);
+                    $nom = $parts[0];
+                    $prenom = $parts[1];
+                } else {
+                    $nom = $c->name;
+                }
+                return [
+                    'id' => $c->id,
+                    'nom' => $nom,
+                    'prenom' => $prenom,
+                    'email' => $c->email,
+                    'name' => $c->name
+                ];
+            }, $clients);
+            wp_send_json_success([
+                'multiple' => true,
+                'clients' => $list,
+                'message' => 'Plusieurs clientes trouvées, veuillez choisir.'
+            ]);
         }
-        wp_send_json_success([
-            'nom'    => $nom,
-            'prenom' => $prenom,
-            'email'  => $client->email,
-            'message'=> "Cliente trouvée : {$client->name}"
-        ]);
     } else {
         wp_send_json_error(['message' => "Cette cliente n'existe pas, veuillez remplir ses informations"]);
     }

@@ -38,6 +38,19 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])
 }
 
 $clients = IB_Clients::get_all_with_total_price();
+// Filtrage par nom et téléphone
+if (isset($_GET['search_name']) && $_GET['search_name'] !== '') {
+  $search_name = strtolower(trim($_GET['search_name']));
+  $clients = array_filter($clients, function($c) use ($search_name) {
+    return strpos(strtolower($c->name), $search_name) !== false;
+  });
+}
+if (isset($_GET['search_phone']) && $_GET['search_phone'] !== '') {
+  $search_phone = trim($_GET['search_phone']);
+  $clients = array_filter($clients, function($c) use ($search_phone) {
+    return strpos($c->phone, $search_phone) !== false;
+  });
+}
 $edit_client = null;
 if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) {
     $edit_client = IB_Clients::get_by_id((int)$_GET['id']);
@@ -50,6 +63,16 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
       <button class="ib-btn accent" onclick="document.getElementById('ib-add-client-form').style.display='block';">+ Ajouter une cliente</button>
     </div>
     <div class="ib-admin-content">
+      <!-- Formulaire de recherche -->
+      <form method="get" action="" style="margin-bottom:2em;display:flex;gap:1.2em;align-items:center;">
+        <input type="hidden" name="page" value="institut-booking-clients" />
+        <input class="ib-input" type="text" name="search_name" placeholder="Recherche par nom" value="<?php echo isset($_GET['search_name']) ? esc_attr($_GET['search_name']) : ''; ?>" style="max-width:180px;">
+        <input class="ib-input" type="text" name="search_phone" placeholder="Recherche par téléphone" value="<?php echo isset($_GET['search_phone']) ? esc_attr($_GET['search_phone']) : ''; ?>" style="max-width:180px;">
+        <button class="ib-btn accent" type="submit">Rechercher</button>
+        <?php if (isset($_GET['search_name']) || isset($_GET['search_phone'])): ?>
+        <a href="admin.php?page=institut-booking-clients" class="ib-btn cancel">Réinitialiser</a>
+        <?php endif; ?>
+      </form>
       <div id="ib-add-client-form" style="display:none;max-width:540px;margin-bottom:2em;background:#fff;padding:2em 2em 1em 2em;border-radius:14px;box-shadow:0 2px 16px #e9aebc22;">
         <h2 style="font-size:1.1rem;color:#e9aebc;font-weight:700;margin-bottom:0.7em;">Ajouter une cliente</h2>
         <form method="post" style="display:flex;gap:1.2em;flex-wrap:wrap;align-items:end;">

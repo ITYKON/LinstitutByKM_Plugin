@@ -6,6 +6,7 @@ window.bookingState = window.bookingState || {
   selectedEmployee: null,
   selectedDate: null,
   selectedSlot: null,
+  cart: [], // Nouveau : panier pour stocker les réservations
   client: {
     firstname: "",
     lastname: "",
@@ -16,7 +17,9 @@ window.bookingState = window.bookingState || {
 
 // Fonction pour gérer le scroll et la navigation entre les étapes
 window.goToStep = function (step) {
-  const progressBar = document.querySelector(".planity-progress-bar") || document.querySelector(".ib-stepper-main");
+  const progressBar =
+    document.querySelector(".planity-progress-bar") ||
+    document.querySelector(".ib-stepper-main");
   const content = document.getElementById("booking-step-content");
 
   // Fonction pour effectuer le scroll automatique vers la barre de progression
@@ -35,15 +38,15 @@ window.goToStep = function (step) {
     // Détecter un header fixe
     const possibleHeaders = [
       'header[class*="fixed"]',
-      '.header-fixed',
-      '.fixed-header',
-      '.sticky-header',
-      'nav[class*="fixed"]'
+      ".header-fixed",
+      ".fixed-header",
+      ".sticky-header",
+      'nav[class*="fixed"]',
     ];
 
     for (const selector of possibleHeaders) {
       const header = document.querySelector(selector);
-      if (header && window.getComputedStyle(header).position === 'fixed') {
+      if (header && window.getComputedStyle(header).position === "fixed") {
         navigationHeight += header.offsetHeight;
         break;
       }
@@ -64,7 +67,11 @@ window.goToStep = function (step) {
       behavior: "smooth",
     });
 
-    console.log(`📍 Scroll vers étape ${step} - Navigation: ${navigationHeight}px, Target: ${targetPosition}px (${isMobile ? 'mobile' : 'desktop'})`);
+    console.log(
+      `📍 Scroll vers étape ${step} - Navigation: ${navigationHeight}px, Target: ${targetPosition}px (${
+        isMobile ? "mobile" : "desktop"
+      })`
+    );
 
     // Sur desktop, vérifier que le contenu est visible après le scroll
     if (!isMobile && content) {
@@ -74,10 +81,11 @@ window.goToStep = function (step) {
 
         // Si le contenu est caché derrière la barre de progression, ajuster
         if (contentRect.top < progressBarRect.bottom + 20) {
-          const additionalScroll = (progressBarRect.bottom + 30) - contentRect.top;
+          const additionalScroll =
+            progressBarRect.bottom + 30 - contentRect.top;
           window.scrollBy({
             top: additionalScroll,
-            behavior: "smooth"
+            behavior: "smooth",
           });
           console.log(`📍 Ajustement scroll contenu: +${additionalScroll}px`);
         }
@@ -93,8 +101,9 @@ window.goToStep = function (step) {
     1: "Choisissez votre prestation",
     2: "Choisissez votre praticienne",
     3: "Date & Heure",
-    4: "Vos informations",
-    5: "Confirmation",
+    4: "Panier",
+    5: "Vos informations",
+    6: "Confirmation",
   };
 
   // Ajouter une classe pour l'étape actuelle au body pour le CSS
@@ -174,7 +183,7 @@ window.setStep = function (step) {
   if (!window.bookingState) return;
 
   const stepNumber = parseInt(step);
-  if (isNaN(stepNumber) || stepNumber < 1 || stepNumber > 5) return;
+  if (isNaN(stepNumber) || stepNumber < 1 || stepNumber > 6) return;
 
   window.bookingState.step = stepNumber;
 
@@ -204,7 +213,7 @@ try {
 }
 
 // Fonction pour ajuster la position de la barre de progression sous la navigation
-window.adjustProgressBarPosition = function() {
+window.adjustProgressBarPosition = function () {
   const progressBar = document.querySelector(".planity-progress-bar");
   if (!progressBar) return;
 
@@ -219,25 +228,25 @@ window.adjustProgressBarPosition = function() {
   // Détecter un header fixe du thème
   const possibleHeaders = [
     'header[class*="fixed"]',
-    '.header-fixed',
-    '.fixed-header',
-    '.sticky-header',
+    ".header-fixed",
+    ".fixed-header",
+    ".sticky-header",
     'nav[class*="fixed"]',
-    '.navbar-fixed-top',
-    '.site-header.fixed'
+    ".navbar-fixed-top",
+    ".site-header.fixed",
   ];
 
   for (const selector of possibleHeaders) {
     const header = document.querySelector(selector);
-    if (header && window.getComputedStyle(header).position === 'fixed') {
+    if (header && window.getComputedStyle(header).position === "fixed") {
       topOffset += header.offsetHeight;
-      document.body.classList.add('has-fixed-header');
+      document.body.classList.add("has-fixed-header");
       break;
     }
   }
 
   // Appliquer l'offset
-  progressBar.style.top = topOffset + 'px';
+  progressBar.style.top = topOffset + "px";
 
   console.log(`📍 Position barre de progression ajustée: ${topOffset}px`);
 };
@@ -254,11 +263,13 @@ setTimeout(() => {
 }, 500);
 
 // Réajuster lors du redimensionnement
-window.addEventListener('resize', window.adjustProgressBarPosition);
+window.addEventListener("resize", window.adjustProgressBarPosition);
 
 // Fonction utilitaire pour le scroll automatique vers la barre de progression
-window.scrollToProgressBar = function(callback, delay = 300) {
-  const progressBar = document.querySelector(".planity-progress-bar") || document.querySelector(".ib-stepper-main");
+window.scrollToProgressBar = function (callback, delay = 300) {
+  const progressBar =
+    document.querySelector(".planity-progress-bar") ||
+    document.querySelector(".ib-stepper-main");
   if (progressBar) {
     const isMobile = window.innerWidth <= 768;
 
@@ -272,15 +283,15 @@ window.scrollToProgressBar = function(callback, delay = 300) {
     // Détecter un header fixe
     const possibleHeaders = [
       'header[class*="fixed"]',
-      '.header-fixed',
-      '.fixed-header',
-      '.sticky-header',
-      'nav[class*="fixed"]'
+      ".header-fixed",
+      ".fixed-header",
+      ".sticky-header",
+      'nav[class*="fixed"]',
     ];
 
     for (const selector of possibleHeaders) {
       const header = document.querySelector(selector);
-      if (header && window.getComputedStyle(header).position === 'fixed') {
+      if (header && window.getComputedStyle(header).position === "fixed") {
         navigationHeight += header.offsetHeight;
         break;
       }
@@ -301,15 +312,17 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       behavior: "smooth",
     });
 
-    console.log(`📍 Scroll automatique - Navigation: ${navigationHeight}px, Target: ${targetPosition}px`);
+    console.log(
+      `📍 Scroll automatique - Navigation: ${navigationHeight}px, Target: ${targetPosition}px`
+    );
 
     // Exécuter le callback après le délai
-    if (callback && typeof callback === 'function') {
+    if (callback && typeof callback === "function") {
       setTimeout(callback, delay);
     }
   } else {
     // Fallback si pas de barre de progression trouvée
-    if (callback && typeof callback === 'function') {
+    if (callback && typeof callback === "function") {
       callback();
     }
   }
@@ -354,6 +367,9 @@ window.scrollToProgressBar = function(callback, delay = 300) {
 
     // Fonction pour mettre à jour l'état
     function updateBookingState() {
+      // Synchroniser window.bookingState avec bookingState
+      Object.assign(window.bookingState, bookingState);
+
       // Sauvegarde l'état dans le localStorage pour la persistance
       localStorage.setItem("bookingState", JSON.stringify(bookingState));
 
@@ -363,11 +379,181 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       }
     }
 
+    // Fonction pour ajouter une autre réservation (sans vider le panier)
+    function addAnotherReservation() {
+      console.log("➕ Ajout d'une autre réservation");
+      console.log("🛒 Panier avant réinitialisation:", bookingState.cart);
+
+      // Réinitialiser seulement les sélections courantes, PAS le panier
+      bookingState.selectedService = null;
+      bookingState.selectedEmployee = null;
+      bookingState.selectedDate = null;
+      bookingState.selectedSlot = null;
+
+      // Synchroniser avec window.bookingState
+      window.bookingState.selectedService = null;
+      window.bookingState.selectedEmployee = null;
+      window.bookingState.selectedDate = null;
+      window.bookingState.selectedSlot = null;
+
+      // IMPORTANT: Sauvegarder l'état avec le panier préservé
+      updateBookingState();
+
+      console.log("🛒 Panier après réinitialisation:", bookingState.cart);
+
+      // Aller à l'étape 1 pour recommencer la sélection (sans vider le panier)
+      goToStepForNewReservation(1);
+
+      showBookingNotification("Sélectionnez une nouvelle réservation");
+    }
+
+    // Fonctions de gestion du panier
+    function addToCart() {
+      console.log("🛒 addToCart appelée");
+      console.log("📋 État actuel:", {
+        selectedService: bookingState.selectedService,
+        selectedEmployee: bookingState.selectedEmployee,
+        selectedDate: bookingState.selectedDate,
+        selectedSlot: bookingState.selectedSlot,
+        cart: bookingState.cart,
+      });
+
+      if (
+        !bookingState.selectedService ||
+        !bookingState.selectedEmployee ||
+        !bookingState.selectedDate ||
+        !bookingState.selectedSlot
+      ) {
+        console.log("❌ Sélection incomplète, impossible d'ajouter au panier");
+        showBookingNotification(
+          "Veuillez compléter votre sélection avant d'ajouter au panier."
+        );
+        return;
+      }
+
+      const cartItem = {
+        id: Date.now(), // ID unique pour l'élément du panier
+        service: bookingState.selectedService,
+        employee: bookingState.selectedEmployee,
+        date: bookingState.selectedDate,
+        slot: bookingState.selectedSlot,
+        price: parseFloat(bookingState.selectedService.price) || 0,
+      };
+
+      bookingState.cart.push(cartItem);
+      console.log("✅ Élément ajouté au panier:", cartItem);
+      console.log("🛒 Panier après ajout:", bookingState.cart);
+
+      // Synchroniser avec window.bookingState
+      window.bookingState.cart = bookingState.cart;
+
+      updateBookingState();
+
+      // Réinitialiser la sélection pour permettre une nouvelle réservation
+      bookingState.selectedService = null;
+      bookingState.selectedEmployee = null;
+      bookingState.selectedDate = null;
+      bookingState.selectedSlot = null;
+
+      // Synchroniser les réinitialisations
+      window.bookingState.selectedService = null;
+      window.bookingState.selectedEmployee = null;
+      window.bookingState.selectedDate = null;
+      window.bookingState.selectedSlot = null;
+
+      // Passer à l'étape panier
+      console.log("🔄 Passage à l'étape panier (étape 4)");
+      goToStep(4);
+      showBookingNotification("Réservation ajoutée au panier !");
+    }
+
+    function removeFromCart(cartItemId) {
+      bookingState.cart = bookingState.cart.filter(
+        (item) => item.id !== cartItemId
+      );
+
+      // Synchroniser avec window.bookingState
+      window.bookingState.cart = bookingState.cart;
+
+      updateBookingState();
+      renderStepContent();
+      showBookingNotification("Réservation supprimée du panier.");
+    }
+
+    function clearCart() {
+      bookingState.cart = [];
+
+      // Synchroniser avec window.bookingState
+      window.bookingState.cart = [];
+
+      updateBookingState();
+      renderStepContent();
+      showBookingNotification("Panier vidé.");
+    }
+
+    function getCartTotal() {
+      let total = 0;
+      let hasVariablePrice = false;
+      let minTotal = 0;
+
+      bookingState.cart.forEach((item) => {
+        const price = parseFloat(item.price) || 0;
+        if (price > 0) {
+          total += price;
+        } else if (item.service.variable_price == 1) {
+          hasVariablePrice = true;
+          const min = Number(item.service.min_price) || 0;
+          minTotal += min;
+        }
+      });
+
+      // Si il y a des prix variables, retourner le total fixe + minimum des variables
+      // Sinon retourner le total fixe ou 0
+      return hasVariablePrice ? total + minTotal : total;
+    }
+
+    // Exposer les fonctions du panier globalement
+    window.addToCart = addToCart;
+    window.removeFromCart = removeFromCart;
+    window.clearCart = clearCart;
+    window.getCartTotal = getCartTotal;
+    window.addAnotherReservation = addAnotherReservation;
+
     // Récupération de l'état sauvegardé si il existe
-    localStorage.removeItem("bookingState"); // Reset du localStorage à chaque chargement
     const savedState = localStorage.getItem("bookingState");
     if (savedState) {
       Object.assign(bookingState, JSON.parse(savedState));
+      // Synchroniser avec window.bookingState
+      Object.assign(window.bookingState, bookingState);
+    }
+
+    // Fonction pour naviguer vers l'étape 1 sans vider le panier (pour ajouter une autre réservation)
+    function goToStepForNewReservation(step) {
+      console.log("🔄 goToStepForNewReservation vers l'étape", step);
+
+      // Synchroniser les deux bookingState
+      bookingState.step = step;
+      window.bookingState.step = step;
+
+      // NE PAS vider le panier - seulement réinitialiser les sélections courantes
+      // Le panier est déjà préservé dans addAnotherReservation()
+
+      // Mettre à jour la barre de progression
+      window.updateProgressBar();
+
+      // Sauvegarder dans localStorage
+      try {
+        localStorage.setItem(
+          "bookingState",
+          JSON.stringify(window.bookingState)
+        );
+      } catch (e) {
+        console.warn("Could not save to localStorage:", e);
+      }
+
+      // Rendre le contenu de l'étape
+      renderStepContent();
+      renderActions();
     }
 
     // Fonction pour naviguer entre les étapes (GLOBALE)
@@ -379,13 +565,14 @@ window.scrollToProgressBar = function(callback, delay = 300) {
       // Reset complet si retour à l'étape 1
       if (step === 1) {
         // Sauvegarder le numéro de téléphone actuel
-        const currentPhone = bookingState.client?.phone || '';
-        
+        const currentPhone = bookingState.client?.phone || "";
+
         // Réinitialiser l'état
         bookingState.selectedService = null;
         bookingState.selectedEmployee = null;
         bookingState.selectedDate = null;
         bookingState.selectedSlot = null;
+        bookingState.cart = []; // Vider le panier aussi
         bookingState.client = {
           firstname: "",
           lastname: "",
@@ -398,9 +585,10 @@ window.scrollToProgressBar = function(callback, delay = 300) {
         window.bookingState.selectedEmployee = null;
         window.bookingState.selectedDate = null;
         window.bookingState.selectedSlot = null;
+        window.bookingState.cart = [];
 
         localStorage.removeItem("bookingState");
-        
+
         // Réinitialiser le sélecteur de pays si disponible
         if (window.simpleCountrySelector) {
           setTimeout(() => {
@@ -427,7 +615,9 @@ window.scrollToProgressBar = function(callback, delay = 300) {
 
       // --- Scroll automatique unifié pour desktop et mobile ---
       setTimeout(() => {
-        const progressBar = document.querySelector(".planity-progress-bar") || document.querySelector(".ib-stepper-main");
+        const progressBar =
+          document.querySelector(".planity-progress-bar") ||
+          document.querySelector(".ib-stepper-main");
         const content = document.getElementById("booking-step-content");
         const isMobile = window.innerWidth <= 700;
 
@@ -443,7 +633,11 @@ window.scrollToProgressBar = function(callback, delay = 300) {
             behavior: "smooth",
           });
 
-          console.log(`📍 Scroll étape ${step} - ${isMobile ? 'Mobile' : 'Desktop'}: ${targetPosition}px`);
+          console.log(
+            `📍 Scroll étape ${step} - ${
+              isMobile ? "Mobile" : "Desktop"
+            }: ${targetPosition}px`
+          );
 
           // Sur desktop, vérifier que le contenu reste visible
           if (!isMobile && content) {
@@ -452,10 +646,11 @@ window.scrollToProgressBar = function(callback, delay = 300) {
               const progressBarRect = progressBar.getBoundingClientRect();
 
               if (contentRect.top < progressBarRect.bottom + 20) {
-                const additionalScroll = (progressBarRect.bottom + 30) - contentRect.top;
+                const additionalScroll =
+                  progressBarRect.bottom + 30 - contentRect.top;
                 window.scrollBy({
                   top: additionalScroll,
-                  behavior: "smooth"
+                  behavior: "smooth",
                 });
               }
             }, 500);
@@ -479,6 +674,273 @@ window.scrollToProgressBar = function(callback, delay = 300) {
     };
 
     // Fonction pour rendre le contenu de l'étape actuelle
+    // Fonction pour rendre l'étape de confirmation
+    function renderConfirmationStep() {
+      if (bookingState.cart.length === 0) {
+        return `
+          <div class='booking-main-content'>
+            <div class="confirmation-container">
+              <h2 class="text-2xl font-bold text-center mb-6">Confirmation</h2>
+              <div class="empty-confirmation">
+                <p>Aucune réservation à confirmer</p>
+                <button onclick="goToStep(1)" class="btn-primary">Commencer une nouvelle réservation</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      let totalPrice = 0;
+      let hasVariablePrice = false;
+      let minTotalPrice = 0;
+      let reservationsHtml = "";
+
+      bookingState.cart.forEach((item, index) => {
+        const price = parseFloat(item.price) || 0;
+
+        if (price > 0) {
+          totalPrice += price;
+        } else if (item.service.variable_price == 1) {
+          hasVariablePrice = true;
+          const min = Number(item.service.min_price) || 0;
+          minTotalPrice += min;
+        }
+
+        let prixHtml = "-";
+        if (price > 0) {
+          prixHtml = price.toLocaleString() + " DA";
+        } else if (item.service.variable_price == 1) {
+          const min = Number(item.service.min_price);
+          const max = Number(item.service.max_price);
+          if (min > 0 && max > 0 && min !== max) {
+            prixHtml = `de ${min.toLocaleString()} DA à ${max.toLocaleString()} DA`;
+          } else if (min > 0) {
+            prixHtml = `à partir de ${min.toLocaleString()} DA`;
+          }
+        } else if (typeof item.service.price !== "undefined") {
+          prixHtml = Number(item.service.price).toLocaleString() + " DA";
+        }
+
+        reservationsHtml += `
+          <div class="confirmation-item">
+            <div class="confirmation-item-header">
+              <h4>Réservation ${index + 1}</h4>
+              ${price > 0 ? `<span class="price">${prixHtml}</span>` : ""}
+            </div>
+            <div class="confirmation-item-details">
+              <div class="detail-row">
+                <span class="detail-label">Service</span>
+                <span class="detail-value">${item.service.name}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Praticienne</span>
+                <span class="detail-value">${item.employee.name}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Date</span>
+                <span class="detail-value">${new Date(
+                  item.date
+                ).toLocaleDateString("fr-FR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Créneau</span>
+                <span class="detail-value">${item.slot}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      return `
+        <div class='booking-main-content'>
+          <div class="confirmation-container">
+            <div class="ticket-success-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
+            </div>
+            <div class="ticket-success-badge">Réservations confirmées</div>
+            <div class="ticket-success-message">
+              ${bookingState.cart.length} réservation(s) enregistrée(s)<br>
+              Merci pour vos réservations !<br>
+              Nous vous contacterons prochainement<br>
+              pour confirmer vos rendez-vous.
+            </div>
+            
+            <div class="confirmation-reservations">
+              ${reservationsHtml}
+            </div>
+            
+            <div class="confirmation-summary">
+              <div class="summary-row">
+                <span class="summary-label">Client</span>
+                <span class="summary-value">${
+                  bookingState.client?.firstname || "-"
+                } ${bookingState.client?.lastname || "-"}</span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-label">Email</span>
+                <span class="summary-value">${
+                  bookingState.client?.email || "-"
+                }</span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-label">Téléphone</span>
+                <span class="summary-value">${
+                  bookingState.client?.phone || "-"
+                }</span>
+              </div>
+              ${
+                totalPrice > 0 || (hasVariablePrice && minTotalPrice > 0)
+                  ? `
+                <div class="summary-row total-row">
+                  <span class="summary-label">Total</span>
+                  <span class="summary-value total-price">${
+                    hasVariablePrice
+                      ? "à partir de " +
+                        (totalPrice + minTotalPrice).toLocaleString() +
+                        " DA"
+                      : totalPrice.toLocaleString() + " DA"
+                  }</span>
+                </div>
+              `
+                  : ""
+              }
+            </div>
+            
+            <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
+              <button id="download-ticket-btn" type="button" style="background: #111827; color: #ffffff; border: none; border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;" onmouseover="this.style.background='#374151'" onmouseout="this.style.background='#111827'">Télécharger le ticket</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Fonction pour rendre l'étape panier
+    function renderCartStep() {
+      console.log("🛒 renderCartStep appelée");
+      console.log("📋 Panier actuel:", bookingState.cart);
+      console.log("📊 Longueur du panier:", bookingState.cart.length);
+
+      if (bookingState.cart.length === 0) {
+        return `
+          <div class='booking-main-content'>
+            <div class="cart-container">
+              <h2 class="text-2xl font-bold text-center mb-6">Votre panier</h2>
+              <div class="empty-cart">
+                <div class="empty-cart-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                  </svg>
+                </div>
+                <h3>Votre panier est vide</h3>
+                <p>Ajoutez des réservations pour continuer</p>
+                <button onclick="goToStep(1)" class="btn-primary">Ajouter une réservation</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      let cartItemsHtml = "";
+      let totalPrice = 0;
+      let hasVariablePrice = false;
+      let minTotalPrice = 0;
+
+      bookingState.cart.forEach((item, index) => {
+        const price = parseFloat(item.price) || 0;
+
+        if (price > 0) {
+          totalPrice += price;
+        } else if (item.service.variable_price == 1) {
+          hasVariablePrice = true;
+          const min = Number(item.service.min_price) || 0;
+          minTotalPrice += min;
+        }
+
+        // Formatage du prix
+        let priceText = "";
+        if (price > 0) {
+          priceText = `${price.toLocaleString()} DA`;
+        } else if (item.service.variable_price == 1) {
+          const min = Number(item.service.min_price);
+          const max = Number(item.service.max_price);
+          if (min > 0 && max > 0 && min !== max) {
+            priceText = `à partir de ${min.toLocaleString()}-${max.toLocaleString()} DA`;
+          } else if (min > 0) {
+            priceText = `à partir de ${min.toLocaleString()} DA`;
+          }
+        }
+
+        cartItemsHtml += `
+          <div class="planity-service" data-id="${item.id}">
+            <div class="planity-service-top">
+              <h3>${item.service.name}</h3>
+              <a href="#" onclick="removeFromCart(${
+                item.id
+              }); return false;">Supprimer</a>
+            </div>
+            <div class="planity-service-details">
+              <span class="planity-duration">${item.service.duration}min</span>
+              ${
+                priceText
+                  ? `<span class="planity-price">${priceText}</span>`
+                  : ""
+              }
+            </div>
+            <div class="planity-service-info">
+              <div>${item.employee.name}</div>
+              <div>${new Date(item.date).toLocaleDateString("fr-FR")}</div>
+              <div>${item.slot}</div>
+            </div>
+          </div>
+        `;
+      });
+
+      return `
+        <div class='booking-main-content'>
+          <div class="planity-simple-card">
+            <div class="planity-header">
+              <h2>Prestations sélectionnées</h2>
+              <a href="#" onclick="clearCart(); return false;">Supprimer</a>
+            </div>
+            
+            <div class="planity-services">
+              ${cartItemsHtml}
+            </div>
+            
+            <div class="planity-total">
+              <span>Total :</span>
+              <span class="planity-total-price">${
+                hasVariablePrice
+                  ? "à partir de " +
+                    (totalPrice + minTotalPrice).toLocaleString() +
+                    " DA"
+                  : totalPrice > 0
+                  ? totalPrice.toLocaleString() + " DA"
+                  : "Gratuit"
+              }</span>
+            </div>
+            
+            <div class="planity-buttons">
+              <button onclick="addAnotherReservation()" class="planity-btn-grey">
+                + Ajouter une prestation à la suite
+              </button>
+              <button onclick="goToStep(5)" class="planity-btn-blue">
+                Continuer vers les informations →
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     function renderStepContent() {
       const content = document.getElementById("booking-step-content");
       console.log(
@@ -508,12 +970,11 @@ window.scrollToProgressBar = function(callback, delay = 300) {
           renderCategoryButtons();
           renderServicesGrid();
           break;
-case 2:
-
-  inner = `<div class='booking-main-content'><h2 class='text-center mb-6'>Choisissez votre praticienne</h2><div class="grid" id="employees-grid"></div></div>`;
-  content.innerHTML = inner;
-  renderEmployeesGrid();
-  break;
+        case 2:
+          inner = `<div class='booking-main-content'><h2 class='text-center mb-6'>Choisissez votre praticienne</h2><div class="grid" id="employees-grid"></div></div>`;
+          content.innerHTML = inner;
+          renderEmployeesGrid();
+          break;
         case 3:
           inner = `<div class='booking-main-content'>
         <div class="booking-step-date-modern">
@@ -535,6 +996,11 @@ case 2:
           renderModernSlotsList();
           break;
         case 4:
+          // Étape panier
+          inner = renderCartStep();
+          content.innerHTML = inner;
+          break;
+        case 5:
           inner = `<div class='booking-main-content'>
         <div class="booking-step-infos-modern bg-white rounded-2xl shadow-xl p-8 max-w-lg mx-auto">
           <h2 class="text-2xl font-bold text-pink-400 mb-6 text-center">Vos informations</h2>
@@ -704,92 +1170,9 @@ case 2:
             }
           }, 100);
           break;
-        case 5:
-          let prixHtml = "-";
-          if (bookingState.selectedService) {
-            if (bookingState.selectedService.variable_price == 1) {
-              const min = Number(bookingState.selectedService.min_price);
-              const max = Number(bookingState.selectedService.max_price);
-              if (min > 0 && max > 0 && min !== max) {
-                prixHtml = `de ${min.toLocaleString()} DA à ${max.toLocaleString()} DA`;
-              } else if (min > 0) {
-                prixHtml = `à partir de ${min.toLocaleString()} DA`;
-              } else {
-                prixHtml = "-";
-              }
-            } else if (
-              typeof bookingState.selectedService.price !== "undefined"
-            ) {
-              prixHtml =
-                Number(bookingState.selectedService.price).toLocaleString() +
-                " DA";
-            }
-          }
-          inner = `<div class="booking-ticket-modern">
-          <div class="ticket-success-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 6L9 17l-5-5"/>
-            </svg>
-          </div>
-          <div class="ticket-success-badge">Réservation confirmée</div>
-          <div class="ticket-success-message">Réservation enregistrée<br>Merci pour votre réservation !<br>Nous vous contacterons prochainement<br>pour confirmer votre rendez-vous.</div>
-          <div class="ticket-details">
-            <div>
-              <span class="ticket-label">Service</span>
-              <span class="ticket-value">${
-                bookingState.selectedService?.name || "-"
-              }</span>
-            </div>
-            <div>
-              <span class="ticket-label">Praticienne</span>
-              <span class="ticket-value">${
-                bookingState.selectedEmployee?.name || "-"
-              }</span>
-            </div>
-            <div>
-              <span class="ticket-label">Date</span>
-              <span class="ticket-value">${
-                bookingState.selectedDate ? 
-                new Date(bookingState.selectedDate).toLocaleDateString('fr-FR', {
-                  day: '2-digit',
-                  month: '2-digit', 
-                  year: 'numeric'
-                }) : "-"
-              }</span>
-            </div>
-            <div>
-              <span class="ticket-label">Créneau</span>
-              <span class="ticket-value">${
-                bookingState.selectedSlot || "-"
-              }</span>
-            </div>
-            <div>
-              <span class="ticket-label">Client</span>
-              <span class="ticket-value">${
-                bookingState.client?.firstname || "-"
-              } ${bookingState.client?.lastname || "-"}</span>
-            </div>
-            <div>
-              <span class="ticket-label">Email</span>
-              <span class="ticket-value">${
-                bookingState.client?.email || "-"
-              }</span>
-            </div>
-            <div>
-              <span class="ticket-label">Téléphone</span>
-              <span class="ticket-value">${
-                bookingState.client?.phone || "-"
-              }</span>
-            </div>
-            <div>
-              <span class="ticket-label">Prix</span>
-              <span class="ticket-value">${prixHtml}</span>
-            </div>
-          </div>
-          <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
-            <button id="download-ticket-btn" type="button" style="background: #111827; color: #ffffff; border: none; border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;" onmouseover="this.style.background='#374151'" onmouseout="this.style.background='#111827'">Télécharger le ticket</button>
-        </div>
-      </div>`;
+        case 6:
+          // Afficher toutes les réservations du panier
+          inner = renderConfirmationStep();
           content.innerHTML = inner;
           setTimeout(() => {
             const btn = document.getElementById("download-ticket-btn");
@@ -1302,24 +1685,24 @@ case 2:
       // Extraire les catégories uniques
       const uniqueCategories = [];
       const seen = new Set();
-      
-      bookingState.services.forEach(service => {
+
+      bookingState.services.forEach((service) => {
         const category = service.category_name?.trim();
         if (category && !seen.has(category)) {
           seen.add(category);
           uniqueCategories.push(category);
         }
       });
-      
+
       // Trier par ordre alphabétique en ignorant la casse, les accents et la ponctuation
-      uniqueCategories.sort((a, b) => 
-        a.localeCompare(b, 'fr', {
-          sensitivity: 'base',
+      uniqueCategories.sort((a, b) =>
+        a.localeCompare(b, "fr", {
+          sensitivity: "base",
           ignorePunctuation: true,
-          numeric: true
+          numeric: true,
         })
       );
-      
+
       // Ajouter 'ALL' au début et supprimer les doublons
       const cats = ["ALL", ...uniqueCategories];
       console.log("Catégories générées (avant affichage):", cats);
@@ -1332,7 +1715,9 @@ case 2:
         const btn = document.createElement("button");
         btn.textContent = cat;
         btn.title = cat;
-        btn.className = "booking-category-btn" + (cat === bookingState.selectedCategory ? " active" : "");
+        btn.className =
+          "booking-category-btn" +
+          (cat === bookingState.selectedCategory ? " active" : "");
         btn.onclick = () => {
           bookingState.selectedCategory = cat;
           renderServicesGrid();
@@ -1345,9 +1730,11 @@ case 2:
         buttonsContainer.appendChild(btn);
         console.log("Bouton ajouté:", cat);
       });
-      
+
       // Vérifier l'ordre des boutons après leur création
-      const buttonTexts = Array.from(buttonsContainer.children).map(btn => btn.textContent);
+      const buttonTexts = Array.from(buttonsContainer.children).map(
+        (btn) => btn.textContent
+      );
       console.log("Catégories triées pour l'affichage:", buttonTexts);
 
       // Créer l'accordéon pour mobile
@@ -1370,18 +1757,18 @@ case 2:
       });
 
       // Trier les noms de catégories par ordre alphabétique en ignorant la casse et les accents
-      const sortedCategories = Object.keys(servicesByCategory).sort((a, b) => 
-        a.localeCompare(b, 'fr', {sensitivity: 'base'})
+      const sortedCategories = Object.keys(servicesByCategory).sort((a, b) =>
+        a.localeCompare(b, "fr", { sensitivity: "base" })
       );
-      
+
       // Créer un accordéon pour chaque catégorie
       sortedCategories.forEach((categoryName) => {
         // Trier les services de cette catégorie par ordre alphabétique
-        const categoryServices = servicesByCategory[categoryName].sort((a, b) => 
-          a.name.localeCompare(b.name, 'fr', {
-            sensitivity: 'base',
+        const categoryServices = servicesByCategory[categoryName].sort((a, b) =>
+          a.name.localeCompare(b.name, "fr", {
+            sensitivity: "base",
             ignorePunctuation: true,
-            numeric: true
+            numeric: true,
           })
         );
 
@@ -1479,7 +1866,7 @@ case 2:
         // Gestion du clic sur l'en-tête
         accordionHeader.onclick = () => {
           const isOpen = accordionItem.classList.contains("open");
-          
+
           // Toggle l'état de l'accordéon cliqué
           if (isOpen) {
             accordionItem.classList.remove("open");
@@ -1487,15 +1874,15 @@ case 2:
           } else {
             accordionItem.classList.add("open");
             accordionHeader.querySelector(".accordion-arrow").textContent = "▲";
-            
+
             // Faire défiler jusqu'au contenu de l'accordéon
             setTimeout(() => {
-              const content = accordionItem.querySelector('.accordion-content');
+              const content = accordionItem.querySelector(".accordion-content");
               if (content) {
-                content.scrollIntoView({ 
-                  behavior: 'smooth',
-                  block: 'nearest',
-                  inline: 'start'
+                content.scrollIntoView({
+                  behavior: "smooth",
+                  block: "nearest",
+                  inline: "start",
                 });
               }
             }, 50);
@@ -1545,17 +1932,20 @@ case 2:
         }
         servicesByCategory[categoryName].push(service);
       });
-      
+
       // Trier les services dans chaque catégorie par nom
-      Object.keys(servicesByCategory).forEach(category => {
-        servicesByCategory[category].sort((a, b) => 
-          a.name.localeCompare(b.name, 'fr', {sensitivity: 'base'})
+      Object.keys(servicesByCategory).forEach((category) => {
+        servicesByCategory[category].sort((a, b) =>
+          a.name.localeCompare(b.name, "fr", { sensitivity: "base" })
         );
       });
 
       // Trier les noms de catégories par ordre alphabétique
-      const sortedCategories = Object.keys(servicesByCategory).sort((a, b) => 
-        a.localeCompare(b, 'fr', {sensitivity: 'base', ignorePunctuation: true})
+      const sortedCategories = Object.keys(servicesByCategory).sort((a, b) =>
+        a.localeCompare(b, "fr", {
+          sensitivity: "base",
+          ignorePunctuation: true,
+        })
       );
 
       // Afficher chaque catégorie avec ses services
@@ -1565,7 +1955,7 @@ case 2:
         const servicesToShow = services.slice(0, maxServicesShown);
         const remainingServices = services.length - maxServicesShown;
 
-// ...
+        // ...
         // Créer l'en-tête de catégorie
         const categoryHeader = document.createElement("div");
         categoryHeader.className = "category-header-planity";
@@ -1709,17 +2099,23 @@ case 2:
 
       // Si une date est sélectionnée, filtrer les praticiennes disponibles
       if (bookingState.selectedDate) {
-        loadAvailableEmployees(bookingState.selectedService.id, bookingState.selectedDate, function(availableEmployees) {
-          if (availableEmployees.length === 0) {
-            grid.innerHTML =
-              '<div style="padding:2em;text-align:center;color:#bfa2c7;">Aucune praticienne disponible pour cette date</div>';
-            return;
+        loadAvailableEmployees(
+          bookingState.selectedService.id,
+          bookingState.selectedDate,
+          function (availableEmployees) {
+            if (availableEmployees.length === 0) {
+              grid.innerHTML =
+                '<div style="padding:2em;text-align:center;color:#bfa2c7;">Aucune praticienne disponible pour cette date</div>';
+              return;
+            }
+            renderEmployeeCards(availableEmployees);
           }
-          renderEmployeeCards(availableEmployees);
-        });
+        );
       } else {
         // Pas de date sélectionnée, afficher toutes les praticiennes du service
-        const employeeIds = (bookingState.selectedService.employee_ids || []).map(Number);
+        const employeeIds = (
+          bookingState.selectedService.employee_ids || []
+        ).map(Number);
         const filtered = bookingState.employees.filter((e) =>
           employeeIds.includes(Number(e.id))
         );
@@ -1747,12 +2143,20 @@ case 2:
           if (response.success && response.data) {
             callback(response.data);
           } else {
-            console.log("❌ Erreur lors du chargement des praticiennes disponibles:", response);
+            console.log(
+              "❌ Erreur lors du chargement des praticiennes disponibles:",
+              response
+            );
             callback([]);
           }
         },
         error: function (xhr, status, error) {
-          console.error("Erreur AJAX get_available_employees:", status, error, xhr);
+          console.error(
+            "Erreur AJAX get_available_employees:",
+            status,
+            error,
+            xhr
+          );
           callback([]);
         },
       });
@@ -1823,32 +2227,52 @@ case 2:
         if (cb) cb();
         return;
       }
-      
+
       // Si pas de préférence de praticienne, on en sélectionne une au hasard parmi les disponibles
       let selectedEmployee = bookingState.selectedEmployee;
       if (!selectedEmployee) {
         // Si une date est sélectionnée, utiliser les praticiennes disponibles pour cette date
         if (bookingState.selectedDate) {
-          loadAvailableEmployees(bookingState.selectedService.id, bookingState.selectedDate, function(availableEmployees) {
-            if (availableEmployees.length > 0) {
-              selectedEmployee = availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
-              console.log("🎲 Praticienne sélectionnée aléatoirement (disponible):", selectedEmployee);
-              bookingState.selectedEmployee = selectedEmployee;
-              continueLoadAvailableDays(selectedEmployee, year, month, cb);
-            } else {
-              console.log("❌ Aucune praticienne disponible pour cette date");
-              window.availableDays = {};
-              if (cb) cb();
+          loadAvailableEmployees(
+            bookingState.selectedService.id,
+            bookingState.selectedDate,
+            function (availableEmployees) {
+              if (availableEmployees.length > 0) {
+                selectedEmployee =
+                  availableEmployees[
+                    Math.floor(Math.random() * availableEmployees.length)
+                  ];
+                console.log(
+                  "🎲 Praticienne sélectionnée aléatoirement (disponible):",
+                  selectedEmployee
+                );
+                bookingState.selectedEmployee = selectedEmployee;
+                continueLoadAvailableDays(selectedEmployee, year, month, cb);
+              } else {
+                console.log("❌ Aucune praticienne disponible pour cette date");
+                window.availableDays = {};
+                if (cb) cb();
+              }
             }
-          });
+          );
           return; // Sortir de la fonction, la suite sera exécutée dans le callback
         } else {
           // Pas de date sélectionnée, utiliser toutes les praticiennes du service
-          const employeeIds = (bookingState.selectedService.employee_ids || []).map(Number);
-          const availableEmployees = bookingState.employees.filter(e => employeeIds.includes(Number(e.id)));
+          const employeeIds = (
+            bookingState.selectedService.employee_ids || []
+          ).map(Number);
+          const availableEmployees = bookingState.employees.filter((e) =>
+            employeeIds.includes(Number(e.id))
+          );
           if (availableEmployees.length > 0) {
-            selectedEmployee = availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
-            console.log("🎲 Praticienne sélectionnée aléatoirement:", selectedEmployee);
+            selectedEmployee =
+              availableEmployees[
+                Math.floor(Math.random() * availableEmployees.length)
+              ];
+            console.log(
+              "🎲 Praticienne sélectionnée aléatoirement:",
+              selectedEmployee
+            );
             bookingState.selectedEmployee = selectedEmployee;
           } else {
             console.log("❌ Aucune praticienne disponible pour ce service");
@@ -2038,13 +2462,15 @@ case 2:
                 if (slotsSection) {
                   // Calculate the position to scroll to (current scroll position + slots section position - some offset)
                   const headerOffset = 120; // Adjust this value based on your header height
-                  const elementPosition = slotsSection.getBoundingClientRect().top;
-                  const offsetPosition = window.pageYOffset + elementPosition - headerOffset;
-                  
+                  const elementPosition =
+                    slotsSection.getBoundingClientRect().top;
+                  const offsetPosition =
+                    window.pageYOffset + elementPosition - headerOffset;
+
                   // Smooth scroll to the calculated position
                   window.scrollTo({
                     top: offsetPosition,
-                    behavior: 'smooth'
+                    behavior: "smooth",
                   });
                 }
               }, 200);
@@ -2067,56 +2493,77 @@ case 2:
 
     function renderModernSlotsList() {
       const slotsList = document.getElementById("slots-list");
-      
+
       // Ensure bookingState is properly initialized
       if (!bookingState) {
         console.error("bookingState is not defined");
         return;
       }
-      
+
       // Initialize selectedEmployee if not exists
       if (!bookingState.selectedEmployee) {
         bookingState.selectedEmployee = null;
       }
-      
+
       // Afficher un message si aucune date sélectionnée
       if (!bookingState.selectedDate) {
         slotsList.innerHTML =
           '<div class="no-slots">Sélectionnez une date</div>';
         return;
       }
-      
+
       // Vérifier si un service est sélectionné
       if (!bookingState.selectedService) {
         slotsList.innerHTML =
           '<div class="no-slots">Veuillez sélectionner un service</div>';
         return;
       }
-      
+
       // Si pas de praticienne sélectionnée, en choisir une au hasard parmi les disponibles
       if (!bookingState.selectedEmployee) {
         if (bookingState.selectedDate) {
           // Utiliser les praticiennes disponibles pour cette date
-          loadAvailableEmployees(bookingState.selectedService.id, bookingState.selectedDate, function(availableEmployees) {
-            if (availableEmployees.length > 0) {
-              bookingState.selectedEmployee = availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
-              console.log("🎲 Praticienne sélectionnée aléatoirement (disponible) pour l'affichage des créneaux:", bookingState.selectedEmployee);
-              continueRenderModernSlotsList();
-            } else {
-              slotsList.innerHTML =
-                '<div class="no-slots">Aucune praticienne disponible pour cette date</div>';
+          loadAvailableEmployees(
+            bookingState.selectedService.id,
+            bookingState.selectedDate,
+            function (availableEmployees) {
+              if (availableEmployees.length > 0) {
+                bookingState.selectedEmployee =
+                  availableEmployees[
+                    Math.floor(Math.random() * availableEmployees.length)
+                  ];
+                console.log(
+                  "🎲 Praticienne sélectionnée aléatoirement (disponible) pour l'affichage des créneaux:",
+                  bookingState.selectedEmployee
+                );
+                continueRenderModernSlotsList();
+              } else {
+                slotsList.innerHTML =
+                  '<div class="no-slots">Aucune praticienne disponible pour cette date</div>';
+              }
             }
-          });
+          );
           return; // Sortir de la fonction, la suite sera exécutée dans le callback
         } else {
           // Pas de date sélectionnée, utiliser toutes les praticiennes du service
-          const employeeIds = (bookingState.selectedService.employee_ids || []).map(Number);
-          const availableEmployees = bookingState.employees ?
-            bookingState.employees.filter(e => employeeIds.includes(Number(e.id))) : [];
+          const employeeIds = (
+            bookingState.selectedService.employee_ids || []
+          ).map(Number);
+          const availableEmployees = bookingState.employees
+            ? bookingState.employees.filter((e) =>
+                employeeIds.includes(Number(e.id))
+              )
+            : [];
 
           if (availableEmployees.length > 0) {
-            bookingState.selectedEmployee = availableEmployees[Math.floor(Math.random() * availableEmployees.length)];
-            console.log("🎲 Praticienne sélectionnée aléatoirement pour l'affichage des créneaux:", bookingState.selectedEmployee);
+            bookingState.selectedEmployee =
+              availableEmployees[
+                Math.floor(Math.random() * availableEmployees.length)
+              ];
+            console.log(
+              "🎲 Praticienne sélectionnée aléatoirement pour l'affichage des créneaux:",
+              bookingState.selectedEmployee
+            );
           } else {
             slotsList.innerHTML =
               '<div class="no-slots">Aucune praticienne disponible pour ce service</div>';
@@ -2133,7 +2580,8 @@ case 2:
       if (!slotsList) return;
 
       if (!bookingState.selectedDate) {
-        slotsList.innerHTML = '<div class="no-slots">Sélectionnez une date</div>';
+        slotsList.innerHTML =
+          '<div class="no-slots">Sélectionnez une date</div>';
         return;
       }
 
@@ -2221,13 +2669,23 @@ case 2:
         },
       });
       window.selectSlot = function (slot) {
+        console.log("🎯 selectSlot (main.js) appelée avec:", slot);
         bookingState.selectedSlot = slot;
         updateBookingState();
 
-        // Scroll automatique vers la barre de progression avant de passer à l'étape suivante
-        window.scrollToProgressBar(() => {
-          goToStep(4); // Aller à l'étape Infos
-        });
+        // Au lieu d'aller directement à l'étape 4, ajouter au panier
+        if (typeof window.addToCart === "function") {
+          console.log("✅ addToCart disponible, appel en cours...");
+          window.addToCart();
+        } else {
+          console.log(
+            "❌ addToCart non disponible, fallback vers étape suivante"
+          );
+          // Scroll automatique vers la barre de progression avant de passer à l'étape suivante
+          window.scrollToProgressBar(() => {
+            goToStep(4); // Aller à l'étape Infos
+          });
+        }
       };
     }
 
@@ -2328,25 +2786,28 @@ case 2:
 
     function showError(input, message) {
       // Cas spécial pour le champ téléphone
-      const isPhoneInput = input.id === 'client-phone' || 
-                         (input.classList && input.classList.contains('simple-phone-input'));
-      
+      const isPhoneInput =
+        input.id === "client-phone" ||
+        (input.classList && input.classList.contains("simple-phone-input"));
+
       let targetInput = input;
       let parentElement = input.parentNode;
-      
+
       // Si c'est le champ téléphone caché, on cible le conteneur parent
-      if (isPhoneInput && input.type === 'hidden') {
-        const phoneContainer = document.querySelector('.phone-field-with-country');
+      if (isPhoneInput && input.type === "hidden") {
+        const phoneContainer = document.querySelector(
+          ".phone-field-with-country"
+        );
         if (phoneContainer) {
           parentElement = phoneContainer;
           // On cible le champ de saisie visible si disponible
-          const visibleInput = document.querySelector('.simple-phone-input');
+          const visibleInput = document.querySelector(".simple-phone-input");
           if (visibleInput) {
             targetInput = visibleInput;
           }
         }
       }
-      
+
       let error = parentElement.querySelector(".ib-error-msg");
       if (!error) {
         error = document.createElement("span");
@@ -2361,40 +2822,47 @@ case 2:
       }
       error.textContent = message;
       targetInput.classList.add("ib-error");
-      
+
       // Ajouter une bordure rouge au conteneur du sélecteur de pays si c'est le champ téléphone
       if (isPhoneInput) {
-        const selectorContainer = document.querySelector('.simple-phone-container');
+        const selectorContainer = document.querySelector(
+          ".simple-phone-container"
+        );
         if (selectorContainer) {
-          selectorContainer.style.borderColor = '#e05c5c';
+          selectorContainer.style.borderColor = "#e05c5c";
         }
       }
     }
     function clearError(input) {
       // Gestion spéciale pour le champ téléphone
-      const isPhoneInput = input.id === 'client-phone' || 
-                         (input.classList && input.classList.contains('simple-phone-input'));
-      
+      const isPhoneInput =
+        input.id === "client-phone" ||
+        (input.classList && input.classList.contains("simple-phone-input"));
+
       let parentElement = input.parentNode;
       let targetInput = input;
-      
+
       if (isPhoneInput) {
-        const phoneContainer = document.querySelector('.phone-field-with-country');
+        const phoneContainer = document.querySelector(
+          ".phone-field-with-country"
+        );
         if (phoneContainer) {
           parentElement = phoneContainer;
           // Cibler le champ de saisie visible si disponible
-          const visibleInput = document.querySelector('.simple-phone-input');
+          const visibleInput = document.querySelector(".simple-phone-input");
           if (visibleInput) {
             targetInput = visibleInput;
           }
         }
         // Supprimer la bordure rouge du conteneur
-        const selectorContainer = document.querySelector('.simple-phone-container');
+        const selectorContainer = document.querySelector(
+          ".simple-phone-container"
+        );
         if (selectorContainer) {
-          selectorContainer.style.borderColor = '#d1d5db'; // Couleur de bordure par défaut
+          selectorContainer.style.borderColor = "#d1d5db"; // Couleur de bordure par défaut
         }
       }
-      
+
       let error = parentElement.querySelector(".ib-error-msg");
       if (error) error.remove();
       targetInput.classList.remove("ib-error");
@@ -2429,143 +2897,167 @@ case 2:
 
     // Fonction utilitaire pour nettoyer un numéro de téléphone
     function cleanPhoneNumber(str) {
-      if (!str) return '';
+      if (!str) return "";
       // Supprimer tous les caractères non numériques
-      return str.replace(/[^0-9+]/g, '');
+      return str.replace(/[^0-9+]/g, "");
     }
 
     // Fonction pour valider la longueur d'un numéro selon le pays
     function validatePhoneLength(number, countryCode) {
       // Garder uniquement les chiffres pour la validation de longueur
-      const cleanNumber = number.replace(/[^0-9]/g, '');
-      
+      const cleanNumber = number.replace(/[^0-9]/g, "");
+
       // Si le numéro commence par le code pays, on l'enlève pour la validation
       let numberWithoutCountry = cleanNumber;
       if (countryCode && cleanNumber.startsWith(countryCode)) {
         numberWithoutCountry = cleanNumber.substring(countryCode.length);
       }
-      
+
       // Validation minimale de 9 chiffres pour tous les pays
       if (numberWithoutCountry.length < 9) {
-        console.log('[DEBUG] Numéro trop court:', numberWithoutCountry.length, 'chiffres (minimum 9 requis)');
+        console.log(
+          "[DEBUG] Numéro trop court:",
+          numberWithoutCountry.length,
+          "chiffres (minimum 9 requis)"
+        );
         return false;
       }
-      
+
       // Validation spécifique par pays si nécessaire
-      switch(countryCode) {
-        case '33': // France
+      switch (countryCode) {
+        case "33": // France
           // 9 chiffres (sans le 0) ou 10 chiffres (avec le 0)
           return [9, 10].includes(numberWithoutCountry.length);
-          
-        case '213': // Algérie
-        case '212': // Maroc
+
+        case "213": // Algérie
+        case "212": // Maroc
           // 9 chiffres (sans le 0) ou 10 chiffres (avec le 0)
           return [9, 10].includes(numberWithoutCountry.length);
-          
-        case '216': // Tunisie
+
+        case "216": // Tunisie
           // 8 chiffres (sans le 0) ou 9 chiffres (avec le 0)
           // On garde cette règle spécifique mais on applique le minimum de 9 chiffres
-          return numberWithoutCountry.length >= 9 && [8, 9].includes(numberWithoutCountry.length);
-          
+          return (
+            numberWithoutCountry.length >= 9 &&
+            [8, 9].includes(numberWithoutCountry.length)
+          );
+
         default:
           // Pour les autres pays: minimum 9 chiffres, maximum 13 chiffres (sans le code pays)
-          return numberWithoutCountry.length >= 9 && numberWithoutCountry.length <= 13;
+          return (
+            numberWithoutCountry.length >= 9 &&
+            numberWithoutCountry.length <= 13
+          );
       }
     }
 
     function isValidPhoneNumber(str) {
-      if (!str || typeof str !== 'string') return false;
-      
-      console.log('[DEBUG] Validation du numéro:', str);
-      
+      if (!str || typeof str !== "string") return false;
+
+      console.log("[DEBUG] Validation du numéro:", str);
+
       // Nettoyer le numéro (supprimer tous les caractères non numériques sauf le +)
       const cleaned = cleanPhoneNumber(str);
       if (!cleaned) {
-        console.log('[DEBUG] Numéro vide après nettoyage');
+        console.log("[DEBUG] Numéro vide après nettoyage");
         return false;
       }
-      
+
       // Récupérer le code pays
       let country = "";
       if (window.getPlanityCountryCode) {
         country = window.getPlanityCountryCode().replace("+", "");
-        console.log('[DEBUG] Code pays détecté (Planity):', country);
+        console.log("[DEBUG] Code pays détecté (Planity):", country);
       } else if (window.iti && window.iti.getSelectedCountryData) {
         country = window.iti.getSelectedCountryData().dialCode;
-        console.log('[DEBUG] Code pays détecté (intl-tel):', country);
+        console.log("[DEBUG] Code pays détecté (intl-tel):", country);
       } else {
-        console.log('[DEBUG] Aucun code pays détecté');
+        console.log("[DEBUG] Aucun code pays détecté");
       }
-      
+
       // Si on a un code pays, on valide en conséquence
       if (country) {
         // Validation de la longueur en fonction du pays
         const isValidLength = validatePhoneLength(cleaned, country);
-        console.log('[DEBUG] Longueur valide pour', country, ':', isValidLength);
-        
+        console.log(
+          "[DEBUG] Longueur valide pour",
+          country,
+          ":",
+          isValidLength
+        );
+
         if (!isValidLength) {
-          console.log('[DEBUG] Longueur invalide pour le pays', country, 'numéro', cleaned);
+          console.log(
+            "[DEBUG] Longueur invalide pour le pays",
+            country,
+            "numéro",
+            cleaned
+          );
           return false;
         }
-        
+
         // Préparer le numéro pour validation (sans code pays)
         let numberWithoutCountry = cleaned;
-        
+
         // Supprimer le code pays s'il est présent au début
         if (cleaned.startsWith(country)) {
           numberWithoutCountry = cleaned.substring(country.length);
-        } else if (cleaned.startsWith('0' + country)) {
+        } else if (cleaned.startsWith("0" + country)) {
           numberWithoutCountry = cleaned.substring(country.length + 1);
-        } else if (cleaned.startsWith('00' + country)) {
+        } else if (cleaned.startsWith("00" + country)) {
           numberWithoutCountry = cleaned.substring(country.length + 2);
-        } else if (cleaned.startsWith('+')) {
+        } else if (cleaned.startsWith("+")) {
           // Si le numéro commence par + mais pas par le code pays, on le supprime
           numberWithoutCountry = cleaned.substring(1);
         }
-        
+
         // Supprimer les espaces et caractères spéciaux restants
-        numberWithoutCountry = numberWithoutCountry.replace(/[^0-9]/g, '');
-        
-        console.log('[DEBUG] Numéro sans code pays:', numberWithoutCountry);
-        
+        numberWithoutCountry = numberWithoutCountry.replace(/[^0-9]/g, "");
+
+        console.log("[DEBUG] Numéro sans code pays:", numberWithoutCountry);
+
         // Validation spécifique par pays
-        switch(country) {
-          case '33': // France
+        switch (country) {
+          case "33": // France
             // Format accepté : 6 ou 7 suivi de 8 chiffres (avec ou sans 0 initial)
-            const frValid = /^[67]\d{8}$/.test(numberWithoutCountry) || 
-                          /^0[67]\d{8}$/.test(numberWithoutCountry);
-            console.log('[DEBUG] Validation France:', frValid);
+            const frValid =
+              /^[67]\d{8}$/.test(numberWithoutCountry) ||
+              /^0[67]\d{8}$/.test(numberWithoutCountry);
+            console.log("[DEBUG] Validation France:", frValid);
             return frValid;
-            
-          case '213': // Algérie
-          case '212': // Maroc
+
+          case "213": // Algérie
+          case "212": // Maroc
             // Format accepté : 5, 6 ou 7 suivi de 8 chiffres (avec ou sans 0 initial)
-            const dzmaValid = /^[5-7]\d{8}$/.test(numberWithoutCountry) || 
-                            /^0[5-7]\d{8}$/.test(numberWithoutCountry);
-            console.log('[DEBUG] Validation Algérie/Maroc:', dzmaValid);
+            const dzmaValid =
+              /^[5-7]\d{8}$/.test(numberWithoutCountry) ||
+              /^0[5-7]\d{8}$/.test(numberWithoutCountry);
+            console.log("[DEBUG] Validation Algérie/Maroc:", dzmaValid);
             return dzmaValid;
-            
-          case '216': // Tunisie
+
+          case "216": // Tunisie
             // Format accepté : 8 chiffres (avec ou sans 0 initial)
-            const tnValid = /^\d{8}$/.test(numberWithoutCountry) || 
-                          /^0\d{8}$/.test(numberWithoutCountry);
-            console.log('[DEBUG] Validation Tunisie:', tnValid);
+            const tnValid =
+              /^\d{8}$/.test(numberWithoutCountry) ||
+              /^0\d{8}$/.test(numberWithoutCountry);
+            console.log("[DEBUG] Validation Tunisie:", tnValid);
             return tnValid;
-            
+
           default:
             // Pour les autres pays: entre 6 et 13 chiffres
-            const defaultValid = numberWithoutCountry.length >= 6 && 
-                               numberWithoutCountry.length <= 13;
-            console.log('[DEBUG] Validation autre pays:', defaultValid);
+            const defaultValid =
+              numberWithoutCountry.length >= 6 &&
+              numberWithoutCountry.length <= 13;
+            console.log("[DEBUG] Validation autre pays:", defaultValid);
             return defaultValid;
         }
       }
-      
+
       // Si pas de code pays, on fait une validation générique
-      const digitsOnly = cleaned.replace(/[^0-9]/g, '');
+      const digitsOnly = cleaned.replace(/[^0-9]/g, "");
       const genericValid = digitsOnly.length >= 6 && digitsOnly.length <= 15;
-      console.log('[DEBUG] Validation générique:', genericValid);
-      
+      console.log("[DEBUG] Validation générique:", genericValid);
+
       return genericValid;
     }
 
@@ -2588,10 +3080,13 @@ case 2:
       function validateField(input, type) {
         // Vérifier si l'input est null ou undefined
         if (!input) {
-          console.error("❌ [ERREUR] L'élément input est null ou undefined pour le type:", type);
+          console.error(
+            "❌ [ERREUR] L'élément input est null ou undefined pour le type:",
+            type
+          );
           return false;
         }
-        
+
         let valid = true;
         // Vérifier que input.value existe avant de l'utiliser
         let value = input && input.value ? input.value : "";
@@ -2675,9 +3170,11 @@ case 2:
             valid = false;
             if (touched.phone) {
               // Toujours utiliser l'input caché comme référence pour le téléphone
-              const phoneInput = document.getElementById('client-phone') || 
-                               (window.simpleCountrySelector?.container?.querySelector(".simple-phone-input"));
-             
+              const phoneInput =
+                document.getElementById("client-phone") ||
+                window.simpleCountrySelector?.container?.querySelector(
+                  ".simple-phone-input"
+                );
             }
             console.log("🔍 [DEBUG] Téléphone vide - invalide");
           } else {
@@ -2710,7 +3207,7 @@ case 2:
             // Validation stricte même pendant la saisie
             if (phoneValue.length > 0) {
               // Compter uniquement les chiffres pour la validation
-              const digitCount = phoneValue.replace(/\D/g, '').length;
+              const digitCount = phoneValue.replace(/\D/g, "").length;
               if (digitCount < 9) {
                 console.log(
                   `⏳ [DEBUG] Numéro trop court: ${digitCount} chiffres (minimum 9 requis)`
@@ -2718,9 +3215,7 @@ case 2:
                 validIntl = false;
                 validCustom = false;
               } else {
-                console.log(
-                  `✅ [DEBUG] Numéro valide: ${digitCount} chiffres`
-                );
+                console.log(`✅ [DEBUG] Numéro valide: ${digitCount} chiffres`);
               }
             }
 
@@ -2735,43 +3230,50 @@ case 2:
             });
 
             valid = validIntl && validCustom;
-            
-            console.log('[DEBUG] Validation du téléphone:', {
+
+            console.log("[DEBUG] Validation du téléphone:", {
               phoneValue,
               valid,
               validIntl,
               validCustom,
               touched: touched.phone,
-              hasError: !valid && touched.phone
+              hasError: !valid && touched.phone,
             });
-            
+
             // Afficher directement un message d'erreur si la validation échoue
             if (!valid && touched.phone) {
-              console.log('[DEBUG] Affichage du message d\'erreur');
+              console.log("[DEBUG] Affichage du message d'erreur");
               // Récupérer ou créer le conteneur d'erreur
-              console.log('[DEBUG] Recherche du conteneur d\'erreur...');
-              
+              console.log("[DEBUG] Recherche du conteneur d'erreur...");
+
               // Trouver le conteneur parent du champ téléphone
-              const phoneFieldContainer = document.querySelector('.phone-field-with-country');
+              const phoneFieldContainer = document.querySelector(
+                ".phone-field-with-country"
+              );
               if (!phoneFieldContainer) {
-                console.error('[ERREUR] Conteneur du champ téléphone introuvable');
+                console.error(
+                  "[ERREUR] Conteneur du champ téléphone introuvable"
+                );
                 return;
               }
-              
+
               let errorContainer = phoneFieldContainer.nextElementSibling;
-              
+
               // Vérifier si le prochain élément est déjà notre conteneur d'erreur
-              if (!errorContainer || !errorContainer.classList.contains('phone-error-container')) {
-                console.log('[DEBUG] Création d\'un nouveau conteneur d\'erreur');
-                errorContainer = document.createElement('div');
-                errorContainer.className = 'phone-error-container';
-                errorContainer.style.marginTop = '10px';
-                errorContainer.style.padding = '8px';
-                errorContainer.style.backgroundColor = '#fef2f2';
-                errorContainer.style.borderLeft = '4px solid #dc2626';
-                errorContainer.style.borderRadius = '4px';
-                errorContainer.style.display = 'block';
-                
+              if (
+                !errorContainer ||
+                !errorContainer.classList.contains("phone-error-container")
+              ) {
+                console.log("[DEBUG] Création d'un nouveau conteneur d'erreur");
+                errorContainer = document.createElement("div");
+                errorContainer.className = "phone-error-container";
+                errorContainer.style.marginTop = "10px";
+                errorContainer.style.padding = "8px";
+                errorContainer.style.backgroundColor = "#fef2f2";
+                errorContainer.style.borderLeft = "4px solid #dc2626";
+                errorContainer.style.borderRadius = "4px";
+                errorContainer.style.display = "block";
+
                 // Ajouter le message d'erreur
                 errorContainer.innerHTML = `
                   <div style="display: flex; align-items: center; color: #dc2626; font-size: 0.9em;">
@@ -2783,28 +3285,44 @@ case 2:
                     <span>Numéro de téléphone invalide</span>
                   </div>
                 `;
-                
+
                 // Insérer après le champ téléphone
-                console.log('[DEBUG] Recherche du champ téléphone...');
-                const phoneField = document.querySelector('.phone-field-with-country');
-                console.log('[DEBUG] Champ téléphone trouvé:', phoneField);
+                console.log("[DEBUG] Recherche du champ téléphone...");
+                const phoneField = document.querySelector(
+                  ".phone-field-with-country"
+                );
+                console.log("[DEBUG] Champ téléphone trouvé:", phoneField);
                 if (phoneField && phoneField.parentNode) {
-                  console.log('[DEBUG] Insertion du message d\'erreur après le champ téléphone');
-                  phoneField.parentNode.insertBefore(errorContainer, phoneField.nextSibling);
+                  console.log(
+                    "[DEBUG] Insertion du message d'erreur après le champ téléphone"
+                  );
+                  phoneField.parentNode.insertBefore(
+                    errorContainer,
+                    phoneField.nextSibling
+                  );
                 }
               } else {
                 // Le conteneur existe déjà, on s'assure qu'il est visible
-                errorContainer.style.display = 'block';
+                errorContainer.style.display = "block";
               }
             } else {
               // Cacher le message d'erreur si la validation réussit
-              console.log('[DEBUG] Validation réussie, masquage du message d\'erreur');
-              const phoneFieldContainer = document.querySelector('.phone-field-with-country');
+              console.log(
+                "[DEBUG] Validation réussie, masquage du message d'erreur"
+              );
+              const phoneFieldContainer = document.querySelector(
+                ".phone-field-with-country"
+              );
               if (phoneFieldContainer) {
                 const errorContainer = phoneFieldContainer.nextElementSibling;
-                if (errorContainer && errorContainer.classList.contains('phone-error-container')) {
-                  console.log('[DEBUG] Masquage du conteneur d\'erreur existant');
-                  errorContainer.style.display = 'none';
+                if (
+                  errorContainer &&
+                  errorContainer.classList.contains("phone-error-container")
+                ) {
+                  console.log(
+                    "[DEBUG] Masquage du conteneur d'erreur existant"
+                  );
+                  errorContainer.style.display = "none";
                 }
               }
             }
@@ -2815,34 +3333,49 @@ case 2:
 
       function validateAll() {
         let valid = true;
-        
+
         // Vérifier que tous les champs d'entrée sont valides avant de les utiliser
         const inputs = {
           firstname: firstnameInput,
           lastname: lastnameInput,
           email: emailInput,
-          phone: phoneInput
+          phone: phoneInput,
         };
-        
+
         // Valider chaque champ s'il existe
-        const firstnameValid = inputs.firstname ? validateField(inputs.firstname, "firstname") : false;
-        const lastnameValid = inputs.lastname ? validateField(inputs.lastname, "lastname") : false;
-        const emailValid = inputs.email ? validateField(inputs.email, "email") : false;
-        const phoneValid = inputs.phone ? validateField(inputs.phone, "phone") : false;
-        
+        const firstnameValid = inputs.firstname
+          ? validateField(inputs.firstname, "firstname")
+          : false;
+        const lastnameValid = inputs.lastname
+          ? validateField(inputs.lastname, "lastname")
+          : false;
+        const emailValid = inputs.email
+          ? validateField(inputs.email, "email")
+          : false;
+        const phoneValid = inputs.phone
+          ? validateField(inputs.phone, "phone")
+          : false;
+
         // Journaliser si des champs sont manquants
         Object.entries(inputs).forEach(([name, input]) => {
           if (!input) {
-            console.error(`❌ [ERREUR] Le champ ${name} est null ou non trouvé`);
+            console.error(
+              `❌ [ERREUR] Le champ ${name} est null ou non trouvé`
+            );
           }
         });
 
         // Vérifier la case de politique de confidentialité
         const privacyCheckbox = document.getElementById("client-privacy");
         const privacyValid = privacyCheckbox ? privacyCheckbox.checked : false;
-        
+
         // Si la case est cochée et que l'email est vide, on le marque comme touché pour afficher l'erreur
-        if (privacyCheckbox && privacyCheckbox.checked && emailInput && emailInput.value.trim() === '') {
+        if (
+          privacyCheckbox &&
+          privacyCheckbox.checked &&
+          emailInput &&
+          emailInput.value.trim() === ""
+        ) {
           touched.email = true;
         }
 
@@ -2879,20 +3412,22 @@ case 2:
             validateField(input, type);
             validateAll();
           });
-          
+
           input.addEventListener("input", function () {
             if (touched[type]) validateField(input, type);
             validateAll();
           });
-          
+
           console.log(` [Écouteurs d'événements ajoutés pour le champ ${type}`);
         } else {
-          console.error(` [Impossible d'ajouter les écouteurs d'événements pour le champ ${type}: input non trouvé`);
+          console.error(
+            ` [Impossible d'ajouter les écouteurs d'événements pour le champ ${type}: input non trouvé`
+          );
         }
       });
 
       // Valider l'email avant de passer au champ téléphone
-      phoneInput.addEventListener("focus", function() {
+      phoneInput.addEventListener("focus", function () {
         if (emailInput) {
           // Si l'email n'a pas encore été touché, on le marque comme touché
           if (!touched.email) {
@@ -2906,17 +3441,21 @@ case 2:
       // Empêche la saisie de chiffres dans nom/prénom
       [
         { input: firstnameInput, name: "prénom" },
-        { input: lastnameInput, name: "nom" }
+        { input: lastnameInput, name: "nom" },
       ].forEach(({ input, name }) => {
         if (input) {
           input.addEventListener("keypress", function (e) {
             if (/[0-9]/.test(e.key)) {
-              console.log(` [Tentative de saisie d'un chiffre dans le champ ${name} bloquée`);
+              console.log(
+                ` [Tentative de saisie d'un chiffre dans le champ ${name} bloquée`
+              );
               e.preventDefault();
             }
           });
         } else {
-          console.error(` [Impossible d'ajouter la validation pour le champ ${name}: input non trouvé`);
+          console.error(
+            ` [Impossible d'ajouter la validation pour le champ ${name}: input non trouvé`
+          );
         }
       });
 
@@ -2926,19 +3465,24 @@ case 2:
         phoneInput.addEventListener("keypress", function (e) {
           // Autorise uniquement les chiffres, espaces, tirets et points
           if (!/[0-9\s\-\.]/.test(e.key)) {
-            console.log(" [Caractère non autorisé dans le champ téléphone:", e.key);
+            console.log(
+              " [Caractère non autorisé dans le champ téléphone:",
+              e.key
+            );
             e.preventDefault();
             return false;
           }
         });
 
         // Nettoyage supplémentaire sur le collage (paste) et la validation
-        phoneInput.addEventListener('paste', function(e) {
+        phoneInput.addEventListener("paste", function (e) {
           console.log(" [Collage détecté dans le champ téléphone");
           // Récupère les données collées
-          const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+          const pastedData = (e.clipboardData || window.clipboardData).getData(
+            "text"
+          );
           console.log(" [Données collées:", pastedData);
-          
+
           // Vérifie si des caractères non autorisés sont présents
           if (/[^0-9\s\-\.]/.test(pastedData)) {
             console.log(" [Données collées non autorisées, collage bloqué");
@@ -2949,12 +3493,14 @@ case 2:
         });
 
         // Nettoyage de la valeur lors de la perte de focus
-        phoneInput.addEventListener('blur', function() {
-          console.log(" [Perte de focus du champ téléphone, nettoyage en cours...");
+        phoneInput.addEventListener("blur", function () {
+          console.log(
+            " [Perte de focus du champ téléphone, nettoyage en cours..."
+          );
           // Supprime tous les caractères non numériques sauf les espaces, tirets et points
           const oldValue = this.value;
-          this.value = this.value.replace(/[^0-9\s\-\.]/g, '');
-          
+          this.value = this.value.replace(/[^0-9\s\-\.]/g, "");
+
           if (oldValue !== this.value) {
             console.log(" [Valeur nettoyée:", this.value);
           }
@@ -2966,9 +3512,9 @@ case 2:
       if (privacyCheckbox) {
         privacyCheckbox.addEventListener("change", function () {
           // Si on coche la case et que l'email est vide, on le marque comme touché
-          if (this.checked && emailInput && emailInput.value.trim() === '') {
+          if (this.checked && emailInput && emailInput.value.trim() === "") {
             touched.email = true;
-            validateField(emailInput, 'email');
+            validateField(emailInput, "email");
           }
           validateAll();
         });
@@ -3009,8 +3555,10 @@ case 2:
           });
 
           // Nettoyage supplémentaire sur le collage (paste) pour le champ personnalisé
-          customPhoneInput.addEventListener('paste', function(e) {
-            const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+          customPhoneInput.addEventListener("paste", function (e) {
+            const pastedData = (
+              e.clipboardData || window.clipboardData
+            ).getData("text");
             if (/[^0-9\s\-\.]/.test(pastedData)) {
               e.preventDefault();
               return false;
@@ -3018,8 +3566,8 @@ case 2:
           });
 
           // Nettoyage de la valeur lors de la perte de focus pour le champ personnalisé
-          customPhoneInput.addEventListener('blur', function() {
-            this.value = this.value.replace(/[^0-9\s\-\.]/g, '');
+          customPhoneInput.addEventListener("blur", function () {
+            this.value = this.value.replace(/[^0-9\s\-\.]/g, "");
           });
         }
       }
@@ -3089,15 +3637,49 @@ case 2:
           : "";
         updateBookingState();
         submitBtn.disabled = true;
+
+        // Préparer les données pour toutes les réservations du panier
+        const cartData = bookingState.cart.map((item) => ({
+          service_id: item.service.id,
+          employee_id: item.employee.id,
+          date: item.date,
+          slot: item.slot, // item.slot est déjà une string, pas un objet
+          price: item.price || 0,
+        }));
+
+        console.log("📤 Données envoyées:", {
+          cartData: cartData,
+          cart: bookingState.cart,
+          firstname: firstnameInput.value,
+          lastname: lastnameInput.value,
+          email: emailInput.value,
+          phone: bookingState.client.phone,
+        });
+
+        // Debug détaillé du panier
+        console.log("🔍 Debug détaillé du panier:");
+        bookingState.cart.forEach((item, index) => {
+          console.log(`📦 Item ${index}:`, {
+            service: item.service,
+            employee: item.employee,
+            date: item.date,
+            slot: item.slot,
+            price: item.price,
+          });
+        });
+
+        // Debug détaillé des données cartData
+        console.log("🔍 Debug détaillé des cartData:");
+        cartData.forEach((item, index) => {
+          console.log(`📤 CartData ${index}:`, item);
+        });
+
         jQuery.ajax({
           url: window.ajaxurl,
           type: "POST",
           data: {
-            action: "add_booking",
-            service_id: bookingState.selectedService.id,
-            employee_id: bookingState.selectedEmployee.id,
-            date: bookingState.selectedDate,
-            slot: bookingState.selectedSlot,
+            action: "add_multiple_bookings",
+            bookings: cartData,
             firstname: firstnameInput.value,
             lastname: lastnameInput.value,
             email: emailInput.value ? emailInput.value : "",
@@ -3120,8 +3702,8 @@ case 2:
               typeof response.success
             );
             if (response.success) {
-              console.log("Ticket: goToStep(5)");
-              goToStep(5); // Afficher le ticket
+              console.log("Ticket: goToStep(6)");
+              goToStep(6); // Afficher le ticket
             } else {
               console.warn(
                 "Réservation échouée, message:",
@@ -3361,25 +3943,25 @@ case 2:
 
   // Fonction utilitaire pour nettoyer et formater un numéro de téléphone en temps réel
   function formatPhoneInput(input) {
-    if (!input) return '';
-    
+    if (!input) return "";
+
     // Récupérer la position du curseur
     const start = input.selectionStart;
     const end = input.selectionEnd;
-    
+
     // Récupérer la valeur actuelle
     let value = input.value;
-    
+
     // Nettoyer la valeur (conserver uniquement les chiffres et le + initial)
     const cleaned = cleanPhoneNumber(value);
-    
+
     // Mettre à jour la valeur nettoyée
     input.value = cleaned;
-    
+
     // Restaurer la position du curseur en tenant compte des caractères supprimés
     const diff = value.length - cleaned.length;
     input.setSelectionRange(Math.max(0, start - diff), Math.max(0, end - diff));
-    
+
     return cleaned;
   }
 
@@ -3494,10 +4076,10 @@ case 2:
       const phoneInput = container.querySelector(".simple-phone-input");
       if (phoneInput) {
         // Ajouter des attributs pour le contrôle de la saisie
-        phoneInput.setAttribute('inputmode', 'tel');
-        phoneInput.setAttribute('pattern', '[0-9+]*');
-        phoneInput.setAttribute('autocomplete', 'tel');
-        
+        phoneInput.setAttribute("inputmode", "tel");
+        phoneInput.setAttribute("pattern", "[0-9+]*");
+        phoneInput.setAttribute("autocomplete", "tel");
+
         // Fonction pour obtenir la longueur maximale selon le pays
         function getMaxPhoneLength() {
           let country = "";
@@ -3506,43 +4088,45 @@ case 2:
           } else if (window.iti && window.iti.getSelectedCountryData) {
             country = window.iti.getSelectedCountryData().dialCode;
           }
-          
+
           // Longueur maximale en fonction du pays (uniquement pour le numéro, sans le code pays)
           const maxLengths = {
-            '33': 10,   // France: 9 ou 10 chiffres (avec/sans 0 initial)
-            '213': 10,  // Algérie: 9 ou 10 chiffres
-            '212': 10,  // Maroc: 9 ou 10 chiffres
-            '216': 9    // Tunisie: 8 ou 9 chiffres
+            33: 10, // France: 9 ou 10 chiffres (avec/sans 0 initial)
+            213: 10, // Algérie: 9 ou 10 chiffres
+            212: 10, // Maroc: 9 ou 10 chiffres
+            216: 9, // Tunisie: 8 ou 9 chiffres
           };
-          
+
           // Par défaut: 13 chiffres max (uniquement pour le numéro, sans le code pays)
           return maxLengths[country] || 13;
         }
 
         // Empêcher la saisie de caractères non numériques et limiter la longueur
-        phoneInput.addEventListener('keydown', function(e) {
+        phoneInput.addEventListener("keydown", function (e) {
           const currentValue = this.value;
           const selection = window.getSelection().toString();
-          
+
           // Autoriser : backspace, delete, tab, escape, enter, home, end, flèches
-          if ([8, 9, 13, 27, 35, 36, 37, 38, 39, 40].includes(e.keyCode) || 
-              // Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-              (e.ctrlKey === true && [65, 67, 86, 88].includes(e.keyCode))) {
+          if (
+            [8, 9, 13, 27, 35, 36, 37, 38, 39, 40].includes(e.keyCode) ||
+            // Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+            (e.ctrlKey === true && [65, 67, 86, 88].includes(e.keyCode))
+          ) {
             return;
           }
-          
+
           // Si la touche est suppr ou backspace, laisser faire
           if (e.keyCode === 46 || e.keyCode === 8) {
             return;
           }
-          
+
           // Vérifier la longueur maximale
           const maxLength = getMaxPhoneLength();
           if (currentValue.length >= maxLength && !selection) {
             e.preventDefault();
             return false;
           }
-          
+
           // Autoriser uniquement les chiffres et le signe +
           if (!/^[0-9+]$/.test(e.key)) {
             e.preventDefault();
@@ -3554,42 +4138,47 @@ case 2:
         phoneInput.addEventListener("input", function (e) {
           // Nettoyer et formater le numéro
           const cleanedValue = formatPhoneInput(this);
-          
+
           // Mettre à jour le champ caché avec la valeur nettoyée
           const hiddenInput = document.querySelector("#client-phone");
           if (hiddenInput) {
-            hiddenInput.value = window.getPhoneNumber ? window.getPhoneNumber() : cleanedValue;
+            hiddenInput.value = window.getPhoneNumber
+              ? window.getPhoneNumber()
+              : cleanedValue;
           }
-          
+
           // La validation complète se fera uniquement au blur
         });
-        
+
         // Gérer l'événement blur pour la validation finale
-        phoneInput.addEventListener("blur", function() {
+        phoneInput.addEventListener("blur", function () {
           const cleanedValue = cleanPhoneNumber(this.value);
           const isValid = isValidPhoneNumber(cleanedValue);
-          
-          
         });
-        
+
         // Prévenir le collage de texte non valide
-        phoneInput.addEventListener('paste', function(e) {
+        phoneInput.addEventListener("paste", function (e) {
           e.preventDefault();
-          const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+          const pastedText = (e.clipboardData || window.clipboardData).getData(
+            "text"
+          );
           const cleaned = cleanPhoneNumber(pastedText);
-          
+
           // Insérer le texte nettoyé à la position du curseur
           const start = this.selectionStart;
           const end = this.selectionEnd;
-          const newValue = this.value.substring(0, start) + cleaned + this.value.substring(end);
-          
+          const newValue =
+            this.value.substring(0, start) +
+            cleaned +
+            this.value.substring(end);
+
           // Mettre à jour la valeur et positionner le curseur
           this.value = newValue;
           const newCursorPos = start + cleaned.length;
           this.setSelectionRange(newCursorPos, newCursorPos);
-          
+
           // Déclencher l'événement input pour la validation
-          this.dispatchEvent(new Event('input'));
+          this.dispatchEvent(new Event("input"));
         });
       }
 
@@ -3720,7 +4309,7 @@ case 2:
       console.error("❌ Erreur lors de l'initialisation du sélecteur:", error);
     }
   } // Fin de la fonction initSimpleCountrySelector
-  
+
   // Démarrer l'initialisation
   initBookingWhenReady();
 })(); // Fin de la fonction auto-exécutée

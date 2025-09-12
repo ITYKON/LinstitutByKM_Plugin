@@ -797,6 +797,585 @@ h2 {
     display: none; /* Masquer la version mobile sur desktop */
   }
 }
+
+/* Styles pour l'étape panier */
+.cart-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.empty-cart {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6b7280;
+}
+
+.empty-cart-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  color: #d1d5db;
+}
+
+.empty-cart-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.empty-cart h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.empty-cart p {
+  margin-bottom: 2rem;
+  color: #6b7280;
+}
+
+.cart-items {
+  margin-bottom: 2rem;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  background: #f9fafb;
+  transition: all 0.2s ease;
+}
+
+.cart-item:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.cart-item-info {
+  flex: 1;
+}
+
+.cart-item-info h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.cart-item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.cart-item-details span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cart-item-info .price {
+  font-weight: 600;
+  color: #059669;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.remove-item-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-item-btn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.remove-item-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.cart-summary {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.cart-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.total-label {
+  color: #374151;
+}
+
+.total-price {
+  color: #059669;
+  font-size: 1.3rem;
+}
+
+.cart-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.btn-primary, .btn-secondary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  font-size: 1rem;
+}
+
+.btn-primary {
+  background: #1f2937;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #374151;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+.btn-primary svg, .btn-secondary svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Responsive pour le panier */
+@media (max-width: 768px) {
+  .cart-container {
+    padding: 1rem;
+    margin: 0 1rem;
+  }
+  
+  .cart-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .cart-item-details {
+    flex-direction: column;
+  }
+  
+  .cart-actions {
+    flex-direction: column;
+  }
+  
+  .btn-primary, .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Design Planity simple et minimaliste */
+.planity-simple-card {
+  max-width: 500px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.planity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.planity-header h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.planity-header a {
+  color: #007cba;
+  text-decoration: underline;
+  font-size: 0.9rem;
+}
+
+.planity-services {
+  margin-bottom: 20px;
+}
+
+.planity-service {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.planity-service:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.planity-service-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.planity-service-top h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  flex: 1;
+}
+
+.planity-service-top a {
+  color: #007cba;
+  text-decoration: underline;
+  font-size: 0.9rem;
+  margin-left: 12px;
+}
+
+.planity-service-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.planity-duration {
+  font-size: 0.9rem;
+  color: #666;
+  background: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.planity-price {
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.planity-service-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.planity-service-info div {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.planity-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-top: 1px solid #e0e0e0;
+  margin-bottom: 20px;
+}
+
+.planity-total span:first-child {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.planity-total-price {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #28a745;
+}
+
+.planity-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.planity-btn-grey {
+  background: #333;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 14px 20px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s;
+}
+
+.planity-btn-grey:hover {
+  background: #555;
+}
+
+.planity-btn-blue {
+  background: #007cba;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 14px 20px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s;
+}
+
+.planity-btn-blue:hover {
+  background: #005a87;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .planity-simple-card {
+    margin: 0 16px;
+    padding: 20px;
+  }
+  
+  .planity-service-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .planity-service-top a {
+    margin-left: 0;
+  }
+}
+
+/* Styles pour l'étape de confirmation */
+.confirmation-container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.ticket-success-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  background: #10b981;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.ticket-success-icon svg {
+  width: 40px;
+  height: 40px;
+}
+
+.ticket-success-badge {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #10b981;
+  margin-bottom: 1rem;
+}
+
+.ticket-success-message {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.confirmation-reservations {
+  margin-bottom: 2rem;
+}
+
+.confirmation-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  background: #f9fafb;
+  overflow: hidden;
+}
+
+.confirmation-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.confirmation-item-header h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.confirmation-item-header .price {
+  font-weight: 600;
+  color: #059669;
+  font-size: 1rem;
+}
+
+.confirmation-item-details {
+  padding: 1.5rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: #374151;
+  min-width: 100px;
+}
+
+.detail-value {
+  color: #111827;
+  text-align: right;
+  flex: 1;
+}
+
+.confirmation-summary {
+  border-top: 2px solid #e5e7eb;
+  padding-top: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.summary-row:last-child {
+  margin-bottom: 0;
+}
+
+.summary-label {
+  font-weight: 500;
+  color: #374151;
+}
+
+.summary-value {
+  color: #111827;
+}
+
+.total-row {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+  font-weight: 600;
+}
+
+.total-price {
+  color: #059669;
+  font-size: 1.2rem;
+}
+
+.empty-confirmation {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6b7280;
+}
+
+.empty-confirmation p {
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+/* Responsive pour la confirmation */
+@media (max-width: 768px) {
+  .confirmation-container {
+    padding: 1rem;
+    margin: 0 1rem;
+  }
+  
+  .confirmation-item-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .detail-value {
+    text-align: left;
+  }
+  
+  .summary-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .summary-value {
+    text-align: left;
+  }
+}
 </style>
 
 <!-- Script pour Progress Bar style Planity -->
@@ -855,11 +1434,16 @@ function getProgressBarHTML() {
 
           <div class="progress-step" data-step="4">
             <div class="progress-circle">4</div>
-            <div class="progress-label">Informations</div>
+            <div class="progress-label">Panier</div>
           </div>
 
           <div class="progress-step" data-step="5">
             <div class="progress-circle">5</div>
+            <div class="progress-label">Informations</div>
+          </div>
+
+          <div class="progress-step" data-step="6">
+            <div class="progress-circle">6</div>
             <div class="progress-label">Confirmation</div>
           </div>
         </div>
@@ -979,10 +1563,12 @@ function detectCurrentStep() {
       currentStep = 2;
     } else if (titleText.includes('date') || titleText.includes('heure') || titleText.includes('créneau')) {
       currentStep = 3;
-    } else if (titleText.includes('information') || titleText.includes('coordonnées') || titleText.includes('contact')) {
+    } else if (titleText.includes('panier') || titleText.includes('réservation') || titleText.includes('ajouter')) {
       currentStep = 4;
-    } else if (titleText.includes('confirmation') || titleText.includes('récapitulatif') || titleText.includes('valider')) {
+    } else if (titleText.includes('information') || titleText.includes('coordonnées') || titleText.includes('contact')) {
       currentStep = 5;
+    } else if (titleText.includes('confirmation') || titleText.includes('récapitulatif') || titleText.includes('valider')) {
+      currentStep = 6;
     }
   }
 
@@ -991,10 +1577,12 @@ function detectCurrentStep() {
     currentStep = 2;
   } else if (document.querySelector('.calendar, .time-slots, .date-picker')) {
     currentStep = 3;
-  } else if (document.querySelector('.contact-form, .customer-info')) {
+  } else if (document.querySelector('.cart-container, .booking-cart, .cart-item')) {
     currentStep = 4;
-  } else if (document.querySelector('.booking-summary, .confirmation')) {
+  } else if (document.querySelector('.contact-form, .customer-info')) {
     currentStep = 5;
+  } else if (document.querySelector('.booking-summary, .confirmation')) {
+    currentStep = 6;
   }
 
   // Mettre à jour si l'étape a changé

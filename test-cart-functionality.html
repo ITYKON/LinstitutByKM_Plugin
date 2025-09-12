@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test - Fonctionnalité Panier</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .test-container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      .test-title {
+        color: #333;
+        border-bottom: 2px solid #007cba;
+        padding-bottom: 10px;
+      }
+      .test-step {
+        margin: 15px 0;
+        padding: 10px;
+        background: #f8f9fa;
+        border-left: 4px solid #007cba;
+      }
+      .success {
+        color: #28a745;
+        font-weight: bold;
+      }
+      .error {
+        color: #dc3545;
+        font-weight: bold;
+      }
+      .info {
+        color: #17a2b8;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧪 Test de la Fonctionnalité Panier</h1>
+
+    <div class="test-container">
+      <h2 class="test-title">📋 Résumé des Modifications</h2>
+      <div class="test-step">
+        <strong>✅ Nouveau flux de réservation :</strong>
+        <ol>
+          <li><strong>Service</strong> - Sélection de la prestation</li>
+          <li><strong>Praticienne</strong> - Choix de la praticienne</li>
+          <li><strong>Date & Heure</strong> - Sélection du créneau</li>
+          <li>
+            <strong>Panier</strong> -
+            <span class="success">NOUVELLE ÉTAPE</span> - Validation du panier
+          </li>
+          <li>
+            <strong>Informations</strong> - Remplissage des coordonnées client
+          </li>
+          <li><strong>Confirmation</strong> - Validation finale et tickets</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="test-container">
+      <h2 class="test-title">🔧 Modifications Techniques</h2>
+
+      <div class="test-step">
+        <strong>Frontend (JavaScript) :</strong>
+        <ul>
+          <li>✅ Ajout du panier dans <code>bookingState.cart</code></li>
+          <li>
+            ✅ Fonctions de gestion du panier : <code>addToCart()</code>,
+            <code>removeFromCart()</code>, <code>clearCart()</code>
+          </li>
+          <li>✅ Nouvelle étape panier avec interface utilisateur</li>
+          <li>
+            ✅ Étape de confirmation mise à jour pour afficher toutes les
+            réservations
+          </li>
+          <li>✅ Barre de progression mise à jour (6 étapes au lieu de 5)</li>
+        </ul>
+      </div>
+
+      <div class="test-step">
+        <strong>Backend (PHP) :</strong>
+        <ul>
+          <li>
+            ✅ Nouveau handler AJAX :
+            <code>handle_add_multiple_bookings()</code>
+          </li>
+          <li>✅ Traitement des réservations multiples</li>
+          <li>✅ Gestion des conflits et validations</li>
+          <li>✅ Notifications et emails pour chaque réservation</li>
+        </ul>
+      </div>
+
+      <div class="test-step">
+        <strong>Interface (CSS/HTML) :</strong>
+        <ul>
+          <li>✅ Styles pour l'étape panier</li>
+          <li>✅ Styles pour l'étape de confirmation multiple</li>
+          <li>✅ Design responsive pour mobile et desktop</li>
+          <li>✅ Template HTML mis à jour avec 6 étapes</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="test-container">
+      <h2 class="test-title">🎯 Fonctionnalités du Panier</h2>
+
+      <div class="test-step">
+        <strong>✅ Ajout au panier :</strong>
+        <p>
+          Après sélection d'un créneau, la réservation est automatiquement
+          ajoutée au panier au lieu de passer directement aux informations.
+        </p>
+      </div>
+
+      <div class="test-step">
+        <strong>✅ Gestion du panier :</strong>
+        <ul>
+          <li>Visualisation de toutes les réservations</li>
+          <li>Suppression individuelle d'éléments</li>
+          <li>Calcul du total des prix</li>
+          <li>Possibilité d'ajouter d'autres réservations</li>
+        </ul>
+      </div>
+
+      <div class="test-step">
+        <strong>✅ Validation finale :</strong>
+        <p>
+          Toutes les réservations du panier sont soumises en une seule fois avec
+          les informations client.
+        </p>
+      </div>
+
+      <div class="test-step">
+        <strong>✅ Confirmation :</strong>
+        <p>
+          Affichage de toutes les réservations confirmées avec un ticket
+          téléchargeable.
+        </p>
+      </div>
+    </div>
+
+    <div class="test-container">
+      <h2 class="test-title">🚀 Instructions de Test</h2>
+
+      <div class="test-step">
+        <strong>1. Test du flux complet :</strong>
+        <ol>
+          <li>Accédez au formulaire de réservation</li>
+          <li>Sélectionnez une prestation</li>
+          <li>Choisissez une praticienne</li>
+          <li>Sélectionnez une date et un créneau</li>
+          <li>
+            <span class="info">→ Vous devriez arriver à l'étape panier</span>
+          </li>
+          <li>Vérifiez que la réservation apparaît dans le panier</li>
+          <li>Cliquez sur "Ajouter une autre réservation"</li>
+          <li>Répétez le processus pour une deuxième réservation</li>
+          <li>Continuez vers les informations</li>
+          <li>Remplissez les informations client</li>
+          <li>
+            Validez → Vous devriez voir toutes les réservations confirmées
+          </li>
+        </ol>
+      </div>
+
+      <div class="test-step">
+        <strong>2. Test des fonctionnalités du panier :</strong>
+        <ul>
+          <li>Suppression d'un élément du panier</li>
+          <li>Vérification du calcul du total</li>
+          <li>Navigation entre les étapes</li>
+        </ul>
+      </div>
+
+      <div class="test-step">
+        <strong>3. Test responsive :</strong>
+        <ul>
+          <li>Test sur mobile (largeur < 768px)</li>
+          <li>Test sur tablette et desktop</li>
+          <li>Vérification de l'affichage des barres de progression</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="test-container">
+      <h2 class="test-title">⚠️ Points d'Attention</h2>
+
+      <div class="test-step">
+        <strong>🔍 Vérifications importantes :</strong>
+        <ul>
+          <li>
+            Les réservations multiples sont bien enregistrées en base de données
+          </li>
+          <li>Les notifications admin sont créées pour chaque réservation</li>
+          <li>Les emails de remerciement sont envoyés</li>
+          <li>Les conflits de créneaux sont gérés correctement</li>
+          <li>Le panier se vide après validation</li>
+          <li>La navigation entre les étapes fonctionne correctement</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="test-container">
+      <h2 class="test-title">📝 Notes de Développement</h2>
+
+      <div class="test-step">
+        <strong>🔄 Compatibilité :</strong>
+        <p>
+          Le système reste compatible avec l'ancien flux de réservation unique.
+          Si le panier est vide, l'utilisateur peut toujours faire une
+          réservation simple.
+        </p>
+      </div>
+
+      <div class="test-step">
+        <strong>💾 Persistance :</strong>
+        <p>
+          Le panier est sauvegardé dans le localStorage pour persister entre les
+          sessions.
+        </p>
+      </div>
+
+      <div class="test-step">
+        <strong>🎨 Design :</strong>
+        <p>
+          L'interface suit le design existant du plugin avec des couleurs et
+          styles cohérents.
+        </p>
+      </div>
+    </div>
+
+    <div class="test-container">
+      <h2 class="test-title">✅ Statut du Développement</h2>
+      <div class="test-step">
+        <p class="success">
+          🎉 <strong>Fonctionnalité panier implémentée avec succès !</strong>
+        </p>
+        <p>
+          Toutes les modifications ont été apportées et le système est prêt pour
+          les tests.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      console.log("🧪 Page de test de la fonctionnalité panier chargée");
+      console.log(
+        "📋 Vérifiez la console pour d'éventuelles erreurs JavaScript"
+      );
+    </script>
+  </body>
+</html>

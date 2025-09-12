@@ -217,12 +217,35 @@ jQuery(document).ready(function ($) {
   }
 
   function selectSlot(slot) {
+    console.log("🎯 selectSlot appelée avec:", slot);
+    console.log("📋 État avant sélection:", {
+      selectedService: bookingState.selectedService,
+      selectedEmployee: bookingState.selectedEmployee,
+      selectedDate: bookingState.selectedDate,
+      selectedSlot: bookingState.selectedSlot,
+    });
+
     bookingState.selectedSlot = slot;
     updateBookingState();
-    // Passer à l'étape suivante
-    bookingState.step++;
-    renderStepContent();
-    renderActions();
+
+    console.log("📋 État après sélection:", {
+      selectedService: bookingState.selectedService,
+      selectedEmployee: bookingState.selectedEmployee,
+      selectedDate: bookingState.selectedDate,
+      selectedSlot: bookingState.selectedSlot,
+    });
+
+    // Au lieu de passer à l'étape suivante, ajouter au panier
+    if (typeof window.addToCart === "function") {
+      console.log("✅ addToCart disponible, appel en cours...");
+      window.addToCart();
+    } else {
+      console.log("❌ addToCart non disponible, fallback vers étape suivante");
+      // Fallback : passer à l'étape suivante si addToCart n'est pas disponible
+      bookingState.step++;
+      renderStepContent();
+      renderActions();
+    }
   }
 
   // Écouteur pour le changement de date

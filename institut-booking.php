@@ -715,6 +715,10 @@ function institut_booking_fullpage()
 add_action('wp_ajax_add_booking', 'handle_add_booking');
 add_action('wp_ajax_nopriv_add_booking', 'handle_add_booking');
 
+// Nouveau handler pour les réservations multiples
+add_action('wp_ajax_add_multiple_bookings', 'handle_add_multiple_bookings');
+add_action('wp_ajax_nopriv_add_multiple_bookings', 'handle_add_multiple_bookings');
+
 function handle_add_booking()
 {
     check_ajax_referer('ib_nonce', 'nonce');
@@ -806,6 +810,134 @@ function handle_add_booking()
         IB_Notifications::send_thank_you($booking_id);
     }
     wp_send_json_success(['message' => 'Réservation enregistrée !', 'booking_id' => $wpdb->insert_id]);
+}
+
+function handle_add_multiple_bookings()
+{
+    check_ajax_referer('ib_nonce', 'nonce');
+    
+    $bookings = isset($_POST['bookings']) ? $_POST['bookings'] : [];
+    $firstname = isset($_POST['firstname']) ? sanitize_text_field($_POST['firstname']) : '';
+    $lastname = isset($_POST['lastname']) ? sanitize_text_field($_POST['lastname']) : '';
+    $email = isset($_POST['email']) ? sanitize_email($_POST['email']) : '';
+    $phone = isset($_POST['phone']) ? sanitize_text_field($_POST['phone']) : '';
+    
+    // Debug logs
+    error_log("🔍 handle_add_multiple_bookings - Données reçues:");
+    error_log("📋 Bookings: " . print_r($bookings, true));
+    error_log("👤 Client: $firstname $lastname ($email) - $phone");
+    
+    if (empty($bookings) || !$firstname || !$lastname || !$phone) {
+        error_log("❌ Paramètres manquants - Bookings: " . (empty($bookings) ? 'VIDE' : 'OK') . ", Firstname: " . ($firstname ? 'OK' : 'VIDE') . ", Lastname: " . ($lastname ? 'OK' : 'VIDE') . ", Phone: " . ($phone ? 'OK' : 'VIDE'));
+        wp_send_json_error(['message' => 'Paramètres manquants']);
+        return;
+    }
+    
+    global $wpdb;
+    $successful_bookings = [];
+    $failed_bookings = [];
+    
+    // Créer ou récupérer le client d'abord
+    $client = $wpdb->get_row($wpdb->prepare("SELECT id FROM {$wpdb->prefix}ib_clients WHERE email = %s", $email));
+    $client_id = $client ? $client->id : 0;
+    if (!$client_id) {
+        $wpdb->insert("{$wpdb->prefix}ib_clients", [
+            'name' => $firstname . ' ' . $lastname,
+            'email' => $email,
+            'phone' => $phone,
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql')
+        ]);
+        $client_id = $wpdb->insert_id;
+    }
+    
+    // Traiter chaque réservation
+    foreach ($bookings as $booking_data) {
+        $service_id = intval($booking_data['service_id']);
+        $employee_id = intval($booking_data['employee_id']);
+        $date = sanitize_text_field($booking_data['date']);
+        $slot = sanitize_text_field($booking_data['slot']);
+        $price = floatval($booking_data['price']);
+        
+        if (!$service_id || !$employee_id || !$date || !$slot) {
+            $failed_bookings[] = "Réservation invalide: données manquantes";
+            continue;
+        }
+        
+        $start_time = $date . ' ' . $slot . ':00';
+        
+        // Contrôle anti-doublon
+        $exists = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}ib_bookings WHERE service_id = %d AND employee_id = %d AND date = %s AND start_time = %s AND client_email = %s",
+            $service_id,
+            $employee_id,
+            $date,
+            $start_time,
+            $email
+        ));
+        
+        if ($exists > 0) {
+            $failed_bookings[] = "Réservation déjà enregistrée pour ce créneau";
+            continue;
+        }
+        
+        // Vérification des conflits de créneaux
+        require_once plugin_dir_path(__FILE__) . '/includes/class-bookings.php';
+        $conflict = IB_Bookings::has_conflict($employee_id, $date, $slot);
+        if ($conflict) {
+            $failed_bookings[] = "Ce créneau est déjà réservé pour cette praticienne";
+            continue;
+        }
+        
+        // Ajouter la réservation
+        $add_result = IB_Bookings::add([
+            'service_id' => $service_id,
+            'employee_id' => $employee_id,
+            'client_id' => $client_id,
+            'client_name' => $firstname . ' ' . $lastname,
+            'client_email' => $email,
+            'client_phone' => $phone,
+            'date' => $date,
+            'start_time' => $start_time,
+            'status' => 'en_attente',
+            'price' => $price
+        ]);
+        
+        if ($add_result) {
+            $successful_bookings[] = $wpdb->insert_id;
+            
+            // Notification admin
+            $service = IB_Services::get_by_id($service_id);
+            $employee = IB_Employees::get_by_id($employee_id);
+            $msg = $firstname . ' ' . $lastname . ' a réservé ' . ($service ? $service->name : '') . ' le ' . $date . ' (' . ($employee ? $employee->name : '') . ')';
+            $link = 'https://linstitutbykm.com/wp-admin/admin.php?page=institut-booking-bookings';
+            if (function_exists('ib_add_notification')) {
+                ib_add_notification('reservation', $msg, 'admin', $link, 'unread');
+            }
+            
+            // Envoi email de remerciement
+            require_once plugin_dir_path(__FILE__) . '/includes/notifications.php';
+            IB_Notifications::send_thank_you($wpdb->insert_id);
+        } else {
+            $failed_bookings[] = "Impossible d'enregistrer la réservation";
+        }
+    }
+    
+    if (empty($successful_bookings)) {
+        wp_send_json_error(['message' => 'Aucune réservation n\'a pu être enregistrée']);
+        return;
+    }
+    
+    $message = count($successful_bookings) . ' réservation(s) enregistrée(s) avec succès';
+    if (!empty($failed_bookings)) {
+        $message .= '. ' . count($failed_bookings) . ' réservation(s) ont échoué';
+    }
+    
+    wp_send_json_success([
+        'message' => $message,
+        'successful_bookings' => $successful_bookings,
+        'failed_bookings' => $failed_bookings
+    ]);
 }
 
 

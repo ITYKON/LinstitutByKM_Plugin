@@ -419,8 +419,8 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
               <th style="cursor:pointer;min-width:120px;max-width:160px;white-space:normal;" data-sort="service">Service <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;min-width:110px;max-width:140px;white-space:normal;" data-sort="employee">Praticienne <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;min-width:110px;max-width:140px;white-space:nowrap;" data-sort="date">Date & Heure <span class="sort-arrow"></span></th>
-              <th style="cursor:pointer;min-width:100px;max-width:120px;white-space:nowrap;" data-sort="statut">Statut <span class="sort-arrow"></span></th>
               <th style="cursor:pointer;min-width:90px;max-width:110px;white-space:nowrap;" data-sort="price">Prix <span class="sort-arrow"></span></th>
+              <th style="cursor:pointer;min-width:100px;max-width:120px;white-space:nowrap;" data-sort="statut">Statut <span class="sort-arrow"></span></th>
               <th style="min-width:80px;max-width:100px;">Actions</th>
             </tr>
           </thead>
@@ -452,6 +452,12 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
                   }
                 ?>
               </td>
+              <td style="font-weight:700;color:#b95c8a;text-align:center;">
+                <?php
+                  $prix = isset($booking->price) ? $booking->price : 0;
+                  echo rtrim(rtrim(number_format($prix, 2, ',', ' '), '0'), ',') . ' DA';
+                ?>
+              </td>
               <td>
                 <form method="post" style="display:inline;">
                   <input type="hidden" name="change_status_booking_id" value="<?php echo $booking->id; ?>">
@@ -462,15 +468,6 @@ $employees = array_map(function($e) { return (object)$e; }, $employees);
                     <option value="annulee" <?php if($booking->status==='annulee') echo 'selected'; ?> style="background:#ffeaea;color:#e05c5c;">Annulée</option>
                     <option value="complete" <?php if($booking->status==='complete') echo 'selected'; ?> style="background:#e0e7ff;color:#4f46e5;">Complété</option>
                     <option value="no_show" <?php if($booking->status==='no_show') echo 'selected'; ?> style="background:#fbeee6;color:#bfa600;">No show</option>
-                  </select>
-                </form>
-              </td>
-              <td style="font-weight:700;color:#b95c8a;text-align:center;">
-                <?php
-                  $prix = isset($booking->price) ? $booking->price : 0;
-                  echo rtrim(rtrim(number_format($prix, 2, ',', ' '), '0'), ',') . ' DA';
-                ?>
-              </td>
                   </select>
                 </form>
               </td>

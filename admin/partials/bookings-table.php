@@ -15,14 +15,15 @@ $employees = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}ib_employees");
 <table class="ib-table-bookings" style="width:100%;background:#fff;border-radius:14px;box-shadow:0 2px 16px #e9aebc22;margin-bottom:2em;">
   <thead style="background:#fbeff2;">
     <tr>
-      <th style="color:#e9aebc;cursor:pointer;" data-sort="client">Cliente <span class="sort-arrow"></span></th>
-      <th style="cursor:pointer;" data-sort="email">Email <span class="sort-arrow"></span></th>
-      <th style="cursor:pointer;" data-sort="phone">Téléphone</th>
-      <th style="cursor:pointer;" data-sort="service">Service <span class="sort-arrow"></span></th>
-      <th style="cursor:pointer;" data-sort="employee">Employé <span class="sort-arrow"></span></th>
-      <th style="cursor:pointer;" data-sort="date">Date & Heure <span class="sort-arrow"></span></th>
-      <th style="cursor:pointer;" data-sort="status">Statut <span class="sort-arrow"></span></th>
-      <th>Actions</th>
+  <th style="color:#e9aebc;cursor:pointer;" data-sort="client">Cliente <span class="sort-arrow"></span></th>
+  <th style="cursor:pointer;" data-sort="email">Email <span class="sort-arrow"></span></th>
+  <th style="cursor:pointer;" data-sort="phone">Téléphone</th>
+  <th style="cursor:pointer;" data-sort="service">Service <span class="sort-arrow"></span></th>
+  <th style="cursor:pointer;" data-sort="employee">Employé <span class="sort-arrow"></span></th>
+  <th style="cursor:pointer;" data-sort="date">Date & Heure <span class="sort-arrow"></span></th>
+  <th style="cursor:pointer;" data-sort="status">Statut <span class="sort-arrow"></span></th>
+  <th>Prix</th>
+  <th>Actions</th>
     </tr>
   </thead>
   <tbody>
@@ -61,6 +62,7 @@ $employees = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}ib_employees");
               <?php echo esc_html($status_label); ?>
             </span>
           </td>
+          <td><?php echo isset($booking->price) ? esc_html($booking->price) . ' DA' : 'N/A'; ?></td>
           <td style="white-space:nowrap;">
             <a href="?page=institut-booking-bookings&action=edit&id=<?php echo $booking->id; ?>" class="button button-small">
               <span class="dashicons dashicons-edit" style="line-height:1.5;"></span>

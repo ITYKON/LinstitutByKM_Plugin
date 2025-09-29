@@ -523,6 +523,15 @@ window.scrollToProgressBar = function (callback, delay = 300) {
       let minTotalPrice = 0;
       let reservationsHtml = "";
 
+      // Vider le panier après affichage de la confirmation
+      setTimeout(() => {
+        bookingState.cart = [];
+        window.bookingState.cart = [];
+        localStorage.setItem(
+          "bookingState",
+          JSON.stringify(window.bookingState)
+        );
+      }, 500);
       bookingState.cart.forEach((item, index) => {
         const price = parseFloat(item.price) || 0;
         if (price > 0) {

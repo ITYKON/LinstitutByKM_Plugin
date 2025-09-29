@@ -1,3 +1,595 @@
+/* === PANIER PLANITY STYLE MODERNE === */
+.planity-cart-container {
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  background: #fff;
+  border-radius: 0;
+  box-shadow: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  border: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.planity-cart-header {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-right: 1rem;
+  padding-left: 1rem;
+}
+
+.planity-cart-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.planity-cart-count {
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+}
+
+.planity-cart-services {
+  padding: 0 1rem;
+  max-height: calc(100vh - 250px);
+  overflow-y: auto;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+.planity-cart-service {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+  max-width: 100%;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.planity-cart-service:hover {
+  background-color: #fafafa;
+}
+
+.planity-cart-service:last-child {
+  border-bottom: none;
+}
+
+.planity-cart-service-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
+  width: 100%;
+}
+
+.planity-cart-service-header .service-info h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.planity-cart-service-header .service-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.planity-cart-service-header .service-price {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 600;
+  color: #111827;
+  font-size: 1.125rem;
+}
+
+.planity-cart-service-header .planity-remove-service {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.planity-cart-service-header .planity-remove-service:hover {
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+.planity-cart-service-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.planity-cart-service-price {
+  font-weight: 700;
+  color: #111827;
+  font-size: 1.125rem;
+}
+
+.planity-cart-service-meta {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.planity-cart-service-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-left: 0.5rem;
+  border-left: 2px solid #e5e7eb;
+  margin-left: 0.5rem;
+}
+
+.planity-cart-service-date {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  transition: all 0.2s;
+}
+
+.planity-cart-service-date:hover {
+  background: #f3f4f6;
+}
+
+.planity-cart-service-date .date-time {
+  display: flex;
+  flex-direction: column;
+}
+
+.planity-cart-service-date .date {
+  font-weight: 500;
+  color: #111827;
+  font-size: 0.9375rem;
+}
+
+.planity-cart-service-date .time {
+  color: #4b5563;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.date-time {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.date-time .date {
+  font-weight: 500;
+  color: #111827;
+  font-size: 0.9375rem;
+}
+
+.date-time .time {
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.planity-remove-btn {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  color: #9ca3af;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.planity-remove-btn:hover {
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+.planity-cart-service-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.planity-remove-service {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  transition: color 0.2s;
+}
+
+.planity-remove-service:hover {
+  color: #ef4444;
+}
+
+.planity-remove-service svg {
+  width: 16px;
+  height: 16px;
+}
+
+.planity-cart-summary {
+  background: #fff;
+  padding: 1.5rem 1rem;
+  border-top: 1px solid #f0f0f0;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.planity-cart-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.planity-cart-total-amount {
+  color: #111827;
+  font-size: 1.25rem;
+}
+
+.planity-cart-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.planity-btn-primary,
+.planity-btn-secondary {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  border: none;
+  white-space: nowrap;
+}
+
+.planity-btn-primary {
+  background: #111827;
+  color: white;
+}
+
+.planity-btn-primary:hover {
+  background: #1f2937;
+  transform: translateY(-1px);
+}
+
+.planity-btn-secondary {
+  background: white;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+}
+
+.planity-btn-secondary:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.planity-btn-primary,
+.planity-btn-secondary {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  border: none;
+  white-space: nowrap;
+}
+
+.planity-btn-primary {
+  background: #111827;
+  color: white;
+}
+
+.planity-btn-primary:hover {
+  background: #1f2937;
+  transform: translateY(-1px);
+}
+
+.planity-btn-secondary {
+  background: white;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+}
+
+.planity-btn-secondary:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+/* Scrollbar styling */
+.planity-cart-services::-webkit-scrollbar {
+  width: 6px;
+}
+
+.planity-cart-services::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.planity-cart-services::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.planity-cart-services::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Empty cart state */
+.planity-empty-cart {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.planity-empty-cart-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  color: #d1d5db;
+}
+
+.planity-empty-cart h3 {
+  font-size: 1.25rem;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.planity-empty-cart p {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .planity-cart-header,
+  .planity-cart-services,
+  .planity-cart-summary {
+    max-width: 100%;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .planity-cart-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .planity-btn-primary,
+  .planity-btn-secondary {
+    width: 100%;
+  }
+
+  .planity-cart-service-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .planity-cart-service-price {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .planity-cart-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .planity-cart-service {
+    padding: 1.25rem 0;
+  }
+
+  .planity-cart-summary {
+    padding: 1.25rem 1.5rem;
+  }
+}
+
+/* === ANCIEN STYLE DE PANIER (à conserver pour compatibilité) === */
+.booking-cart,
+#booking-cart,
+.selected-services-cart {
+  background: #fff !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 12px #e5e7eb33 !important;
+  border: 1.5px solid #f3f4f6 !important;
+  color: #111827 !important;
+  padding: 1.2em 1em !important;
+}
+
+.booking-cart-title,
+.selected-services-cart-title {
+  color: #111827 !important;
+  font-weight: 700 !important;
+  font-size: 1.1em !important;
+  margin-bottom: 0.7em !important;
+  letter-spacing: 0.01em;
+  background: #f8f8f8 !important;
+  border-radius: 12px !important;
+  padding: 0.7em 1em !important;
+  border: none !important;
+}
+
+.booking-cart-remove,
+.selected-services-cart-remove,
+.booking-cart a.remove,
+.selected-services-cart a.remove {
+  color: #6b7280 !important;
+  font-size: 0.97em !important;
+  text-decoration: underline !important;
+  background: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: color 0.18s;
+  margin-left: 0.7em;
+}
+.booking-cart-remove:hover,
+.selected-services-cart-remove:hover,
+.booking-cart a.remove:hover,
+.selected-services-cart a.remove:hover {
+  color: #111827 !important;
+}
+
+.booking-cart-service,
+.selected-services-cart-service {
+  background: #fff !important;
+  border-radius: 12px !important;
+  border: 1px solid #f3f4f6 !important;
+  margin-bottom: 1em !important;
+  padding: 0.7em 1em !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+}
+
+.booking-cart-service-duration,
+.selected-services-cart-service-duration {
+  background: #f3f4f6 !important;
+  color: #6b7280 !important;
+  border-radius: 8px !important;
+  font-size: 0.97em !important;
+  font-weight: 600 !important;
+  padding: 0.2em 0.9em !important;
+  margin-right: 0.7em !important;
+  display: inline-block !important;
+}
+
+.booking-cart-service-price,
+.selected-services-cart-service-price {
+  color: #374151 !important;
+  font-weight: 600 !important;
+  font-size: 1em !important;
+  margin-left: 0.5em !important;
+}
+
+.booking-cart-total-label,
+.selected-services-cart-total-label {
+  color: #111827 !important;
+  font-weight: 700 !important;
+  font-size: 1.1em !important;
+}
+
+.booking-cart-total-value,
+.selected-services-cart-total-value {
+  color: #e11d48 !important; /* Rouge vif pour le total */
+  font-weight: 700 !important;
+  font-size: 1.1em !important;
+  margin-left: 0.5em !important;
+}
+
+.booking-cart-total-row,
+.selected-services-cart-total-row {
+  border-top: 1px solid #f3f4f6 !important;
+  margin: 1.2em 0 1em 0 !important;
+  padding-top: 1em !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.booking-cart .btn,
+.selected-services-cart .btn,
+.booking-cart button,
+.selected-services-cart button {
+  background: #111827 !important;
+  color: #fff !important;
+  border-radius: 12px !important;
+  border: none !important;
+  font-weight: 600 !important;
+  font-size: 1em !important;
+  padding: 1em 0.5em !important;
+  margin: 0.7em 0 0.2em 0 !important;
+  width: 100% !important;
+  box-shadow: none !important;
+  transition: background 0.18s, color 0.18s;
+}
+.booking-cart .btn:hover,
+.selected-services-cart .btn:hover,
+.booking-cart button:hover,
+.selected-services-cart button:hover {
+  background: #374151 !important;
+  color: #fff !important;
+}
+
+.booking-cart .btn-secondary,
+.selected-services-cart .btn-secondary {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+  border: none !important;
+  margin-top: 0.5em !important;
+}
+.booking-cart .btn-secondary:hover,
+.selected-services-cart .btn-secondary:hover {
+  background: #e5e7eb !important;
+  color: #111827 !important;
+}
 /* ===== HEADER MOBILE STYLE INSTITUT BY KM ===== */
 .mobile-header-institut {
   display: none;
@@ -804,7 +1396,7 @@ body {
 
   /* Forcer du contenu pour tester le scroll */
   .booking-main-content {
-    /* min-height: 150vh !important; */  
+    /* min-height: 150vh !important; */
   }
 
   /* S'assurer que le conteneur parent permet le sticky */
@@ -2799,7 +3391,7 @@ button[data-action="back"]:hover,
     border-left: none;
     border-right: none;
   }
-  
+
   #booking-step-content {
     padding: 0 !important;
     margin: 0 auto !important;
@@ -2989,7 +3581,7 @@ button[data-action="back"]:hover,
   align-items: center;
   justify-content: center;
   background: #f8f0f4;
-  color: #7B6F5B;
+  color: #7b6f5b;
   margin: 0 auto;
 }
 
@@ -3116,11 +3708,11 @@ button[data-action="back"]:hover,
     min-height: 180px !important;
     max-width: 100% !important;
   }
-  
+
   #employees-grid::-webkit-scrollbar {
     display: none !important;
   }
-  
+
   .employee-card-modern {
     flex: 0 0 110px !important;
     width: 110px !important;
@@ -3135,14 +3727,14 @@ button[data-action="back"]:hover,
     align-items: center !important;
     justify-content: flex-start !important;
     border-radius: 12px !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
     transition: all 0.2s ease !important;
   }
-  
+
   .employee-card-modern:last-child {
     margin-right: 0 !important;
   }
-  
+
   .employee-card-modern img,
   .employee-card-modern .avatar-placeholder {
     width: 50px !important;
@@ -3152,7 +3744,7 @@ button[data-action="back"]:hover,
     margin: 0 auto 0.5rem auto !important;
     border-radius: 50% !important;
   }
-  
+
   .employee-card-modern .font-bold {
     font-size: 13px !important;
     font-weight: 600 !important;
@@ -3163,7 +3755,7 @@ button[data-action="back"]:hover,
     margin-bottom: 0.2rem !important;
     text-align: center;
   }
-  
+
   .employee-card-modern .text-xs {
     font-size: 11px !important;
     white-space: nowrap;
@@ -3266,7 +3858,6 @@ button[data-action="back"]:hover,
     margin-bottom: 1.5rem;
   }
 }
-
 
 .booking-main-content {
   max-width: 820px;
@@ -3666,7 +4257,8 @@ body,
   background: #ffffff !important;
   color: #1e293b !important;
   border-radius: 1.5rem !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(99, 102, 241, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(99, 102, 241, 0.05);
   padding: 2rem;
   max-width: 600px;
   margin: 2rem auto;
@@ -3678,7 +4270,7 @@ body,
 }
 
 .ib-modal::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -3909,11 +4501,6 @@ body,
     overflow: visible !important;
   }
 }
-
-
-
-
-
 
 @media (max-width: 768px) {
   /* Hide only the buttons row, keep parent visible for the accordion */
@@ -4183,7 +4770,6 @@ body,
   }
 }
 
-
 @media (max-width: 768px) {
   #services-part {
     display: none !important;
@@ -4195,7 +4781,6 @@ body,
     display: none !important;
   }
 }
-
 
 /* Champ téléphone moderne avec intl-tel-input */
 .phone-field-modern {
@@ -4645,7 +5230,7 @@ body,
 }
 
 .ib-legal-checkbox label:before {
-  content: '';
+  content: "";
   position: absolute;
   left: -1.8em;
   top: 0.1em;
@@ -4660,7 +5245,7 @@ body,
 .ib-legal-checkbox input[type="checkbox"]:checked + label:before {
   background: #606060;
   border-color: #606060;
-  content: '✓';
+  content: "✓";
   color: white;
   display: flex;
   align-items: center;
@@ -6828,7 +7413,6 @@ input[type="checkbox"] {
   }
 }
 
-
 @media (max-width: 768px) {
   #services-part {
     display: none !important;
@@ -7905,4 +8489,169 @@ button[class*="slot"][disabled] {
   color: #ffffff !important;
   border-color: #1f2937 !important;
   cursor: not-allowed !important;
+}
+
+/* ===== TICKETS DE RÉSERVATION - STYLE MINIMALISTE ÉLÉGANT ===== */
+.reservation-tickets {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+  /* Transformer l'ensemble en une grande carte */
+  width: 100%;
+  max-width: 760px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.reservation-ticket-card {
+  width: 100%;
+  max-width: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.reservation-ticket-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* Masquer l'en-tête et le message sur les cartes suivantes pour éviter les répétitions */
+.reservation-ticket-card:not(:first-child) .reservation-ticket-header,
+.reservation-ticket-card:not(:first-child) .reservation-ticket-message {
+  display: none;
+}
+
+.reservation-ticket-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #f5f3ff;
+  color: #6c5ce7;
+  font-size: 13px;
+}
+
+.reservation-ticket-title {
+  font-weight: 600;
+  color: #111827;
+}
+
+.reservation-ticket-message {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin: 4px 0 12px 0;
+}
+
+.reservation-ticket-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Séparateur entre les blocs de services (quand il y a plusieurs cartes) */
+.reservation-ticket-card + .reservation-ticket-card .reservation-ticket-body {
+  border-top: 1px dashed #e5e7eb;
+  margin-top: 8px;
+  padding-top: 8px;
+}
+
+.reservation-ticket-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 0;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.reservation-ticket-row:first-child {
+  border-top: none;
+}
+
+.reservation-ticket-row span:first-child {
+  color: #6b7280;
+}
+
+.reservation-ticket-row span:last-child {
+  color: #111827;
+  font-weight: 500;
+}
+
+.reservation-ticket-price span:last-child strong {
+  color: #10b981;
+}
+
+.reservation-tickets-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.reservation-total {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #10b981;
+}
+
+/* Harmonise le bouton de téléchargement s'il n'est pas déjà stylé */
+  #download-ticket-btn.ticket-download-btn,
+  #download-ticket-btn {
+    padding: 12px 20px;
+    border-radius: 10px;
+  }
+
+  /* === Confirmation compacte (plusieurs réservations) === */
+  /* Sur les tickets après le premier, on masque les infos client pour éviter la répétition */
+  .reservation-ticket-card:not(:first-child) .reservation-ticket-body .reservation-ticket-row:nth-child(5),
+  .reservation-ticket-card:not(:first-child) .reservation-ticket-body .reservation-ticket-row:nth-child(6),
+  .reservation-ticket-card:not(:first-child) .reservation-ticket-body .reservation-ticket-row:nth-child(7) {
+    display: none;
+  }
+
+  /* Espacements plus serrés pour les cartes suivantes */
+  .reservation-ticket-card:not(:first-child) {
+    background: #ffffff;
+    padding: 10px 14px;
+    border-radius: 14px;
+  }
+  .reservation-ticket-card:not(:first-child) .reservation-ticket-body {
+    padding-top: 6px;
+  }
+  .reservation-ticket-card .reservation-ticket-row {
+    padding: 6px 0;
+  }
+  .reservation-ticket-card:not(:first-child) .reservation-ticket-row {
+    padding: 4px 0;
+  }
+
+  @media (max-width: 768px) {
+    .reservation-ticket-card {
+      border-radius: 14px;
+      padding: 16px 18px;
+    }
+  }
+
+/* Impression: supprime les ombres et les éléments interactifs */
+@media print {
+  .reservation-ticket-card {
+    box-shadow: none !important;
+  }
+  #download-ticket-btn,
+  .planity-btn-primary,
+  .planity-btn-secondary {
+    display: none !important;
+  }
 }

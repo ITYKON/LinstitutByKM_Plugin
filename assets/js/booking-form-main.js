@@ -6,176 +6,12 @@ window.bookingState = window.bookingState || {
   selectedEmployee: null,
   selectedDate: null,
   selectedSlot: null,
-  cart: [], // Nouveau : panier pour stocker les réservations
   client: {
     firstname: "",
     lastname: "",
     email: "",
     phone: "",
   },
-};
-
-// Fonction pour gérer le scroll et la navigation entre les étapes
-window.goToStep = function (step) {
-  const progressBar =
-    document.querySelector(".planity-progress-bar") ||
-    document.querySelector(".ib-stepper-main");
-  const content = document.getElementById("booking-step-content");
-
-  // Fonction pour effectuer le scroll automatique vers la barre de progression
-  function scrollToProgressBar() {
-    if (!progressBar) return;
-
-    const isMobile = window.innerWidth <= 768;
-
-    // Calculer l'offset en tenant compte de la navigation
-    let navigationHeight = 0;
-    const adminBar = document.getElementById("wpadminbar");
-    if (adminBar && adminBar.offsetHeight > 0) {
-      navigationHeight += adminBar.offsetHeight;
-    }
-
-    // Détecter un header fixe
-    const possibleHeaders = [
-      'header[class*="fixed"]',
-      ".header-fixed",
-      ".fixed-header",
-      ".sticky-header",
-      'nav[class*="fixed"]',
-    ];
-
-    for (const selector of possibleHeaders) {
-      const header = document.querySelector(selector);
-      if (header && window.getComputedStyle(header).position === "fixed") {
-        navigationHeight += header.offsetHeight;
-        break;
-      }
-    }
-
-    // Offset supplémentaire pour l'espacement
-    const extraOffset = isMobile ? 10 : 20;
-    const totalOffset = navigationHeight + extraOffset;
-
-    // Calculer la position de la barre de progression
-    const progressBarRect = progressBar.getBoundingClientRect();
-    const progressBarTop = window.pageYOffset + progressBarRect.top;
-    const targetPosition = Math.max(0, progressBarTop - totalOffset);
-
-    // Scroll fluide vers la barre de progression
-    window.scrollTo({
-      top: targetPosition,
-      behavior: "smooth",
-    });
-
-    console.log(
-      `📍 Scroll vers étape ${step} - Navigation: ${navigationHeight}px, Target: ${targetPosition}px (${
-        isMobile ? "mobile" : "desktop"
-      })`
-    );
-
-    // Sur desktop, vérifier que le contenu est visible après le scroll
-    if (!isMobile && content) {
-      setTimeout(() => {
-        const contentRect = content.getBoundingClientRect();
-        const progressBarRect = progressBar.getBoundingClientRect();
-
-        // Si le contenu est caché derrière la barre de progression, ajuster
-        if (contentRect.top < progressBarRect.bottom + 20) {
-          const additionalScroll =
-            progressBarRect.bottom + 30 - contentRect.top;
-          window.scrollBy({
-            top: additionalScroll,
-            behavior: "smooth",
-          });
-          console.log(`📍 Ajustement scroll contenu: +${additionalScroll}px`);
-        }
-      }, 500); // Attendre que le premier scroll soit terminé
-    }
-  }
-
-  // Exécuter le scroll automatique
-  scrollToProgressBar();
-
-  // Mettre à jour le titre de l'étape si nécessaire
-  const stepTitles = {
-    1: "Choisissez votre prestation",
-    2: "Choisissez votre praticienne",
-    3: "Date & Heure",
-    4: "Panier",
-    5: "Vos informations",
-    6: "Confirmation",
-  };
-
-  // Ajouter une classe pour l'étape actuelle au body pour le CSS
-  document.body.className = document.body.className.replace(/step-\d+/g, "");
-  document.body.classList.add(`step-${step}`);
-
-  // Animation de la progress bar (mobile ET desktop)
-  const progressBarContainer = document.querySelector(".planity-progress-bar");
-  const progressBarElement = document.querySelector(".ib-stepper-progress");
-
-  if (progressBarContainer) {
-    // Animation du conteneur
-    progressBarContainer.classList.add("step-changing");
-    setTimeout(() => {
-      progressBarContainer.classList.remove("step-changing");
-    }, 300);
-  }
-
-  if (progressBarElement) {
-    progressBarElement.style.transition = "all 0.3s ease";
-    progressBarElement.style.boxShadow = "0 2px 8px rgba(31, 41, 55, 0.3)";
-    setTimeout(() => {
-      progressBarElement.style.boxShadow = "none";
-    }, 1000);
-  }
-
-  console.log(`📍 Navigation vers étape ${step} terminée`);
-};
-
-// Fonction pour ajouter les événements click sur les cercles de progression
-window.initProgressBarNavigation = function () {
-  const steps = document.querySelectorAll(".ib-stepper-main .ib-step");
-
-  steps.forEach((step, index) => {
-    const stepNumber = index + 1;
-    const circle = step.querySelector(".ib-step-circle");
-
-    if (circle) {
-      // Supprimer les anciens événements
-      circle.removeEventListener("click", circle._clickHandler);
-
-      // Créer le gestionnaire d'événement
-      circle._clickHandler = function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        // Permettre seulement de revenir en arrière ou rester sur l'étape actuelle
-        if (stepNumber <= window.bookingState.step) {
-          console.log(`Navigation vers l'étape ${stepNumber}`);
-
-          // Utiliser goToStep si disponible, sinon setStep
-          if (typeof goToStep === "function") {
-            goToStep(stepNumber);
-          } else {
-            window.setStep(stepNumber);
-          }
-        }
-      };
-
-      // Ajouter l'événement
-      circle.addEventListener("click", circle._clickHandler);
-
-      // Ajouter un style de curseur pour indiquer la cliquabilité
-      if (stepNumber <= window.bookingState.step) {
-        circle.style.cursor = "pointer";
-        step.style.cursor = "pointer";
-      } else {
-        circle.style.cursor = "default";
-        step.style.cursor = "default";
-      }
-    }
-  });
 };
 
 // Fonction pour changer d'étape (GLOBALE)
@@ -357,6 +193,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
       selectedSlot: null,
       services: window.bookingServices || [],
       employees: window.bookingEmployees || [],
+      cart: [], // Ajout du panier à l'initialisation
       client: {
         firstname: "",
         lastname: "",
@@ -431,8 +268,13 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         return;
       }
 
+      // Générer un ID unique plus fiable avec timestamp + nombre aléatoire
+      const generateUniqueId = () => {
+        return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      };
+
       const cartItem = {
-        id: Date.now(), // ID unique pour l'élément du panier
+        id: generateUniqueId(), // ID unique pour l'élément du panier
         service: bookingState.selectedService,
         employee: bookingState.selectedEmployee,
         date: bookingState.selectedDate,
@@ -449,17 +291,8 @@ window.scrollToProgressBar = function (callback, delay = 300) {
 
       updateBookingState();
 
-      // Réinitialiser la sélection pour permettre une nouvelle réservation
-      bookingState.selectedService = null;
-      bookingState.selectedEmployee = null;
-      bookingState.selectedDate = null;
-      bookingState.selectedSlot = null;
-
-      // Synchroniser les réinitialisations
-      window.bookingState.selectedService = null;
-      window.bookingState.selectedEmployee = null;
-      window.bookingState.selectedDate = null;
-      window.bookingState.selectedSlot = null;
+      // Ne pas réinitialiser les sélections pour permettre d'ajouter plusieurs fois le même service
+      // Les sélections seront réinitialisées uniquement quand l'utilisateur reviendra à l'étape 1
 
       // Passer à l'étape panier
       console.log("🔄 Passage à l'étape panier (étape 4)");
@@ -522,7 +355,12 @@ window.scrollToProgressBar = function (callback, delay = 300) {
     // Récupération de l'état sauvegardé si il existe
     const savedState = localStorage.getItem("bookingState");
     if (savedState) {
-      Object.assign(bookingState, JSON.parse(savedState));
+      const parsedState = JSON.parse(savedState);
+      // On préserve le panier si il existe
+      bookingState.cart = Array.isArray(parsedState.cart)
+        ? parsedState.cart
+        : [];
+      Object.assign(bookingState, parsedState);
       // Synchroniser avec window.bookingState
       Object.assign(window.bookingState, bookingState);
     }
@@ -567,27 +405,31 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         // Sauvegarder le numéro de téléphone actuel
         const currentPhone = bookingState.client?.phone || "";
 
-        // Réinitialiser l'état
+        // Conserver le panier !
+        const preservedCart = Array.isArray(bookingState.cart)
+          ? bookingState.cart
+          : [];
         bookingState.selectedService = null;
         bookingState.selectedEmployee = null;
         bookingState.selectedDate = null;
         bookingState.selectedSlot = null;
-        bookingState.cart = []; // Vider le panier aussi
         bookingState.client = {
           firstname: "",
           lastname: "",
           email: "",
-          phone: currentPhone, // Conserver le numéro de téléphone
+          phone: currentPhone,
         };
+        bookingState.cart = preservedCart;
 
         // Synchroniser avec le global
         window.bookingState.selectedService = null;
         window.bookingState.selectedEmployee = null;
         window.bookingState.selectedDate = null;
         window.bookingState.selectedSlot = null;
-        window.bookingState.cart = [];
+        window.bookingState.client = { ...bookingState.client };
+        window.bookingState.cart = preservedCart;
 
-        localStorage.removeItem("bookingState");
+        // Ne pas supprimer le localStorage, juste mettre à jour
 
         // Réinitialiser le sélecteur de pays si disponible
         if (window.simpleCountrySelector) {
@@ -676,20 +518,6 @@ window.scrollToProgressBar = function (callback, delay = 300) {
     // Fonction pour rendre le contenu de l'étape actuelle
     // Fonction pour rendre l'étape de confirmation
     function renderConfirmationStep() {
-      if (bookingState.cart.length === 0) {
-        return `
-          <div class='booking-main-content'>
-            <div class="confirmation-container">
-              <h2 class="text-2xl font-bold text-center mb-6">Confirmation</h2>
-              <div class="empty-confirmation">
-                <p>Aucune réservation à confirmer</p>
-                <button onclick="goToStep(1)" class="btn-primary">Commencer une nouvelle réservation</button>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
       let totalPrice = 0;
       let hasVariablePrice = false;
       let minTotalPrice = 0;
@@ -697,7 +525,6 @@ window.scrollToProgressBar = function (callback, delay = 300) {
 
       bookingState.cart.forEach((item, index) => {
         const price = parseFloat(item.price) || 0;
-
         if (price > 0) {
           totalPrice += price;
         } else if (item.service.variable_price == 1) {
@@ -705,7 +532,6 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           const min = Number(item.service.min_price) || 0;
           minTotalPrice += min;
         }
-
         let prixHtml = "-";
         if (price > 0) {
           prixHtml = price.toLocaleString() + " DA";
@@ -722,97 +548,43 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         }
 
         reservationsHtml += `
-          <div class="confirmation-item">
-            <div class="confirmation-item-header">
-              <h4>Réservation ${index + 1}</h4>
-              ${price > 0 ? `<span class="price">${prixHtml}</span>` : ""}
-            </div>
-            <div class="confirmation-item-details">
-              <div class="detail-row">
-                <span class="detail-label">Service</span>
-                <span class="detail-value">${item.service.name}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Praticienne</span>
-                <span class="detail-value">${item.employee.name}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Date</span>
-                <span class="detail-value">${new Date(
-                  item.date
-                ).toLocaleDateString("fr-FR", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Créneau</span>
-                <span class="detail-value">${item.slot}</span>
-              </div>
-            </div>
+        <div class="reservation-ticket-card">
+          <div class="reservation-ticket-header">
+            <span class="reservation-ticket-icon">✔️</span>
+            <span class="reservation-ticket-title">Réservation confirmée</span>
           </div>
+          <div class="reservation-ticket-message">
+            Merci pour votre réservation !<br>
+            Un email de confirmation vous a été envoyé.
+          </div>
+          <div class="reservation-ticket-body">
+            <div class="reservation-ticket-row"><span>Service</span><span>${item.service.name}</span></div>
+            <div class="reservation-ticket-row"><span>Praticienne</span><span>${item.employee.name}</span></div>
+            <div class="reservation-ticket-row"><span>Date</span><span>${new Date(item.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })}</span></div>
+            <div class="reservation-ticket-row"><span>Créneau</span><span>${item.slot}</span></div>
+            <div class="reservation-ticket-row"><span>Client</span><span>${bookingState.client?.firstname || "-"} ${bookingState.client?.lastname || "-"}</span></div>
+            <div class="reservation-ticket-row"><span>Email</span><span>${bookingState.client?.email || "-"}</span></div>
+            <div class="reservation-ticket-row"><span>Téléphone</span><span>${bookingState.client?.phone || "-"}</span></div>
+            <div class="reservation-ticket-row reservation-ticket-price"><span>Prix</span><span><strong>${prixHtml}</strong></span></div>
+          </div>
+        </div>
         `;
       });
 
       return `
         <div class='booking-main-content'>
-          <div class="confirmation-container">
-            <div class="ticket-success-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 6L9 17l-5-5"/>
-              </svg>
-            </div>
-            <div class="ticket-success-badge">Réservations confirmées</div>
-            <div class="ticket-success-message">
-              ${bookingState.cart.length} réservation(s) enregistrée(s)<br>
-              Merci pour vos réservations !<br>
-              Nous vous contacterons prochainement<br>
-              pour confirmer vos rendez-vous.
-            </div>
-            
-            <div class="confirmation-reservations">
-              ${reservationsHtml}
-            </div>
-            
-            <div class="confirmation-summary">
-              <div class="summary-row">
-                <span class="summary-label">Client</span>
-                <span class="summary-value">${
-                  bookingState.client?.firstname || "-"
-                } ${bookingState.client?.lastname || "-"}</span>
+          <div style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
+            ${reservationsHtml}
+            <div style="display: flex; flex-direction: column; align-items: center; margin-top: 24px;">
+              <div style="font-size: 1.2rem; font-weight: 600; color: #2eaf6a; margin-bottom: 8px;">
+                ${
+                  totalPrice > 0 || (hasVariablePrice && minTotalPrice > 0)
+                    ? hasVariablePrice
+                      ? "Total à partir de " + (totalPrice + minTotalPrice).toLocaleString() + " DA"
+                      : "Total " + totalPrice.toLocaleString() + " DA"
+                    : ""
+                }
               </div>
-              <div class="summary-row">
-                <span class="summary-label">Email</span>
-                <span class="summary-value">${
-                  bookingState.client?.email || "-"
-                }</span>
-              </div>
-              <div class="summary-row">
-                <span class="summary-label">Téléphone</span>
-                <span class="summary-value">${
-                  bookingState.client?.phone || "-"
-                }</span>
-              </div>
-              ${
-                totalPrice > 0 || (hasVariablePrice && minTotalPrice > 0)
-                  ? `
-                <div class="summary-row total-row">
-                  <span class="summary-label">Total</span>
-                  <span class="summary-value total-price">${
-                    hasVariablePrice
-                      ? "à partir de " +
-                        (totalPrice + minTotalPrice).toLocaleString() +
-                        " DA"
-                      : totalPrice.toLocaleString() + " DA"
-                  }</span>
-                </div>
-              `
-                  : ""
-              }
-            </div>
-            
-            <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
               <button id="download-ticket-btn" type="button" style="background: #111827; color: #ffffff; border: none; border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;" onmouseover="this.style.background='#374151'" onmouseout="this.style.background='#111827'">Télécharger le ticket</button>
             </div>
           </div>
@@ -820,7 +592,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
       `;
     }
 
-    // Fonction pour rendre l'étape panier
+    // Fonction pour rendre l'étape panier avec le style Planity
     function renderCartStep() {
       console.log("🛒 renderCartStep appelée");
       console.log("📋 Panier actuel:", bookingState.cart);
@@ -829,117 +601,202 @@ window.scrollToProgressBar = function (callback, delay = 300) {
       if (bookingState.cart.length === 0) {
         return `
           <div class='booking-main-content'>
-            <div class="cart-container">
-              <h2 class="text-2xl font-bold text-center mb-6">Votre panier</h2>
-              <div class="empty-cart">
-                <div class="empty-cart-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="9" cy="21" r="1"></circle>
-                    <circle cx="20" cy="21" r="1"></circle>
-                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                  </svg>
-                </div>
-                <h3>Votre panier est vide</h3>
-                <p>Ajoutez des réservations pour continuer</p>
-                <button onclick="goToStep(1)" class="btn-primary">Ajouter une réservation</button>
+            <div class="planity-empty-cart">
+              <div class="planity-empty-cart-icon">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
               </div>
+              <h3>Votre panier est vide</h3>
+              <p>Ajoutez des prestations pour continuer</p>
+              <button onclick="goToStep(1)" class="planity-btn-primary">
+                <span>Parcourir les prestations</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7"></path>
+                </svg>
+              </button>
             </div>
           </div>
         `;
       }
 
-      let cartItemsHtml = "";
+      // Grouper les réservations par service
+      const servicesMap = new Map();
       let totalPrice = 0;
       let hasVariablePrice = false;
       let minTotalPrice = 0;
 
-      bookingState.cart.forEach((item, index) => {
+      bookingState.cart.forEach((item) => {
+        const serviceId = item.service.id;
         const price = parseFloat(item.price) || 0;
 
+        if (!servicesMap.has(serviceId)) {
+          servicesMap.set(serviceId, {
+            service: item.service,
+            employee: item.employee,
+            items: [],
+            total: 0,
+            count: 0,
+            duration: item.service.duration || 0,
+          });
+        }
+
+        const serviceData = servicesMap.get(serviceId);
+        serviceData.items.push(item);
+        serviceData.count++;
+
         if (price > 0) {
+          serviceData.total += price;
           totalPrice += price;
         } else if (item.service.variable_price == 1) {
           hasVariablePrice = true;
           const min = Number(item.service.min_price) || 0;
+          serviceData.total += min;
           minTotalPrice += min;
         }
+      });
 
-        // Formatage du prix
-        let priceText = "";
-        if (price > 0) {
-          priceText = `${price.toLocaleString()} DA`;
-        } else if (item.service.variable_price == 1) {
-          const min = Number(item.service.min_price);
-          const max = Number(item.service.max_price);
-          if (min > 0 && max > 0 && min !== max) {
-            priceText = `à partir de ${min.toLocaleString()}-${max.toLocaleString()} DA`;
-          } else if (min > 0) {
-            priceText = `à partir de ${min.toLocaleString()} DA`;
-          }
-        }
+      // Générer le HTML pour chaque service
+      let servicesHtml = "";
+      servicesMap.forEach((serviceData, serviceId) => {
+        const service = serviceData.service;
+        const priceText =
+          serviceData.total > 0
+            ? `${serviceData.total.toLocaleString()} DA`
+            : service.variable_price == 1
+            ? `À partir de ${service.min_price.toLocaleString()} DA`
+            : "Gratuit";
 
-        cartItemsHtml += `
-          <div class="planity-service" data-id="${item.id}">
-            <div class="planity-service-top">
-              <h3>${item.service.name}</h3>
-              <a href="#" onclick="removeFromCart(${
-                item.id
-              }); return false;">Supprimer</a>
+        // Formater la durée en heures et minutes
+        const durationHours = Math.floor(service.duration / 60);
+        const durationMinutes = service.duration % 60;
+        const durationText =
+          durationHours > 0
+            ? `${durationHours}h${durationMinutes.toString().padStart(2, "0")}`
+            : `${durationMinutes}min`;
+
+        servicesHtml += `
+          <div class="planity-cart-service" data-service-id="${serviceId}">
+            <div class="planity-cart-service-header">
+              <div class="service-info">
+                <h3>${service.name}</h3>
+                <div class="service-meta">
+                  <span class="duration">${durationText}</span>
+                  <span class="employee">${serviceData.employee.name}</span>
+                </div>
+              </div>
+              <div class="service-price">
+                <span>${priceText}</span>
+                <button class="planity-remove-service" onclick="removeServiceFromCart('${serviceId}'); return false;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
             </div>
-            <div class="planity-service-details">
-              <span class="planity-duration">${item.service.duration}min</span>
-              ${
-                priceText
-                  ? `<span class="planity-price">${priceText}</span>`
-                  : ""
-              }
-            </div>
-            <div class="planity-service-info">
-              <div>${item.employee.name}</div>
-              <div>${new Date(item.date).toLocaleDateString("fr-FR")}</div>
-              <div>${item.slot}</div>
+            <div class="planity-cart-service-dates">
+              ${serviceData.items
+                .map(
+                  (item, index) => `
+                <div class="planity-cart-service-date">
+                  <div class="date-time">
+                    <span class="date">${new Date(item.date).toLocaleDateString(
+                      "fr-FR",
+                      { weekday: "long", day: "numeric", month: "long" }
+                    )}</span>
+                    <span class="time">${item.slot}</span>
+                  </div>
+                  <button class="planity-remove-btn" onclick="removeFromCart('${
+                    item.id
+                  }'); return false;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="15" y1="9" x2="9" y2="15"></line>
+                      <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                  </button>
+                </div>
+              `
+                )
+                .join("")}
             </div>
           </div>
         `;
       });
 
+      // Calculer le total final
+      const finalTotal = hasVariablePrice
+        ? totalPrice + minTotalPrice
+        : totalPrice;
+      const totalText = hasVariablePrice
+        ? `À partir de ${finalTotal.toLocaleString()} DA`
+        : finalTotal > 0
+        ? `${finalTotal.toLocaleString()} DA`
+        : "Gratuit";
+
       return `
         <div class='booking-main-content'>
-          <div class="planity-simple-card">
-            <div class="planity-header">
-              <h2>Prestations sélectionnées</h2>
-              <a href="#" onclick="clearCart(); return false;">Supprimer</a>
+          <div class="planity-cart-container">
+            <div class="planity-cart-header">
+              <h2>Mon panier</h2>
+              <span class="planity-cart-count">${bookingState.cart.length} ${
+        bookingState.cart.length > 1 ? "prestations" : "prestation"
+      }</span>
             </div>
             
-            <div class="planity-services">
-              ${cartItemsHtml}
+            <div class="planity-cart-services">
+              ${servicesHtml}
             </div>
             
-            <div class="planity-total">
-              <span>Total :</span>
-              <span class="planity-total-price">${
-                hasVariablePrice
-                  ? "à partir de " +
-                    (totalPrice + minTotalPrice).toLocaleString() +
-                    " DA"
-                  : totalPrice > 0
-                  ? totalPrice.toLocaleString() + " DA"
-                  : "Gratuit"
-              }</span>
-            </div>
-            
-            <div class="planity-buttons">
-              <button onclick="addAnotherReservation()" class="planity-btn-grey">
-                + Ajouter une prestation à la suite
-              </button>
-              <button onclick="goToStep(5)" class="planity-btn-blue">
-                Continuer vers les informations →
-              </button>
+            <div class="planity-cart-summary">
+              <div class="planity-cart-total">
+                <span>Total</span>
+                <span class="planity-cart-total-amount">${totalText}</span>
+              </div>
+              <div class="planity-cart-actions">
+                <button onclick="goToStep(1)" class="planity-btn-secondary">
+                  <span>Ajouter une prestation</span>
+                </button>
+                <button onclick="goToNextStep()" class="planity-btn-primary">
+                  <span>Valider mon panier</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"></path>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
       `;
     }
+    // Helper function to remove a service and all its items from cart
+    // Fonction globale pour passer à l'étape suivante après le panier
+    window.goToNextStep = function () {
+      if (window.bookingState && typeof window.bookingState.step === "number") {
+        window.goToStep(window.bookingState.step + 1);
+      } else {
+        window.goToStep(5);
+      }
+    };
+    window.removeServiceFromCart = function (serviceId) {
+      if (
+        confirm("Voulez-vous supprimer toutes les réservations de ce service ?")
+      ) {
+        bookingState.cart = bookingState.cart.filter(
+          (item) => item.service.id != serviceId
+        );
+        renderStepContent();
+      }
+    };
+
+    // Helper function to remove a single item from cart
+    window.removeFromCart = function (itemId) {
+      bookingState.cart = bookingState.cart.filter((item) => item.id != itemId);
+      renderStepContent();
+    };
 
     function renderStepContent() {
       const content = document.getElementById("booking-step-content");
@@ -1174,363 +1031,43 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           // Afficher toutes les réservations du panier
           inner = renderConfirmationStep();
           content.innerHTML = inner;
+
+          // Configurer le bouton de téléchargement du ticket
           setTimeout(() => {
             const btn = document.getElementById("download-ticket-btn");
             if (btn) {
               btn.onclick = () => {
-                const ticket = document.querySelector(".booking-ticket-modern");
-                if (!ticket) {
-                  showBookingNotification("Ticket non trouvé");
-                  return;
-                }
+                // Utiliser la fonction globale de génération de PDF
+                if (typeof window.generateTicketPDFFixed === "function") {
+                  btn.disabled = true;
+                  btn.textContent = "Génération en cours...";
 
-                // Utiliser directement la méthode corrigée intégrée
-                generateTicketPDFFixed(ticket, btn);
+                  // Petit délai pour permettre à l'interface de se mettre à jour
+                  setTimeout(() => {
+                    try {
+                      window.generateTicketPDFFixed();
+                      btn.textContent = "Télécharger le ticket";
+                    } catch (error) {
+                      console.error(
+                        "❌ Erreur lors de la génération du PDF:",
+                        error
+                      );
+                      showBookingNotification(
+                        "Erreur lors de la génération du PDF"
+                      );
+                      btn.textContent = "Télécharger le ticket";
+                      btn.disabled = false;
+                    }
+                  }, 100);
+                } else {
+                  console.error(
+                    "❌ La fonction de génération de PDF n'est pas disponible"
+                  );
+                  showBookingNotification(
+                    "Erreur: Impossible de générer le PDF"
+                  );
+                }
               };
-
-              // Fonction corrigée pour générer le PDF sans pages vides
-              function generateTicketPDFFixed(ticket, btn) {
-                console.log("🎫 [Fix] Début génération PDF...");
-
-                // Fonction pour effectuer la génération
-                function doGenerate() {
-                  if (!window.html2pdf) {
-                    console.error("❌ html2pdf non disponible");
-                    showBookingNotification(
-                      "Erreur: Générateur PDF non disponible"
-                    );
-                    if (btn) btn.style.display = "block";
-                    return;
-                  }
-
-                  // Masquer le bouton avant export
-                  if (btn) btn.style.display = "none";
-
-                  try {
-                    // Utiliser directement les données du bookingState pour plus de fiabilité
-                    const getServiceName = () => {
-                      return bookingState.selectedService?.name || "-";
-                    };
-
-                    const getEmployeeName = () => {
-                      return bookingState.selectedEmployee?.name || "-";
-                    };
-
-                    const getDate = () => {
-                      if (!bookingState.selectedDate) return "-";
-                      const date = new Date(bookingState.selectedDate);
-                      return date.toLocaleDateString("fr-FR", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      });
-                    };
-
-                    const getSlot = () => {
-                      return bookingState.selectedSlot || "-";
-                    };
-
-                    const getClientName = () => {
-                      const firstname = bookingState.client?.firstname || "";
-                      const lastname = bookingState.client?.lastname || "";
-                      return `${firstname} ${lastname}`.trim() || "-";
-                    };
-
-                    const getEmail = () => {
-                      return bookingState.client?.email || "-";
-                    };
-
-                    const getPhone = () => {
-                      return bookingState.client?.phone || "-";
-                    };
-
-                    const getPrice = () => {
-                      if (!bookingState.selectedService) return "-";
-
-                      if (bookingState.selectedService.variable_price == 1) {
-                        const min = Number(
-                          bookingState.selectedService.min_price
-                        );
-                        const max = Number(
-                          bookingState.selectedService.max_price
-                        );
-                        if (min > 0 && max > 0 && min !== max) {
-                          return `de ${min.toLocaleString()} DA à ${max.toLocaleString()} DA`;
-                        } else if (min > 0) {
-                          return `à partir de ${min.toLocaleString()} DA`;
-                        } else {
-                          return "-";
-                        }
-                      } else if (
-                        typeof bookingState.selectedService.price !==
-                        "undefined"
-                      ) {
-                        return (
-                          Number(
-                            bookingState.selectedService.price
-                          ).toLocaleString() + " DA"
-                        );
-                      }
-                      return "-";
-                    };
-
-                    // Créer un conteneur temporaire avec contenu simplifié
-                    const tempContainer = document.createElement("div");
-
-                    // Configuration compacte pour une seule page
-                    const containerWidth = 600; // Largeur fixe plus petite
-                    const containerPadding = 15; // Padding réduit
-                    const fontSize = 12; // Taille de police réduite
-                    const iconSize = 30; // Icône plus petite
-                    const titleFontSize = 14; // Titre plus petit
-
-                    tempContainer.style.cssText = `
-                      position: fixed;
-                      left: 0;
-                      top: 0;
-                      width: ${containerWidth}px;
-                      height: auto;
-                      background: white;
-                      padding: ${containerPadding}px;
-                      font-family: Arial, sans-serif;
-                      color: black;
-                      box-sizing: border-box;
-                      z-index: -9999;
-                      visibility: hidden;
-                    `;
-
-                    // Créer le contenu HTML compact pour une seule page
-                    tempContainer.innerHTML = `
-                      <div style="width: 100%; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: ${containerPadding}px; font-family: Arial, sans-serif; color: #000000; max-height: 800px; overflow: hidden;">
-                        <div style="text-align: center; margin-bottom: 10px;">
-                          <div style="width: ${iconSize}px; height: ${iconSize}px; background: #374151; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: white; font-size: ${
-                      iconSize * 0.4
-                    }px; font-weight: bold;">✓</div>
-                        </div>
-                        <div style="background: #374151; color: #ffffff; padding: 8px 15px; border-radius: 6px; font-weight: 600; text-align: center; margin: 10px 0; font-size: ${titleFontSize}px;">Réservation confirmée</div>
-                        <div style="text-align: center; color: #374151; margin: 10px 0; font-size: ${fontSize}px; line-height: 1.5;">Réservation enregistrée<br>Merci pour votre réservation !<br>Nous vous contacterons prochainement<br>pour confirmer votre rendez-vous.</div>
-                        <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px; margin: 15px 0;">
-                          <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e5e7eb;"><span style="font-weight: 600; color: #374151; font-size: ${fontSize}px;">Service</span><span style="color: #111827; font-size: ${fontSize}px;">${getServiceName()}</span></div>
-                          <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e5e7eb;"><span style="font-weight: 600; color: #374151; font-size: ${fontSize}px;">Praticienne</span><span style="color: #111827; font-size: ${fontSize}px;">${getEmployeeName()}</span></div>
-                          <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e5e7eb;"><span style="font-weight: 600; color: #374151; font-size: ${fontSize}px;">Date</span><span style="color: #111827; font-size: ${fontSize}px;">${getDate()}</span></div>
-                          <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e5e7eb;"><span style="font-weight: 600; color: #374151; font-size: ${fontSize}px;">Créneau</span><span style="color: #111827; font-size: ${fontSize}px;">${getSlot()}</span></div>
-                          <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e5e7eb;"><span style="font-weight: 600; color: #374151; font-size: ${fontSize}px;">Client</span><span style="color: #111827; font-size: ${fontSize}px;">${getClientName()}</span></div>
-                          <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e5e7eb;"><span style="font-weight: 600; color: #374151; font-size: ${fontSize}px;">Email</span><span style="color: #111827; font-size: ${fontSize}px;">${getEmail()}</span></div>
-                          <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e5e7eb;"><span style="font-weight: 600; color: #374151; font-size: ${fontSize}px;">Téléphone</span><span style="color: #111827; font-size: ${fontSize}px;">${getPhone()}</span></div>
-                          <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span style="font-weight: 600; color: #374151; font-size: ${fontSize}px;">Prix</span><span style="color: #111827; font-weight: 600; font-size: ${fontSize}px;">${getPrice()}</span></div>
-                        </div>
-                        <div style="text-align: center; color: #6b7280; font-size: 10px; margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb;">Ticket généré le ${new Date().toLocaleDateString(
-                          "fr-FR"
-                        )} à ${new Date().toLocaleTimeString("fr-FR")}</div>
-                      </div>
-                    `;
-
-                    // Ajouter au DOM
-                    document.body.appendChild(tempContainer);
-
-                    // Forcer le rendu et attendre un peu
-                    tempContainer.offsetHeight;
-                    tempContainer.style.visibility = "visible";
-                    tempContainer.style.position = "fixed";
-                    tempContainer.style.left = "0";
-                    tempContainer.style.top = "0";
-                    tempContainer.style.zIndex = "-9999";
-
-                    console.log(
-                      "🎫 [Fix] Contenu créé:",
-                      tempContainer.innerHTML.substring(0, 200)
-                    );
-                    console.log(
-                      "🎫 [Fix] Dimensions:",
-                      tempContainer.offsetWidth,
-                      "x",
-                      tempContainer.offsetHeight
-                    );
-
-                    // Attendre un peu pour s'assurer que le contenu est bien rendu
-                    setTimeout(() => {
-                      try {
-                        // Configuration optimisée pour une seule page compacte
-                        html2canvas(tempContainer, {
-                          scale: 1.5, // Échelle réduite pour un PDF plus petit
-                          backgroundColor: "#ffffff",
-                          logging: false,
-                          useCORS: true,
-                          allowTaint: true,
-                          width: containerWidth,
-                          height: tempContainer.offsetHeight,
-                          scrollX: 0,
-                          scrollY: 0,
-                          windowWidth: containerWidth,
-                          windowHeight: tempContainer.offsetHeight,
-                        })
-                          .then((canvas) => {
-                            console.log(
-                              "🎫 [Fix] Canvas généré:",
-                              canvas.width,
-                              "x",
-                              canvas.height
-                            );
-
-                            const imgData = canvas.toDataURL("image/png");
-                            console.log("🎫 [Fix] Image data générée");
-
-                            // Configuration PDF compacte pour une seule page
-                            const pdf = new jsPDF("p", "mm", "a4");
-                            const imgWidth = 180; // Largeur réduite pour laisser des marges
-                            const pageHeight = 297; // A4 height in mm
-                            const imgHeight =
-                              (canvas.height * imgWidth) / canvas.width;
-
-                            // Centrer l'image sur la page
-                            const xOffset = (210 - imgWidth) / 2; // Centrer horizontalement
-                            const yOffset = (pageHeight - imgHeight) / 2; // Centrer verticalement
-
-                            // Vérifier si le contenu tient sur une seule page
-                            if (imgHeight <= pageHeight) {
-                              // Une seule page
-                              pdf.addImage(
-                                imgData,
-                                "PNG",
-                                xOffset,
-                                yOffset,
-                                imgWidth,
-                                imgHeight
-                              );
-                            } else {
-                              // Si le contenu est trop grand, le redimensionner pour tenir sur une page
-                              const scale = pageHeight / imgHeight;
-                              const scaledWidth = imgWidth * scale;
-                              const scaledHeight = imgHeight * scale;
-                              const scaledXOffset = (210 - scaledWidth) / 2;
-
-                              pdf.addImage(
-                                imgData,
-                                "PNG",
-                                scaledXOffset,
-                                10, // Marge supérieure
-                                scaledWidth,
-                                scaledHeight
-                              );
-                            }
-
-                            pdf.save(
-                              `ticket-reservation-${
-                                new Date().toISOString().split("T")[0]
-                              }.pdf`
-                            );
-
-                            console.log(
-                              "🎫 [Fix] PDF compact généré avec succès"
-                            );
-                            if (document.body.contains(tempContainer)) {
-                              document.body.removeChild(tempContainer);
-                            }
-                            if (btn) btn.style.display = "block";
-                            showBookingNotification(
-                              "Ticket téléchargé avec succès !"
-                            );
-                          })
-                          .catch((error) => {
-                            console.error("❌ [Fix] Erreur canvas:", error);
-                            if (document.body.contains(tempContainer)) {
-                              document.body.removeChild(tempContainer);
-                            }
-                            if (btn) btn.style.display = "block";
-                            showBookingNotification(
-                              "Erreur lors de la génération du PDF: " +
-                                error.message
-                            );
-                          });
-                      } catch (error) {
-                        console.error("❌ [Fix] Erreur générale:", error);
-                        if (document.body.contains(tempContainer)) {
-                          document.body.removeChild(tempContainer);
-                        }
-                        if (btn) btn.style.display = "block";
-                        showBookingNotification(
-                          "Erreur lors de la génération du PDF: " +
-                            error.message
-                        );
-                      }
-                    }, 500);
-                  } catch (error) {
-                    console.error("❌ [Fix] Erreur générale:", error);
-                    if (btn) btn.style.display = "block";
-                    showBookingNotification(
-                      "Erreur lors de la génération du PDF: " + error.message
-                    );
-                  }
-                }
-
-                // Charger jsPDF et html2canvas si nécessaire
-                if (!window.jsPDF || !window.html2canvas) {
-                  console.log("🎫 [Fix] Chargement jsPDF et html2canvas...");
-                  loadPDFLibraries(() => {
-                    console.log("🎫 [Fix] Bibliothèques chargées");
-                    doGenerate();
-                  });
-                } else {
-                  doGenerate();
-                }
-              }
-
-              // Fonction pour charger jsPDF et html2canvas
-              function loadPDFLibraries(callback) {
-                let loaded = 0;
-                const total = 2;
-
-                function checkLoaded() {
-                  loaded++;
-                  if (loaded === total) {
-                    callback();
-                  }
-                }
-
-                // Charger jsPDF
-                if (!window.jsPDF) {
-                  const jsPDFScript = document.createElement("script");
-                  jsPDFScript.src =
-                    "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-                  jsPDFScript.onload = () => {
-                    window.jsPDF = window.jspdf.jsPDF;
-                    console.log("🎫 [Fix] jsPDF chargé");
-                    checkLoaded();
-                  };
-                  jsPDFScript.onerror = () => {
-                    console.error("❌ [Fix] Erreur chargement jsPDF");
-                    showBookingNotification(
-                      "Erreur lors du chargement de jsPDF"
-                    );
-                    if (btn) btn.style.display = "block";
-                  };
-                  document.head.appendChild(jsPDFScript);
-                } else {
-                  checkLoaded();
-                }
-
-                // Charger html2canvas
-                if (!window.html2canvas) {
-                  const html2canvasScript = document.createElement("script");
-                  html2canvasScript.src =
-                    "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-                  html2canvasScript.onload = () => {
-                    console.log("🎫 [Fix] html2canvas chargé");
-                    checkLoaded();
-                  };
-                  html2canvasScript.onerror = () => {
-                    console.error("❌ [Fix] Erreur chargement html2canvas");
-                    showBookingNotification(
-                      "Erreur lors du chargement de html2canvas"
-                    );
-                    if (btn) btn.style.display = "block";
-                  };
-                  document.head.appendChild(html2canvasScript);
-                } else {
-                  checkLoaded();
-                }
-              }
             }
           }, 100);
           break;
@@ -4300,7 +3837,6 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           });
         });
       });
-
       observer.observe(document.body, {
         childList: true,
         subtree: true,

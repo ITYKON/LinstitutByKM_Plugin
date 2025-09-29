@@ -3,6 +3,17 @@
  * Corrige le problème de pages vides
  */
 
+// Fallback pour la fonction de notification
+if (typeof showBookingNotification === 'undefined') {
+    window.showBookingNotification = function(message) {
+        console.log('[Notification]', message);
+        // Essayer d'utiliser la fonction de notification du thème si elle existe
+        if (typeof showNotification === 'function') {
+            showNotification(message);
+        }
+    };
+}
+
 // Fonction alternative pour générer le PDF avec une approche plus simple
 function generateTicketPDFAlternative(ticketElement, buttonElement, bookingData) {
     console.log("🎫 [Alternative] Début génération PDF...");
@@ -106,131 +117,210 @@ function generateTicketPDFAlternative(ticketElement, buttonElement, bookingData)
     }
 }
 
-// Créer le HTML du ticket de manière simple et robuste
+// Créer le HTML du ticket de manière minimaliste
 function createSimpleTicketHTML(bookingData) {
-    return `
-        <div style="
-            width: 100%;
-            max-width: 600px;
-            background: #ffffff;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 30px;
-            font-family: Arial, sans-serif;
-            color: #000000;
-            box-sizing: border-box;
-        ">
-            <!-- Icône de succès -->
-            <div style="text-align: center; margin-bottom: 20px;">
-                <div style="
-                    width: 60px;
-                    height: 60px;
-                    background: #10b981;
-                    border-radius: 50%;
-                    margin: 0 auto;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: white;
-                    font-size: 30px;
-                    font-weight: bold;
-                ">✓</div>
-            </div>
-            
-            <!-- Badge de confirmation -->
-            <div style="
-                background: #10b981;
-                color: #ffffff;
-                padding: 15px 25px;
-                border-radius: 8px;
-                font-weight: 600;
-                text-align: center;
-                margin: 20px 0;
-                font-size: 20px;
-            ">Réservation confirmée</div>
-            
-            <!-- Message de remerciement -->
-            <div style="
-                text-align: center;
-                color: #374151;
-                margin: 25px 0;
-                font-size: 16px;
-                line-height: 1.5;
-            ">
-                Merci pour votre réservation !<br>
-                Un email de confirmation vous a été envoyé.
-            </div>
-            
-            <!-- Détails de la réservation -->
-            <div style="
-                background: #f9fafb;
-                border: 1px solid #e5e7eb;
-                border-radius: 8px;
-                padding: 20px;
-                margin: 25px 0;
-            ">
-                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-                    <span style="font-weight: 600; color: #374151;">Service</span>
-                    <span style="color: #111827;">${bookingData.service || '-'}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-                    <span style="font-weight: 600; color: #374151;">Praticienne</span>
-                    <span style="color: #111827;">${bookingData.employee || '-'}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-                    <span style="font-weight: 600; color: #374151;">Date</span>
-                    <span style="color: #111827;">${bookingData.date || '-'}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-                    <span style="font-weight: 600; color: #374151;">Créneau</span>
-                    <span style="color: #111827;">${bookingData.slot || '-'}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-                    <span style="font-weight: 600; color: #374151;">Client</span>
-                    <span style="color: #111827;">${bookingData.clientName || '-'}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-                    <span style="font-weight: 600; color: #374151;">Email</span>
-                    <span style="color: #111827;">${bookingData.email || '-'}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-                    <span style="font-weight: 600; color: #374151;">Téléphone</span>
-                    <span style="color: #111827;">${bookingData.phone || '-'}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 10px 0;">
-                    <span style="font-weight: 600; color: #374151;">Prix</span>
-                    <span style="color: #111827; font-weight: 600;">${bookingData.price || '-'}</span>
-                </div>
-            </div>
-            
-            <!-- Footer -->
-            <div style="
-                text-align: center;
-                color: #6b7280;
-                font-size: 12px;
-                margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid #e5e7eb;
-            ">
-                Ticket généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
-            </div>
-        </div>
-    `;
+    console.log("🎫 Création du contenu HTML du ticket");
+    
+    // Vérifier et formater les données
+    const booking = bookingData || {};
+    const services = booking.services || [];
+    const client = booking.client || {};
+    const date = booking.date ? new Date(booking.date) : new Date();
+    
+    // Formater la date et l'heure
+    const options = { 
+        weekday: 'long', 
+        day: '2-digit', 
+        month: 'long', 
+        year: 'numeric',
+        hour: '2-digit', 
+        minute: '2-digit' 
+    };
+    const formattedDate = date.toLocaleDateString('fr-FR', options);
+    const currentDate = new Date();
+    const formattedCurrentDate = currentDate.toLocaleDateString('fr-FR');
+    const formattedCurrentTime = currentDate.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
+
+    // Créer le contenu HTML de base
+    let html = [];
+    
+    // Ajouter le conteneur principal
+    html.push('<div style="font-family: Arial, sans-serif; max-width: 100%; padding: 15px; box-sizing: border-box;">');
+    
+    // En-tête
+    html.push('  <div style="text-align: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #eee;">');
+    html.push('    <h1 style="color: #2c3e50; margin: 0 0 5px 0; font-size: 20px; font-weight: 600;">TICKET DE RÉSERVATION</h1>');
+    html.push('    <p style="color: #7f8c8d; margin: 0; font-size: 14px;">' + formattedDate + '</p>');
+    html.push('  </div>');
+    
+    // Section client
+    html.push('  <div style="margin-bottom: 25px;">');
+    html.push('    <div style="font-weight: 600; margin-bottom: 5px; color: #2c3e50;">');
+    html.push('      ' + (client.prenom || '') + ' ' + (client.nom || ''));
+    html.push('    </div>');
+    html.push('    <div style="color: #7f8c8d; font-size: 14px;">');
+    html.push('      ' + (client.email || '') + '<br>');
+    html.push('      ' + (client.telephone || ''));
+    html.push('    </div>');
+    html.push('  </div>');
+    
+    // Section services
+    html.push('  <div style="margin-bottom: 20px;">');
+    html.push('    <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 5px;">');
+    html.push('      Détails de la réservation');
+    html.push('    </div>');
+
+    // Ajouter chaque service
+    services.forEach(function(service) {
+        const startTime = service.startTime ? new Date(service.startTime) : new Date();
+        const serviceTime = startTime.toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        // Utiliser la couleur de l'employé si disponible
+        const employeeColor = service.employeeColor || '#4f8cff';
+        
+        // Ajouter le service
+        html.push('    <div style="margin-bottom: 10px; padding: 12px; background: #fff; border-radius: 6px; border-left: 4px solid ' + employeeColor + '; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">');
+        html.push('      <div style="display: flex; justify-content: space-between; align-items: flex-start;">');
+        html.push('        <div>');
+        html.push('          <div style="font-weight: 600; color: #2c3e50; margin-bottom: 3px;">' + (service.nom || 'Service') + '</div>');
+        html.push('          <div style="font-size: 13px; color: #64748b;">' + serviceTime + ' • ' + (service.employe || 'Sans praticien') + '</div>');
+        html.push('        </div>');
+        html.push('        <div style="font-weight: 700; color: #2c3e50;">' + (service.prix ? parseFloat(service.prix).toFixed(2) + ' €' : '-') + '</div>');
+        html.push('      </div>');
+        html.push('    </div>');
+    });
+    
+    // Fermer la section services
+    html.push('  </div>');
+    
+    // Section informations pratiques
+    html.push('  <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 20px; margin-bottom: 20px;">');
+    html.push('    <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #166534; display: flex; align-items: center; gap: 8px;">');
+    html.push('      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">');
+    html.push('        <circle cx="12" cy="12" r="10"></circle>');
+    html.push('        <line x1="12" y1="16" x2="12" y2="12"></line>');
+    html.push('        <line x1="12" y1="8" x2="12.01" y2="8"></line>');
+    html.push('      </svg>');
+    html.push('      Informations importantes');
+    html.push('    </h3>');
+    html.push('    <ul style="margin: 0; padding-left: 20px; color: #166534; font-size: 14px; line-height: 1.6;">');
+    html.push('      <li>Présentez ce ticket à votre arrivée</li>');
+    html.push('      <li>Merci d\'arriver 5 minutes avant l\'heure prévue</li>');
+    html.push('      <li>En cas d\'empêchement, merci de nous prévenir au moins 24h à l\'avance</li>');
+    html.push('    </ul>');
+    html.push('  </div>');
+  
+    // Pied de page
+    html.push('  <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e2e8f0; margin-top: 20px; color: #64748b; font-size: 13px; line-height: 1.5;">');
+    html.push('    <p style="margin: 0 0 10px 0;">');
+    html.push('      <strong>L\'INSTITUT BY KM</strong><br>');
+    html.push('      20 Rue des frères Mellali<br>');
+    html.push('      06000 Béjaïa, Algérie');
+    html.push('    </p>');
+    html.push('    <p style="margin: 0; font-size: 12px;">');
+    html.push('      Tél: 0770 30 73 85 | Email: contact@linstitutbykm.dz');
+    html.push('    </p>');
+    html.push('    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 12px; color: #64748b;">');
+    html.push('      <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">');
+    html.push('        <span>Total:</span>');
+    html.push('        <span style="font-weight: 700;">' + (booking.price || '-') + '</span>');
+    html.push('      </div>');
+    html.push('      <div style="font-size: 11px; margin-top: 10px;">');
+    html.push('        Ticket généré le ' + formattedCurrentDate + ' à ' + formattedCurrentTime);
+    html.push('      </div>');
+    html.push('    </div>');
+    html.push('  </div>');
+  
+    // Fermer le conteneur principal
+    html.push('</div>');
+  
+    // Retourner le HTML généré
+    return html.join('\n');
 }
 
 // Fonction pour extraire les données de réservation depuis l'état global
 function extractBookingDataFromState() {
-    if (typeof bookingState !== 'undefined') {
-        return {
-            service: bookingState.selectedService?.name || '-',
-            employee: bookingState.selectedEmployee?.name || '-',
-            date: bookingState.selectedDate || '-',
-            slot: bookingState.selectedSlot || '-',
-            clientName: `${bookingState.client?.firstname || ''} ${bookingState.client?.lastname || ''}`.trim() || '-',
-            email: bookingState.client?.email || '-',
-            phone: bookingState.client?.phone || '-',
-            price: bookingState.selectedService?.price ? `${bookingState.selectedService.price} DA` : '-'
-        };
+    // Vérifier si bookingState est défini (approche plus robuste)
+    if (typeof bookingState !== 'undefined' && bookingState !== null) {
+        try {
+            const cart = Array.isArray(bookingState.cart) ? bookingState.cart : [];
+
+            // Convertir HH:MM en Date si possible
+            const buildStartTime = (dateStr, slotStr) => {
+                try {
+                    if (!dateStr || !slotStr) return null;
+                    const [h, m] = String(slotStr).split(':').map((x) => parseInt(x, 10));
+                    const d = new Date(dateStr);
+                    if (!isNaN(h)) d.setHours(h);
+                    if (!isNaN(m)) d.setMinutes(m);
+                    d.setSeconds(0);
+                    d.setMilliseconds(0);
+                    return d.toISOString();
+                } catch (e) {
+                    return null;
+                }
+            };
+
+            // Mapper le panier vers le format attendu par createSimpleTicketHTML
+            const services = cart.map((item) => {
+                const priceNum = parseFloat(item.price);
+                return {
+                    nom: (item.service && item.service.name) || 'Service',
+                    employe: (item.employee && item.employee.name) || 'Sans praticien',
+                    startTime: buildStartTime(item.date, item.slot),
+                    prix: isNaN(priceNum) ? undefined : priceNum,
+                    // Couleur employé si disponible ailleurs (facultatif)
+                    employeeColor: (item.employee && item.employee.color) || undefined,
+                };
+            });
+
+            // Calcul du total (en DA)
+            let total = 0;
+            let minTotal = 0;
+            let hasVariable = false;
+            cart.forEach((item) => {
+                const p = parseFloat(item.price);
+                if (!isNaN(p) && p > 0) {
+                    total += p;
+                } else if (item.service && item.service.variable_price == 1) {
+                    hasVariable = true;
+                    const min = Number(item.service.min_price) || 0;
+                    minTotal += min;
+                }
+            });
+
+            const priceText = hasVariable
+                ? `À partir de ${(total + minTotal).toLocaleString()} DA`
+                : total > 0
+                ? `${total.toLocaleString()} DA`
+                : '-';
+
+            // Client
+            const client = {
+                prenom: (bookingState.client && bookingState.client.firstname) || '',
+                nom: (bookingState.client && bookingState.client.lastname) || '',
+                email: (bookingState.client && bookingState.client.email) || '',
+                telephone: (bookingState.client && bookingState.client.phone) || '',
+            };
+
+            return {
+                service: (bookingState.selectedService && bookingState.selectedService.name) || '-',
+                employee: (bookingState.selectedEmployee && bookingState.selectedEmployee.name) || '-',
+                date: bookingState.selectedDate || '-',
+                slot: bookingState.selectedSlot || '-',
+                clientName: `${client.prenom} ${client.nom}`.trim() || '-',
+                email: client.email || '-',
+                phone: client.telephone || '-',
+                price: priceText,
+                services,
+                client,
+            };
+        } catch (err) {
+            console.warn('extractBookingDataFromState fallback (error):', err);
+        }
     }
     
     // Fallback: extraire depuis le DOM
@@ -249,7 +339,9 @@ function extractBookingDataFromState() {
             clientName: getValue('.ticket-details div:nth-child(5) .ticket-value'),
             email: getValue('.ticket-details div:nth-child(6) .ticket-value'),
             phone: getValue('.ticket-details div:nth-child(7) .ticket-value'),
-            price: getValue('.ticket-details div:nth-child(8) .ticket-value')
+            price: getValue('.ticket-details div:nth-child(8) .ticket-value'),
+            // Ajouter un tableau services vide pour la compatibilité avec createSimpleTicketHTML
+            services: []
         };
     }
     
@@ -267,11 +359,35 @@ function extractBookingDataFromState() {
 
 // Fonction publique pour remplacer la génération PDF existante
 window.generateTicketPDFFixed = function() {
-    const ticketElement = document.querySelector('.booking-ticket-modern');
     const buttonElement = document.getElementById('download-ticket-btn');
     const bookingData = extractBookingDataFromState();
     
-    generateTicketPDFAlternative(ticketElement, buttonElement, bookingData);
+    // Désactiver le bouton pendant la génération
+    if (buttonElement) {
+        buttonElement.disabled = true;
+        buttonElement.textContent = 'Génération en cours...';
+    }
+    
+    // Petit délai pour permettre à l'interface de se mettre à jour
+    setTimeout(function() {
+        try {
+            generateTicketPDFAlternative(null, buttonElement, bookingData);
+            if (buttonElement) {
+                buttonElement.textContent = 'Télécharger le ticket';
+                buttonElement.disabled = false;
+            }
+        } catch (error) {
+            console.error("❌ Erreur lors de la génération du PDF:", error);
+            showBookingNotification("Erreur lors de la génération du PDF");
+            if (buttonElement) {
+                buttonElement.textContent = 'Télécharger le ticket';
+                buttonElement.disabled = false;
+            }
+        }
+    }, 100);
 };
 
-console.log("🎫 PDF Ticket Fix chargé - Utilisez window.generateTicketPDFFixed()");
+// Initialisation
+if (typeof document !== 'undefined') {
+    console.log("🎫 PDF Ticket Fix chargé - Utilisez window.generateTicketPDFFixed()");
+}

@@ -8587,7 +8587,8 @@ button[class*="slot"][disabled] {
 }
 
 .reservation-ticket-price span:last-child strong {
-  color: #10b981;
+  /* color: #f20505; */
+  color: #a8977b;
 }
 
 .reservation-tickets-actions {

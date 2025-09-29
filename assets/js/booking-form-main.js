@@ -547,28 +547,81 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           prixHtml = Number(item.service.price).toLocaleString() + " DA";
         }
 
-        reservationsHtml += `
-        <div class="reservation-ticket-card">
-          <div class="reservation-ticket-header">
-            <span class="reservation-ticket-icon">✔️</span>
-            <span class="reservation-ticket-title">Réservation confirmée</span>
+        // Pour le premier ticket, afficher d'abord les infos client
+        if (index === 0) {
+          reservationsHtml += `
+          <div class="reservation-ticket-card">
+            <div class="reservation-ticket-header">
+              <span class="reservation-ticket-icon">✔️</span>
+              <span class="reservation-ticket-title">Réservation confirmée</span>
+            </div>
+            <div class="reservation-ticket-message">
+              Merci pour votre réservation !<br>
+              Un email de confirmation vous a été envoyé.
+            </div>
+            <div class="reservation-ticket-body">
+              <div class="reservation-ticket-row"><span>Client</span><span>${
+                bookingState.client?.firstname || "-"
+              } ${bookingState.client?.lastname || "-"}</span></div>
+              <div class="reservation-ticket-row"><span>Email</span><span>${
+                bookingState.client?.email || "-"
+              }</span></div>
+              <div class="reservation-ticket-row"><span>Téléphone</span><span>${
+                bookingState.client?.phone || "-"
+              }</span></div>
+              <div class="reservation-ticket-row"><span>Service</span><span>${
+                item.service.name
+              }</span></div>
+              <div class="reservation-ticket-row"><span>Praticienne</span><span>${
+                item.employee.name
+              }</span></div>
+              <div class="reservation-ticket-row"><span>Date</span><span>${new Date(
+                item.date
+              ).toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              })}</span></div>
+              <div class="reservation-ticket-row"><span>Créneau</span><span>${
+                item.slot
+              }</span></div>
+              <div class="reservation-ticket-row reservation-ticket-price"><span>Prix</span><span><strong>${prixHtml}</strong></span></div>
+            </div>
           </div>
-          <div class="reservation-ticket-message">
-            Merci pour votre réservation !<br>
-            Un email de confirmation vous a été envoyé.
+          `;
+        } else {
+          reservationsHtml += `
+          <div class="reservation-ticket-card">
+            <div class="reservation-ticket-header">
+              <span class="reservation-ticket-icon">✔️</span>
+              <span class="reservation-ticket-title">Réservation confirmée</span>
+            </div>
+            <div class="reservation-ticket-message">
+              Merci pour votre réservation !<br>
+              Un email de confirmation vous a été envoyé.
+            </div>
+            <div class="reservation-ticket-body">
+              <div class="reservation-ticket-row"><span>Service</span><span>${
+                item.service.name
+              }</span></div>
+              <div class="reservation-ticket-row"><span>Praticienne</span><span>${
+                item.employee.name
+              }</span></div>
+              <div class="reservation-ticket-row"><span>Date</span><span>${new Date(
+                item.date
+              ).toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              })}</span></div>
+              <div class="reservation-ticket-row"><span>Créneau</span><span>${
+                item.slot
+              }</span></div>
+              <div class="reservation-ticket-row reservation-ticket-price"><span>Prix</span><span><strong>${prixHtml}</strong></span></div>
+            </div>
           </div>
-          <div class="reservation-ticket-body">
-            <div class="reservation-ticket-row"><span>Service</span><span>${item.service.name}</span></div>
-            <div class="reservation-ticket-row"><span>Praticienne</span><span>${item.employee.name}</span></div>
-            <div class="reservation-ticket-row"><span>Date</span><span>${new Date(item.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })}</span></div>
-            <div class="reservation-ticket-row"><span>Créneau</span><span>${item.slot}</span></div>
-            <div class="reservation-ticket-row"><span>Client</span><span>${bookingState.client?.firstname || "-"} ${bookingState.client?.lastname || "-"}</span></div>
-            <div class="reservation-ticket-row"><span>Email</span><span>${bookingState.client?.email || "-"}</span></div>
-            <div class="reservation-ticket-row"><span>Téléphone</span><span>${bookingState.client?.phone || "-"}</span></div>
-            <div class="reservation-ticket-row reservation-ticket-price"><span>Prix</span><span><strong>${prixHtml}</strong></span></div>
-          </div>
-        </div>
-        `;
+          `;
+        }
       });
 
       return `
@@ -576,11 +629,13 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           <div style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
             ${reservationsHtml}
             <div style="display: flex; flex-direction: column; align-items: center; margin-top: 24px;">
-              <div style="font-size: 1.2rem; font-weight: 600; color: #2eaf6a; margin-bottom: 8px;">
+              <div style="font-size: 1.2rem; font-weight: 600; color: #a8977b; margin-bottom: 8px;">
                 ${
                   totalPrice > 0 || (hasVariablePrice && minTotalPrice > 0)
                     ? hasVariablePrice
-                      ? "Total à partir de " + (totalPrice + minTotalPrice).toLocaleString() + " DA"
+                      ? "Total à partir de " +
+                        (totalPrice + minTotalPrice).toLocaleString() +
+                        " DA"
                       : "Total " + totalPrice.toLocaleString() + " DA"
                     : ""
                 }

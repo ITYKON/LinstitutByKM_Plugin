@@ -561,12 +561,12 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           reservationsHtml += `
           <div class="reservation-ticket-card">
             <div class="reservation-ticket-header">
-              <span class="reservation-ticket-icon">✔️</span>
+              <span class="reservation-ticket-icon">✓</span>
               <span class="reservation-ticket-title">Réservation confirmée</span>
             </div>
             <div class="reservation-ticket-message">
               Merci pour votre réservation !<br>
-              Un email de confirmation vous a été envoyé.
+              Un email de confirmation vous sera envoyé.
             </div>
             <div class="reservation-ticket-body">
               <div class="reservation-ticket-row"><span>Client</span><span>${
@@ -602,7 +602,7 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           reservationsHtml += `
           <div class="reservation-ticket-card">
             <div class="reservation-ticket-header">
-              <span class="reservation-ticket-icon">✔️</span>
+              <span class="reservation-ticket-icon">✓</span>
               <span class="reservation-ticket-title">Réservation confirmée</span>
             </div>
             <div class="reservation-ticket-message">
@@ -636,9 +636,9 @@ window.scrollToProgressBar = function (callback, delay = 300) {
       return `
         <div class='booking-main-content'>
           <div style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
-            ${reservationsHtml}
-            <div style="display: flex; flex-direction: column; align-items: center; margin-top: 24px;">
-              <div style="font-size: 1.2rem; font-weight: 600; color: #a8977b; margin-bottom: 8px;">
+            <div id="ticket-capture-area" style="display: contents;">
+              ${reservationsHtml}
+              <div style="font-size: 1.2rem; font-weight: 600; color: #a8977b; margin-top: 8px; margin-bottom: 8px;">
                 ${
                   totalPrice > 0 || (hasVariablePrice && minTotalPrice > 0)
                     ? hasVariablePrice
@@ -649,6 +649,8 @@ window.scrollToProgressBar = function (callback, delay = 300) {
                     : ""
                 }
               </div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; margin-top: 24px;">
               <button id="download-ticket-btn" type="button" style="background: #111827; color: #ffffff; border: none; border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;" onmouseover="this.style.background='#374151'" onmouseout="this.style.background='#111827'">Télécharger le ticket</button>
             </div>
           </div>
@@ -1101,15 +1103,20 @@ window.scrollToProgressBar = function (callback, delay = 300) {
             const btn = document.getElementById("download-ticket-btn");
             if (btn) {
               btn.onclick = () => {
-                // Utiliser la fonction globale de génération de PDF
                 if (typeof window.generateTicketPDFFixed === "function") {
                   btn.disabled = true;
                   btn.textContent = "Génération en cours...";
-
-                  // Petit délai pour permettre à l'interface de se mettre à jour
+                  // Passer toutes les infos de réservation à la fonction PDF
+                  const cartCopy = JSON.parse(
+                    JSON.stringify(window.bookingState.cart)
+                  );
+                  const bookingData = {
+                    ...window.bookingState,
+                    cart: cartCopy,
+                  };
                   setTimeout(() => {
                     try {
-                      window.generateTicketPDFFixed();
+                      window.generateTicketPDFFixed(bookingData);
                       btn.textContent = "Télécharger le ticket";
                     } catch (error) {
                       console.error(

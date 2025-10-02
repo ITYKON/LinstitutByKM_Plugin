@@ -336,6 +336,8 @@ function ib_admin_assets($hook)
         wp_enqueue_style('wp-color-picker');
 
         // Scripts spécifiques aux pages du plugin
+        // Librairie PDF nécessaire pour la génération de tickets côté admin
+        wp_enqueue_script('html2pdf', 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', [], null, true);
         wp_enqueue_script('ib-pdf-ticket-fix', IB_PLUGIN_URL . 'assets/js/pdf-ticket-fix.js', [], '1.0-' . time(), true);
 
         // Script pour le calendrier des absences sur la page employés
@@ -595,6 +597,10 @@ function ib_enqueue_booking_form_assets()
     // wp_enqueue_script('ib-frontend-script', IB_PLUGIN_URL . 'assets/js/admin-script.js', ['jquery'], time(), true);
     wp_enqueue_script('flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr', [], null, true);
     wp_enqueue_style('flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css', [], null);
+
+    // Librairie nécessaire pour la génération PDF côté frontend
+    // Doit être chargée avant notre correctif PDF
+    wp_enqueue_script('html2pdf', 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', [], null, true);
 
     // SCRIPT FIX PDF POUR LES TICKETS (frontend)
     wp_enqueue_script('ib-pdf-ticket-fix-frontend', IB_PLUGIN_URL . 'assets/js/pdf-ticket-fix.js', [], '1.0-' . time(), true);

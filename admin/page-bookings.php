@@ -1710,33 +1710,46 @@ document.addEventListener('DOMContentLoaded', function() {
     var date = dateFilter ? dateFilter.value : '';
     var rows = table.querySelectorAll('tbody tr');
     rows.forEach(function(row) {
+      // Colonne mapping (selon le tableau affiché):
+      // 0: client, 1: téléphone, 2: service, 3: employé, 4: date, 5: prix, 6: statut, 7: actions
       var client = normalize(row.cells[0]?.textContent);
-      var email = normalize(row.cells[1]?.textContent);
-      var phone = normalize(row.cells[2]?.textContent);
-      var serviceCell = normalize(row.cells[3]?.textContent);
-      var employeeCell = normalize(row.cells[4]?.textContent);
-      var dateCell = row.cells[5]?.getAttribute('data-date') || '';
-      var statusCell = row.cells[7]?.querySelector('select')?.value || '';
+      var phone = normalize(row.cells[1]?.textContent);
+      var serviceCell = normalize(row.cells[2]?.textContent);
+      var employeeCell = normalize(row.cells[3]?.textContent);
+      // La date est stockée en attribut data-date sur la cellule de la colonne date (index 4)
+      var dateCell = row.cells[4]?.getAttribute('data-date') || normalize(row.cells[4]?.textContent || '');
+      // Le statut peut être un select dans la colonne 6
+      var statusCell = row.cells[6]?.querySelector('select')?.value || normalize(row.cells[6]?.textContent || '');
       var show = true;
-      // Recherche texte (nom, téléphone, email, service, employé)
-      if (search && !(client.includes(search) || phone.includes(search) || email.includes(search) || serviceCell.includes(search) || employeeCell.includes(search))) {
+
+      // Recherche texte (nom, téléphone, service, employé)
+      if (search && !(client.includes(search) || phone.includes(search) || serviceCell.includes(search) || employeeCell.includes(search))) {
         show = false;
       }
       // Filtre statut
       if (status && statusCell !== status) {
         show = false;
       }
-      // Filtre employé
-      if (employee && row.cells[4]?.getAttribute('data-emp-id') !== employee) {
+      // Filtre employé (vérifie l'attribut data-emp-id sur la cellule employé)
+      if (employee && row.cells[3]?.getAttribute('data-emp-id') !== employee) {
         show = false;
       }
-      // Filtre service
-      if (service && row.cells[3]?.getAttribute('data-srv-id') !== service) {
+      // Filtre service (vérifie l'attribut data-srv-id sur la cellule service)
+      if (service && row.cells[2]?.getAttribute('data-srv-id') !== service) {
         show = false;
       }
-      // Filtre date
-      if (date && dateCell !== date) {
-        show = false;
+      // Filtre date (compare YYYY-MM-DD)
+      if (date) {
+        // Si la cellule contient la date en format jj/mm/aaaa, essayer de normaliser
+        var cellDate = dateCell;
+        if (cellDate && /\d{2}\/\d{2}\/\d{4}/.test(cellDate)) {
+          // convertir jj/mm/aaaa en aaaa-mm-jj
+          var parts = cellDate.split('/');
+          cellDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+        }
+        if (!cellDate || cellDate !== date) {
+          show = false;
+        }
       }
       row.style.display = show ? '' : 'none';
     });

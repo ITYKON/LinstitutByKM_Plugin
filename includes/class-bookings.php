@@ -137,7 +137,19 @@ class IB_Bookings {
             'cancel_token' => $cancel_token,
         ];
         
-        $wpdb->insert("{$wpdb->prefix}ib_bookings", $booking_data);
+        // Résilience schéma: gérer l'absence éventuelle de la colonne cancel_token
+        $table_name = "{$wpdb->prefix}ib_bookings";
+        $has_cancel_token = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'cancel_token')) ? true : false;
+        if (!$has_cancel_token) {
+            // Tenter d'ajouter la colonne automatiquement (silencieusement)
+            $alter_ok = $wpdb->query("ALTER TABLE $table_name ADD COLUMN `cancel_token` VARCHAR(64) NULL DEFAULT NULL, ADD INDEX (`cancel_token`)") !== false;
+            if (!$alter_ok) {
+                // En dernier recours, retirer le champ de l'insert pour éviter une erreur HTML côté frontend
+                unset($booking_data['cancel_token']);
+            }
+        }
+
+        $wpdb->insert($table_name, $booking_data);
         // Mettre à jour la valeur normalisée pour usages en aval
         $data['start_time'] = $start_datetime;
         $data['end_time'] = $end_datetime;

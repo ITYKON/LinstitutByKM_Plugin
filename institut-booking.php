@@ -717,7 +717,6 @@ function institut_booking_fullpage()
 
 // Fin du fichier, ne rien ajouter après cette ligne pour éviter toute sortie parasite.
 
-
 add_action('wp_ajax_add_booking', 'handle_add_booking');
 add_action('wp_ajax_nopriv_add_booking', 'handle_add_booking');
 
@@ -727,7 +726,12 @@ add_action('wp_ajax_nopriv_add_multiple_bookings', 'handle_add_multiple_bookings
 
 function handle_add_booking()
 {
-    check_ajax_referer('ib_nonce', 'nonce');
+    // Vérification nonce avec réponse JSON propre (évite les pages HTML de wp_die)
+    $nonce = isset($_POST['nonce']) ? $_POST['nonce'] : '';
+    if (!wp_verify_nonce($nonce, 'ib_nonce')) {
+        wp_send_json_error(['message' => 'Nonce invalide'], 403);
+        return;
+    }
     $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
     $employee_id = isset($_POST['employee_id']) ? intval($_POST['employee_id']) : 0;
     $date = isset($_POST['date']) ? sanitize_text_field($_POST['date']) : '';
@@ -820,7 +824,12 @@ function handle_add_booking()
 
 function handle_add_multiple_bookings()
 {
-    check_ajax_referer('ib_nonce', 'nonce');
+    // Vérification nonce avec réponse JSON propre (évite les pages HTML de wp_die)
+    $nonce = isset($_POST['nonce']) ? $_POST['nonce'] : '';
+    if (!wp_verify_nonce($nonce, 'ib_nonce')) {
+        wp_send_json_error(['message' => 'Nonce invalide'], 403);
+        return;
+    }
     
     $bookings = isset($_POST['bookings']) ? $_POST['bookings'] : [];
     $firstname = isset($_POST['firstname']) ? sanitize_text_field($_POST['firstname']) : '';

@@ -3296,6 +3296,15 @@ window.scrollToProgressBar = function (callback, delay = 300) {
           },
           success: function (response) {
             console.log("Réponse AJAX réservation:", response);
+            // Si le serveur renvoie du HTML (ex: 403, nonce invalide, redirection login), prévenir clairement
+            if (typeof response === "string" && response.trim().startsWith("<")) {
+              console.error("[AJAX DIAG] Réponse HTML détectée au lieu de JSON:", response.substring(0, 400));
+              showBookingNotification(
+                "Le serveur a renvoyé une page HTML au lieu de JSON (probable 403/nonce/cachage). Voyez la console pour le détail."
+              );
+              if (submitBtn) submitBtn.disabled = false;
+              return;
+            }
             if (typeof response === "string") {
               try {
                 response = JSON.parse(response);
@@ -3327,9 +3336,13 @@ window.scrollToProgressBar = function (callback, delay = 300) {
             }
           },
           error: function (xhr, status, error) {
-            console.error("[AJAX ERROR]", status, error, xhr);
+            // Log complet + extrait de la réponse serveur pour diagnostiquer (403, nonce, login, fatal, etc.)
+            const body = (xhr && xhr.responseText) ? xhr.responseText : "";
+            const excerpt = body ? body.toString().substring(0, 400) : "";
+            console.error("[AJAX ERROR]", { status, error, httpStatus: xhr && xhr.status, responseText: excerpt });
             showBookingNotification(
-              "Erreur AJAX lors de la réservation : " + error
+              "Erreur AJAX lors de la réservation (" + (xhr && xhr.status ? xhr.status : status) + ") : " + error +
+                (excerpt ? "\n\nAperçu: " + excerpt : "")
             );
             if (submitBtn) submitBtn.disabled = false; // Réactive le bouton si erreur
           },

@@ -38,16 +38,31 @@ class IB_Availability {
         }
         error_log("✅ L'employé $employee_id n'est pas absent le $date");
 
-        // Récupérer les horaires d'ouverture dynamiques
-        $opening = get_option('ib_opening_time', '09:00');
-        $closing = get_option('ib_closing_time', '17:00');
+        // Vérifier si le jour est une fermeture exceptionnelle (Jour Off global)
+        $offdays = get_option('ib_company_offdays', []);
+        if (in_array($date, $offdays)) {
+            error_log("❌ Date $date est un jour off (fermeture exceptionnelle)");
+            return [];
+        }
+
+        // Récupérer les horaires d'ouverture (par défaut ou journée spéciale)
+        $specials = get_option('ib_company_specialdays', []);
+        if (isset($specials[$date])) {
+            $opening = $specials[$date]['start'];
+            $closing = $specials[$date]['end'];
+            error_log("📅 Journée spéciale détectée pour $date : $opening - $closing");
+        } else {
+            $opening = get_option('ib_opening_time', '09:00');
+            $closing = get_option('ib_closing_time', '17:00');
+        }
+
         $opening_hours = [
             'start' => $opening,
             'end' => $closing
         ];
-        error_log("🔍 Horaires d'ouverture: " . print_r($opening_hours, true));
+        error_log("🔍 Horaires d'ouverture appliqués: " . print_r($opening_hours, true));
 
-        // Vérifier si le jour est ouvert (optionnel : ajouter gestion jours off/specials ici)
+        // Vérifier si les horaires sont définis
         if (!$opening_hours['start'] || !$opening_hours['end']) {
             error_log("❌ Horaires d'ouverture manquants");
             return [];
@@ -99,8 +114,19 @@ class IB_Availability {
         return $available_slots;
     }
 
-    public static function get_opening_hours($day) {
-        // Retourne les horaires dynamiques pour n'importe quel jour
+    public static function get_opening_hours($day, $date = null) {
+        // Si une date spécifique est fournie, vérifier d'abord les journées spéciales
+        if ($date) {
+            $specials = get_option('ib_company_specialdays', []);
+            if (isset($specials[$date])) {
+                return [
+                    'start' => $specials[$date]['start'],
+                    'end' => $specials[$date]['end']
+                ];
+            }
+        }
+
+        // Retourne les horaires par défaut
         $opening = get_option('ib_opening_time', '09:00');
         $closing = get_option('ib_closing_time', '17:00');
         return [
@@ -109,8 +135,15 @@ class IB_Availability {
         ];
     }
 
-    public static function is_day_open($day) {
-        // Ici tu peux ajouter la logique pour jours off/specials si besoin
+    public static function is_day_open($day, $date = null) {
+        // Si une date spécifique est fournie, vérifier si c'est un jour off
+        if ($date) {
+            $offdays = get_option('ib_company_offdays', []);
+            if (in_array($date, $offdays)) {
+                return false;
+            }
+        }
+
         $opening = get_option('ib_opening_time', '09:00');
         $closing = get_option('ib_closing_time', '17:00');
         return !empty($opening) && !empty($closing);
@@ -128,7 +161,7 @@ class IB_Availability {
             $current_date = date('Y-m-d', $date);
             $day = strtolower(date('l', $date));
 
-            if (self::is_day_open($day)) {
+            if (self::is_day_open($day, $current_date)) {
                 // Vérifier si l'employé n'est pas absent ce jour-là
                 require_once plugin_dir_path(__FILE__) . '/class-employee-absences.php';
                 if (!IB_Employee_Absences::is_employee_absent($employee_id, $current_date)) {

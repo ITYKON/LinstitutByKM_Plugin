@@ -24,7 +24,7 @@ function get_available_slots($employee_id, $service_id, $date) {
 // Fonction pour vérifier si une date est valide (jour ouvré)
 function is_valid_date($date) {
     $day = strtolower(date('l', strtotime($date)));
-    return IB_Availability::is_day_open($day);
+    return IB_Availability::is_day_open($day, $date);
 }
 
 // Fonction pour obtenir la prochaine date disponible

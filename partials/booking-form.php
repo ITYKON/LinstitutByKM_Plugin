@@ -458,22 +458,39 @@ waitForjQuery();
 }
 
 .service-item-planity .service-price-planity {
-  display: none !important;
+  display: block !important;
+  font-size: 0.8rem !important;
+  color: #111827 !important;
+  margin: 0 !important;
+  font-weight: 600 !important;
+  text-align: right !important;
+  white-space: nowrap !important;
 }
 
 .service-item-planity .service-duration-planity {
   font-size: 0.85rem !important;
   color: #6b7280 !important;
-  margin: 0 1.5rem 0 0 !important;
-  min-width: 50px !important;
+  margin: 0 !important;
+  min-width: auto !important;
   text-align: right !important;
+  white-space: nowrap !important;
 }
 
-/* Zone droite avec durée et bouton seulement */
+/* Conteneur pour prix et durée (prix au-dessus, durée en dessous) */
+.service-item-planity .price-duration-container {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 0.2rem !important;
+  margin: 0 !important;
+}
+
+/* Zone droite avec conteneur prix/durée et bouton sur la même ligne */
 .service-item-planity .service-meta-planity {
   display: flex !important;
+  flex-direction: row !important;
   align-items: center !important;
-  gap: 1rem !important;
+  gap: 0.8rem !important;
   margin: 0 !important;
   position: static !important;
   width: auto !important;

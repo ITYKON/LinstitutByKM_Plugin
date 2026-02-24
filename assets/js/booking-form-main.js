@@ -1669,12 +1669,14 @@ window.scrollToProgressBar = function (callback, delay = 300) {
         <div class="service-info-planity">
           <h3 class="service-name-planity">${serviceName}</h3>
           <p class="service-description-planity">${serviceDescription}</p>
-          <p class="service-price-planity">${priceText}</p>
         </div>
         <div class="service-meta-planity">
-          <span class="service-duration-planity">${formatDuration(
-            srv.duration || 30
-          )}</span>
+          <div class="price-duration-container">
+            <p class="service-price-planity">${priceText}</p>
+            <span class="service-duration-planity">${formatDuration(
+              srv.duration || 30
+            )}</span>
+          </div>
           <button class="service-choose-btn" type="button">Choisir</button>
         </div>
       `;

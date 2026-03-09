@@ -444,6 +444,9 @@ add_action('wp_ajax_ib_save_sms_config', function() {
             update_option('ib_twilio_whatsapp_from', $twilio_whatsapp_from);
         }
         
+        if (function_exists('ib_purge_cache')) {
+            ib_purge_cache();
+        }
         wp_send_json_success(['message' => 'Configuration sauvegardée avec succès']);
         
     } catch (Exception $e) {
@@ -667,3 +670,39 @@ add_action('wp_ajax_ib_install_selenium', function() {
         wp_send_json_error(['message' => 'Erreur : ' . $e->getMessage()]);
     }
 });
+/**
+ * Purge common WordPress cache plugins
+ */
+function ib_purge_cache() {
+    // WP Rocket
+    if (function_exists('get_rocket_option') && function_exists('rocket_clean_domain')) {
+        rocket_clean_domain();
+    }
+    
+    // LiteSpeed Cache
+    if (class_exists('LiteSpeed_Cache_API') && method_exists('LiteSpeed_Cache_API', 'purge_all')) {
+        LiteSpeed_Cache_API::purge_all();
+    }
+    
+    // WP Super Cache
+    if (function_exists('wp_cache_clear_cache')) {
+        wp_cache_clear_cache();
+    }
+    
+    // W3 Total Cache
+    if (function_exists('w3tc_pgcache_flush')) {
+        w3tc_pgcache_flush();
+    }
+    
+    // Autoptimize
+    if (class_exists('autoptimizeCache') && method_exists('autoptimizeCache', 'clearall')) {
+        autoptimizeCache::clearall();
+    }
+    
+    // SiteGround Optimizer
+    if (function_exists('sg_cachepress_purge_cache')) {
+        sg_cachepress_purge_cache();
+    }
+    
+    error_log('[IB_CACHE] Cache purge triggered.');
+}

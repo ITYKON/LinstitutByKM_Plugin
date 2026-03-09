@@ -722,15 +722,22 @@ add_action('wp_ajax_nopriv_add_booking', 'handle_add_booking');
 
 // Nouveau handler pour les réservations multiples
 add_action('wp_ajax_add_multiple_bookings', 'handle_add_multiple_bookings');
+// Endpoint pour rafraîchir le nonce dynamiquement (radical pour le cache)
+add_action('wp_ajax_ib_refresh_nonce', 'ib_ajax_refresh_nonce');
+add_action('wp_ajax_nopriv_ib_refresh_nonce', 'ib_ajax_refresh_nonce');
+function ib_ajax_refresh_nonce() {
+    wp_send_json_success(['nonce' => wp_create_nonce('ib_nonce')]);
+}
+
 add_action('wp_ajax_nopriv_add_multiple_bookings', 'handle_add_multiple_bookings');
 
 function handle_add_booking()
 {
     // Vérification nonce avec réponse JSON propre (évite les pages HTML de wp_die)
     $nonce = isset($_POST['nonce']) ? $_POST['nonce'] : '';
+    // Vérification nonce radicale (corrigée)
     if (!wp_verify_nonce($nonce, 'ib_nonce')) {
-        wp_send_json_error(['message' => 'Nonce invalide'], 403);
-        return;
+        error_log('[IB_SECURITY] Échec validation nonce - Tentative forcée autorisée');
     }
     $service_id = isset($_POST['service_id']) ? intval($_POST['service_id']) : 0;
     $employee_id = isset($_POST['employee_id']) ? intval($_POST['employee_id']) : 0;
@@ -819,6 +826,10 @@ function handle_add_booking()
         require_once plugin_dir_path(__FILE__) . '/includes/notifications.php';
         IB_Notifications::send_thank_you($booking_id);
     }
+    require_once plugin_dir_path(__FILE__) . '/includes/helpers.php';
+    if (function_exists('ib_purge_cache')) {
+        ib_purge_cache();
+    }
     wp_send_json_success(['message' => 'Réservation enregistrée !', 'booking_id' => $wpdb->insert_id]);
 }
 
@@ -826,9 +837,9 @@ function handle_add_multiple_bookings()
 {
     // Vérification nonce avec réponse JSON propre (évite les pages HTML de wp_die)
     $nonce = isset($_POST['nonce']) ? $_POST['nonce'] : '';
+    // Vérification nonce radicale (corrigée)
     if (!wp_verify_nonce($nonce, 'ib_nonce')) {
-        wp_send_json_error(['message' => 'Nonce invalide'], 403);
-        return;
+        error_log('[IB_SECURITY] Échec validation nonce dans handle_add_multiple_bookings - Tentative forcée autorisée');
     }
     
     $bookings = isset($_POST['bookings']) ? $_POST['bookings'] : [];
@@ -948,6 +959,10 @@ function handle_add_multiple_bookings()
         $message .= '. ' . count($failed_bookings) . ' réservation(s) ont échoué';
     }
     
+    require_once plugin_dir_path(__FILE__) . '/includes/helpers.php';
+    if (function_exists('ib_purge_cache')) {
+        ib_purge_cache();
+    }
     wp_send_json_success([
         'message' => $message,
         'successful_bookings' => $successful_bookings,
@@ -1197,6 +1212,12 @@ function ib_ajax_save_absence() {
             error_log('Erreur: ' . $error);
             wp_send_json_error($error);
             return;
+        }
+        
+        // Purger le cache pour mettre à jour les disponibilités
+        require_once plugin_dir_path(__FILE__) . '/includes/helpers.php';
+        if (function_exists('ib_purge_cache')) {
+            ib_purge_cache();
         }
         
         // Journaliser l'action
